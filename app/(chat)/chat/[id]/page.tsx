@@ -2,7 +2,7 @@ import { cookies } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 
 import { auth } from '@/app/(auth)/auth';
-import { Chat } from '@/components/chat';
+import { FloatingChat } from '@/components/floating-chat';
 import { getChatById, getMessagesByChatId } from '@/lib/db/queries';
 import { DataStreamHandler } from '@/components/data-stream-handler';
 import { DEFAULT_CHAT_MODEL } from '@/lib/ai/models';
@@ -57,7 +57,7 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
   if (!chatModelFromCookie) {
     return (
       <>
-        <Chat
+        <FloatingChat
           id={chat.id}
           initialMessages={convertToUIMessages(messagesFromDb)}
           initialChatModel={DEFAULT_CHAT_MODEL}
@@ -73,7 +73,7 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
 
   return (
     <>
-      <Chat
+      <FloatingChat
         id={chat.id}
         initialMessages={convertToUIMessages(messagesFromDb)}
         initialChatModel={chatModelFromCookie.value}
