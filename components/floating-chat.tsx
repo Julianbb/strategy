@@ -22,6 +22,7 @@ import { ChatSDKError } from '@/lib/errors';
 
 interface FloatingChatProps {
   id: string;
+  strategyChatId: string;
   initialMessages: Array<UIMessage>;
   initialChatModel: string;
   initialVisibilityType: VisibilityType;
@@ -131,6 +132,7 @@ const FloatingMessages = forwardRef<
 
 function FloatingChatContent({
   id,
+  strategyChatId,
   initialMessages,
   initialChatModel,
   initialVisibilityType,
@@ -167,6 +169,7 @@ function FloatingChatContent({
     fetch: fetchWithErrorHandlers,
     experimental_prepareRequestBody: (body) => ({
       id,
+      strategyChatId,
       message: body.messages.at(-1),
       selectedChatModel: initialChatModel,
       selectedVisibilityType: visibilityType,

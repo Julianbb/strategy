@@ -29,8 +29,10 @@ import {
   stream,
   strategyType,
   type StrategyType,
-  strategy,
-  type Strategy,
+  strategyChat,
+  type StrategyChat,
+  trades,
+  type Trades,
 } from './schema';
 import type { ArtifactKind } from '@/components/artifact';
 import { generateUUID } from '../utils';
@@ -641,121 +643,203 @@ export async function deleteStrategyType({ id }: { id: string }) {
   }
 }
 
-// Strategy functions
-export async function createStrategy({
-  id,
-  name,
-  description,
-  objective,
-  timeline,
-  strategyTypeId,
-  chatId,
+export async function createTrade({
+  strategyChatId,
   userId,
+  product,
+  side,
+  orderType,
+  priceInCurrency,
+  priceInUSD,
+  amount,
+  costInCurrency,
+  costInUSD,
+  feeInCurrency,
+  feeInUSD,
+  executedAt,
 }: {
-  id: string;
-  name: string;
-  description?: string;
-  objective: string;
-  timeline?: string;
-  strategyTypeId: string;
-  chatId: string;
+  strategyChatId: string;
   userId: string;
+  product: string;
+  side: 'buy' | 'sell';
+  orderType?: 'market' | 'limit' | 'stop_loss' | 'take_profit';
+  priceInCurrency?: string;
+  priceInUSD?: string;
+  amount: string;
+  costInCurrency?: string;
+  costInUSD?: string;
+  feeInCurrency?: string;
+  feeInUSD?: string;
+  executedAt: Date;
 }) {
   try {
-    const now = new Date();
+
+    console.log({
+      strategyChatId,
+      userId,
+      product,
+      side,
+      orderType,
+      priceInCurrency,
+      priceInUSD,
+      amount,
+      costInCurrency,
+      costInUSD,
+      feeInCurrency,
+      feeInUSD,
+      executedAt,
+    });
+
+
+
     return await db
-      .insert(strategy)
+      .insert(trades)
       .values({
-        id,
-        name,
-        description,
-        objective,
-        timeline,
-        strategyTypeId,
-        chatId,
+        strategyChatId,
         userId,
-        createdAt: now,
-        updatedAt: now,
+        product,
+        side,
+        orderType: orderType || 'market',
+        priceInCurrency: priceInCurrency || null,
+        priceInUSD: priceInUSD || null,
+        amount,
+        costInCurrency: costInCurrency || null,
+        costInUSD: costInUSD || null,
+        feeInCurrency: feeInCurrency || null,
+        feeInUSD: feeInUSD || null,
+        executedAt,
+        createdAt: new Date(),
       })
       .returning();
   } catch (error) {
-    throw new ChatSDKError(
-      'bad_request:database',
-      'Failed to create strategy',
-    );
+    console.log(error)
+    throw new ChatSDKError('bad_request:database', 'Failed to create trade');
   }
 }
 
-export async function getStrategiesByUserId({ userId }: { userId: string }) {
+export async function getTradesByStrategyChat({
+  strategyChatId,
+  limit,
+  offset,
+}: {
+  strategyChatId: string;
+  limit?: number;
+  offset?: number;
+}) {
   try {
-    return await db
-      .select({
-        id: strategy.id,
-        name: strategy.name,
-        description: strategy.description,
-        objective: strategy.objective,
-        timeline: strategy.timeline,
-        status: strategy.status,
-        strategyTypeId: strategy.strategyTypeId,
-        chatId: strategy.chatId,
-        userId: strategy.userId,
-        createdAt: strategy.createdAt,
-        updatedAt: strategy.updatedAt,
-        strategyTypeName: strategyType.name,
-      })
-      .from(strategy)
-      .leftJoin(strategyType, eq(strategy.strategyTypeId, strategyType.id))
-      .where(eq(strategy.userId, userId))
-      .orderBy(desc(strategy.createdAt));
+    const query = db
+      .select()
+      .from(trades)
+      .where(eq(trades.strategyChatId, strategyChatId))
+      .orderBy(desc(trades.executedAt));
+
+    if (limit && offset) {
+      return await query.limit(limit).offset(offset);
+    } else if (limit) {
+      return await query.limit(limit);
+    } else if (offset) {
+      return await query.offset(offset);
+    }
+
+    return await query;
   } catch (error) {
     throw new ChatSDKError(
       'bad_request:database',
-      'Failed to get strategies by user id',
+      'Failed to get trades by strategy chat',
     );
   }
 }
 
-export async function updateStrategyById({
-  id,
-  name,
-  description,
-  objective,
-  timeline,
-  status,
+export async function getTradesByUserId({
   userId,
+  limit,
+  offset,
 }: {
-  id: string;
-  name?: string;
-  description?: string;
-  objective?: string;
-  timeline?: string;
-  status?: 'draft' | 'active' | 'completed' | 'archived';
   userId: string;
+  limit?: number;
+  offset?: number;
 }) {
   try {
-    const updateData: Partial<Strategy> = { updatedAt: new Date() };
-    if (name !== undefined) updateData.name = name;
-    if (description !== undefined) updateData.description = description;
-    if (objective !== undefined) updateData.objective = objective;
-    if (timeline !== undefined) updateData.timeline = timeline;
-    if (status !== undefined) updateData.status = status;
+    const query = db
+      .select()
+      .from(trades)
+      .where(eq(trades.userId, userId))
+      .orderBy(desc(trades.executedAt));
 
-    const [updatedStrategy] = await db
-      .update(strategy)
+    if (limit && offset) {
+      return await query.limit(limit).offset(offset);
+    } else if (limit) {
+      return await query.limit(limit);
+    } else if (offset) {
+      return await query.offset(offset);
+    }
+
+    return await query;
+  } catch (error) {
+    throw new ChatSDKError(
+      'bad_request:database',
+      'Failed to get trades by user id',
+    );
+  }
+}
+
+export async function getTradeById({ id }: { id: string }) {
+  try {
+    const [selectedTrade] = await db
+      .select()
+      .from(trades)
+      .where(eq(trades.id, id))
+      .limit(1);
+    return selectedTrade;
+  } catch (error) {
+    throw new ChatSDKError('bad_request:database', 'Failed to get trade by id');
+  }
+}
+
+export async function updateTradeById({
+  id,
+  userId,
+  priceCurrency,
+  priceInUSD,
+  costCurrency,
+  costInUSD,
+  feeCurrency,
+  feeInUSD,
+}: {
+  id: string;
+  userId: string;
+  priceCurrency?: string;
+  priceInUSD?: string;
+  costCurrency?: string;
+  costInUSD?: string;
+  feeCurrency?: string;
+  feeInUSD?: string;
+}) {
+  try {
+    const updateData: Partial<Trades> = {};
+    if (priceCurrency !== undefined) updateData.priceInCurrency = priceCurrency;
+    if (priceInUSD !== undefined) updateData.priceInUSD = priceInUSD;
+    if (costCurrency !== undefined) updateData.costInCurrency = costCurrency;
+    if (costInUSD !== undefined) updateData.costInUSD = costInUSD;
+    if (feeCurrency !== undefined) updateData.feeInCurrency = feeCurrency;
+    if (feeInUSD !== undefined) updateData.feeInUSD = feeInUSD;
+
+    const [updatedTrade] = await db
+      .update(trades)
       .set(updateData)
-      .where(and(eq(strategy.id, id), eq(strategy.userId, userId)))
+      .where(and(eq(trades.id, id), eq(trades.userId, userId)))
       .returning();
     
-    return updatedStrategy;
+    return updatedTrade;
   } catch (error) {
     throw new ChatSDKError(
       'bad_request:database',
-      'Failed to update strategy',
+      'Failed to update trade',
     );
   }
 }
 
-export async function deleteStrategyById({ 
+export async function deleteTradeById({ 
   id, 
   userId 
 }: { 
@@ -763,15 +847,34 @@ export async function deleteStrategyById({
   userId: string; 
 }) {
   try {
-    const [deletedStrategy] = await db
-      .delete(strategy)
-      .where(and(eq(strategy.id, id), eq(strategy.userId, userId)))
+    const [deletedTrade] = await db
+      .delete(trades)
+      .where(and(eq(trades.id, id), eq(trades.userId, userId)))
       .returning();
-    return deletedStrategy;
+    return deletedTrade;
   } catch (error) {
     throw new ChatSDKError(
       'bad_request:database',
-      'Failed to delete strategy',
+      'Failed to delete trade',
     );
   }
 }
+
+export async function getStrategyChatIdFromChatId({ chatId }: { chatId: string }) {
+  try {
+    const [selectedStrategyChat] = await db
+      .select({ id: strategyChat.id })
+      .from(strategyChat)
+      .where(eq(strategyChat.chatId, chatId))
+      .limit(1);
+    return selectedStrategyChat?.id;
+  } catch (error) {
+    throw new ChatSDKError(
+      'bad_request:database',
+      'Failed to get strategy chat id from chat id',
+    );
+  }
+}
+
+
+

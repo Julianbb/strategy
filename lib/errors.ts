@@ -4,7 +4,8 @@ export type ErrorType =
   | 'forbidden'
   | 'not_found'
   | 'rate_limit'
-  | 'offline';
+  | 'offline'
+  | 'type_wrong';
 
 export type Surface =
   | 'chat'
@@ -15,7 +16,8 @@ export type Surface =
   | 'history'
   | 'vote'
   | 'document'
-  | 'suggestions';
+  | 'suggestions'
+  | 'strategy';
 
 export type ErrorCode = `${ErrorType}:${Surface}`;
 
@@ -31,6 +33,7 @@ export const visibilityBySurface: Record<Surface, ErrorVisibility> = {
   vote: 'response',
   document: 'response',
   suggestions: 'response',
+  strategy:'response'
 };
 
 export class ChatSDKError extends Error {
@@ -87,6 +90,7 @@ export function getMessageByErrorCode(errorCode: ErrorCode): string {
     case 'forbidden:auth':
       return 'Your account does not have access to this feature.';
 
+    
     case 'rate_limit:chat':
       return 'You have exceeded your maximum number of messages for the day. Please try again later.';
     case 'not_found:chat':
@@ -106,7 +110,8 @@ export function getMessageByErrorCode(errorCode: ErrorCode): string {
       return 'You need to sign in to view this document. Please sign in and try again.';
     case 'bad_request:document':
       return 'The request to create or update the document was invalid. Please check your input and try again.';
-
+    case 'type_wrong:strategy':
+      return'The parameters of request is wrong';
     default:
       return 'Something went wrong. Please try again later.';
   }

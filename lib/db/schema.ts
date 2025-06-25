@@ -187,32 +187,8 @@ export const strategyType = pgTable(
 
 export type StrategyType = InferSelectModel<typeof strategyType>;
 
-export const strategy = pgTable(
-  'Strategy',
-  {
-    id: uuid('id').notNull().defaultRandom().primaryKey(),
-    name: text('name').notNull(),
-    description: text('description'),
-    objective: text('objective').notNull(),
-    timeline: text('timeline'),
-    status: varchar('status', { enum: ['draft', 'active', 'completed', 'archived'] })
-      .notNull()
-      .default('draft'),
-    strategyTypeId: uuid('strategyTypeId')
-      .notNull()
-      .references(() => strategyType.id),
-    chatId: uuid('chatId')
-      .notNull()
-      .references(() => chat.id),
-    userId: uuid('userId')
-      .notNull()
-      .references(() => user.id),
-    createdAt: timestamp('createdAt').notNull(),
-    updatedAt: timestamp('updatedAt').notNull(),
-  }
-);
 
-export type Strategy = InferSelectModel<typeof strategy>;
+
 
 export const strategyChat = pgTable(
   'Strategy_Chat',
@@ -254,9 +230,6 @@ export const trades = pgTable(
   'Trades',
   {
     id: uuid('id').notNull().defaultRandom().primaryKey(),
-    streamId: uuid('streamId')
-      .notNull()
-      .references(() => stream.id),
     strategyChatId: uuid('strategyChatId')
       .notNull()
       .references(() => strategyChat.id),
@@ -266,12 +239,12 @@ export const trades = pgTable(
     product: text('product').notNull(),
     side: varchar('side', { enum: ['buy', 'sell'] }).notNull(),
     orderType: varchar('orderType', { enum: ['market', 'limit', 'stop_loss', 'take_profit'] }).notNull().default('market'),
-    priceCurrency: numeric('priceCurrency',  { precision: 20, scale: 8 }),
+    priceInCurrency: numeric('priceCurrency',  { precision: 20, scale: 8 }),
     priceInUSD: numeric('priceInUSD', { precision: 20, scale: 8 }),
     amount: numeric('amount', { precision: 20, scale: 8 }).notNull(),
-    costCurrency: numeric('costCurrency', { precision: 20, scale: 8 }),
+    costInCurrency: numeric('costCurrency', { precision: 20, scale: 8 }),
     costInUSD: numeric('costInUSD', { precision: 20, scale: 8 }),
-    feeCurrency: numeric('feeCurrency', { precision: 20, scale: 8 }),
+    feeInCurrency: numeric('feeCurrency', { precision: 20, scale: 8 }),
     feeInUSD: numeric('feeInUSD', { precision: 20, scale: 8 }),
     executedAt: timestamp('executedAt').notNull(),
     createdAt: timestamp('createdAt').notNull(),

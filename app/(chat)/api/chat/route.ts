@@ -79,7 +79,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { id, message, selectedChatModel, selectedVisibilityType, title } =
+    const { id, strategyChatId, message, selectedChatModel, selectedVisibilityType, title } =
       requestBody;
 
     const session = await auth();
@@ -158,7 +158,7 @@ export async function POST(request: Request) {
         const tools = Object.fromEntries(
           Object.entries(toolFactories).map(([key, { factory }]) => [
             key,
-            factory({ session, dataStream }),
+            factory({ session, dataStream, strategyChatId: strategyChatId || ""}),
           ])
         );
        

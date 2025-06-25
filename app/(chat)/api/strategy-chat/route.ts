@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     return Response.json(newStrategyChat, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return new ChatSDKError('bad_request:validation').toResponse();
+      return new ChatSDKError('type_wrong:strategy').toResponse();
     }
     console.error('Error creating strategy chat:', error);
     return new ChatSDKError('bad_request:database').toResponse();

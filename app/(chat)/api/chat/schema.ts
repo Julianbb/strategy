@@ -7,6 +7,7 @@ const textPartSchema = z.object({
 
 export const postRequestBodySchema = z.object({
   id: z.string().uuid(),
+  strategyChatId:z.string().uuid().optional(),
   message: z.object({
     id: z.string().uuid(),
     createdAt: z.coerce.date(),

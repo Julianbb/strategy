@@ -3,7 +3,7 @@ import { notFound, redirect } from 'next/navigation';
 
 import { auth } from '@/app/(auth)/auth';
 import { FloatingChat } from '@/components/floating-chat';
-import { getChatById, getMessagesByChatId } from '@/lib/db/queries';
+import { getChatById, getMessagesByChatId, getStrategyChatIdFromChatId } from '@/lib/db/queries';
 import { DataStreamHandler } from '@/components/data-stream-handler';
 import { DEFAULT_CHAT_MODEL } from '@/lib/ai/models';
 import type { DBMessage } from '@/lib/db/schema';
@@ -38,6 +38,9 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
     id,
   });
 
+  const strategyChatId = await getStrategyChatIdFromChatId({ chatId: id });
+  console.log("strategyChatId: "+strategyChatId)
+
   function convertToUIMessages(messages: Array<DBMessage>): Array<UIMessage> {
     return messages.map((message) => ({
       id: message.id,
@@ -59,6 +62,7 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
       <>
         <FloatingChat
           id={chat.id}
+          strategyChatId={strategyChatId}
           initialMessages={convertToUIMessages(messagesFromDb)}
           initialChatModel={DEFAULT_CHAT_MODEL}
           initialVisibilityType={chat.visibility}
@@ -75,6 +79,7 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
     <>
       <FloatingChat
         id={chat.id}
+        strategyChatId={strategyChatId}
         initialMessages={convertToUIMessages(messagesFromDb)}
         initialChatModel={chatModelFromCookie.value}
         initialVisibilityType={chat.visibility}

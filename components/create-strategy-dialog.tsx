@@ -82,13 +82,23 @@ export function CreateStrategyDialog({
       const chatTitle = formData.name;
 
       // Create the initial message with strategy context
-      const initialMessage = `I want to create a ${strategyType.name} strategy with the following details:
+      const initialMessage = `I am creating a ${strategyType.name} strategy with the following details:
       Name: ${formData.name}
       Base Currency: ${formData.baseCurrency}
       Initial Capital (USD): ${formData.initialCapital_USD}
       Initial Capital (Currency): ${formData.initialCapital_Currency}
       ${strategyType.description ? `Strategy Type Context: ${strategyType.description}` : ''}
-      Please help me develop this strategy step by step.`;
+      you don't need to do anything right now. but I will have a conversation with you, please use tool to help me interact with every single trade happened within this strategy,
+      Please follow these rules:
+      1. Each trade involves only one product.
+      2. Each trade uses only one pricing currency—either crypto or USD. No conversion is needed.
+        * If priced in USD, leave the crypto fields empty.
+        * If priced in crypto, leave the USD fields empty.
+        * For example, if I say the price is 0.2 ETH, it's crypto-based: set priceInCurrency = 0.2, ignore priceInUSD.
+          If I say the price is 2300 USD, it's USD-based: set priceInUSD = 2300, ignore priceInCurrency.
+        * Same logic applies to costInCurrency/costInUSD, and feeInCurrency/feeInUSD.
+      3. If there are any required parameters I forgot to give you, ask me again.
+      `;
 
       // Create chat first (required for strategy foreign key reference)
       const chatResponse = await fetch('/api/chat', {
@@ -124,7 +134,7 @@ export function CreateStrategyDialog({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: formData.name.trim(),
+          name: formData.name,
           baseCurrency: formData.baseCurrency,
           initialCapital_USD: parseFloat(formData.initialCapital_USD) || undefined,
           initialCapital_Currency: parseFloat(formData.initialCapital_Currency) || undefined,
