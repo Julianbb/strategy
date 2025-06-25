@@ -9,6 +9,7 @@ import {
   primaryKey,
   foreignKey,
   boolean,
+  numeric,
 } from 'drizzle-orm/pg-core';
 
 export const user = pgTable('User', {
@@ -168,3 +169,113 @@ export const stream = pgTable(
 );
 
 export type Stream = InferSelectModel<typeof stream>;
+
+
+
+export const strategyType = pgTable(
+  'Strategy_Type',
+  {
+    id: uuid('id').notNull().defaultRandom().primaryKey(),
+    name: text('name').notNull(),
+    description: text('description'),
+    userId: uuid('userId')
+      .notNull()
+      .references(() => user.id),
+    createdAt: timestamp('createdAt').notNull(),
+  }
+);
+
+export type StrategyType = InferSelectModel<typeof strategyType>;
+
+export const strategy = pgTable(
+  'Strategy',
+  {
+    id: uuid('id').notNull().defaultRandom().primaryKey(),
+    name: text('name').notNull(),
+    description: text('description'),
+    objective: text('objective').notNull(),
+    timeline: text('timeline'),
+    status: varchar('status', { enum: ['draft', 'active', 'completed', 'archived'] })
+      .notNull()
+      .default('draft'),
+    strategyTypeId: uuid('strategyTypeId')
+      .notNull()
+      .references(() => strategyType.id),
+    chatId: uuid('chatId')
+      .notNull()
+      .references(() => chat.id),
+    userId: uuid('userId')
+      .notNull()
+      .references(() => user.id),
+    createdAt: timestamp('createdAt').notNull(),
+    updatedAt: timestamp('updatedAt').notNull(),
+  }
+);
+
+export type Strategy = InferSelectModel<typeof strategy>;
+
+export const strategyChat = pgTable(
+  'Strategy_Chat',
+  {
+    id: uuid('id').notNull().defaultRandom().primaryKey(),
+    strategyTypeId: uuid('strategyTypeId')
+      .notNull()
+      .references(() => strategyType.id),
+    chatId: uuid('chatId')
+      .notNull()
+      .references(() => chat.id),
+    userId: uuid('userId')
+      .notNull()
+      .references(() => user.id),
+    name: text('name').notNull(),
+    baseCurrency: varchar('baseCurrency', { length: 10 }).notNull().default('USD'),
+    initialCapital_USD: numeric('initialCapital_USD', { precision: 20, scale: 8 }),
+    initialCapital_Currency: numeric('initialCapital_Currency', { precision: 20, scale: 8 }),
+    initialCapitalInUSD: numeric('initialCapitalInUSD', { precision: 20, scale: 8 }),
+    currentValueInUSD: numeric('currentValueInUSD', { precision: 20, scale: 8 }),
+    profitLoss_USD: numeric('profitLoss_USD', { precision: 20, scale: 8 }).default('0'),
+    profitLoss_Currency: numeric('profitLoss_Currency', { precision: 20, scale: 8 }).default('0'),
+    profitLossInUSD: numeric('profitLossInUSD', { precision: 20, scale: 8 }).default('0'),
+    totalCost_USD: numeric('totalCost_USD', { precision: 20, scale: 8 }).default('0'),
+    totalCost_Currency: numeric('totalCost_Currency', { precision: 20, scale: 8 }).default('0'),
+    totalFees_USD: numeric('totalFees_USD', { precision: 20, scale: 8 }).default('0'),
+    totalFees_Currency: numeric('totalFees_Currency', { precision: 20, scale: 8 }).default('0'),
+    status: varchar('status', { enum: ['active', 'paused', 'stopped', 'completed'] }).notNull().default('active'),
+    totalTrades: numeric('totalTrades').notNull().default('0'),
+    startedAt: timestamp('startedAt').notNull(),
+    endedAt: timestamp('endedAt'),
+    createdAt: timestamp('createdAt').notNull(),
+  }
+);
+
+export type StrategyChat = InferSelectModel<typeof strategyChat>;
+
+export const trades = pgTable(
+  'Trades',
+  {
+    id: uuid('id').notNull().defaultRandom().primaryKey(),
+    streamId: uuid('streamId')
+      .notNull()
+      .references(() => stream.id),
+    strategyChatId: uuid('strategyChatId')
+      .notNull()
+      .references(() => strategyChat.id),
+    userId: uuid('userId')
+      .notNull()
+      .references(() => user.id),
+    product: text('product').notNull(),
+    side: varchar('side', { enum: ['buy', 'sell'] }).notNull(),
+    orderType: varchar('orderType', { enum: ['market', 'limit', 'stop_loss', 'take_profit'] }).notNull().default('market'),
+    priceCurrency: numeric('priceCurrency',  { precision: 20, scale: 8 }),
+    priceInUSD: numeric('priceInUSD', { precision: 20, scale: 8 }),
+    amount: numeric('amount', { precision: 20, scale: 8 }).notNull(),
+    costCurrency: numeric('costCurrency', { precision: 20, scale: 8 }),
+    costInUSD: numeric('costInUSD', { precision: 20, scale: 8 }),
+    feeCurrency: numeric('feeCurrency', { precision: 20, scale: 8 }),
+    feeInUSD: numeric('feeInUSD', { precision: 20, scale: 8 }),
+    executedAt: timestamp('executedAt').notNull(),
+    createdAt: timestamp('createdAt').notNull(),
+  }
+);
+
+export type Trades = InferSelectModel<typeof trades>;

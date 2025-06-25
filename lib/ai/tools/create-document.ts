@@ -7,7 +7,7 @@ import {
   documentHandlersByArtifactKind,
 } from '@/lib/artifacts/server';
 
-interface CreateDocumentProps {
+export interface CreateDocumentProps {
   session: Session;
   dataStream: DataStreamWriter;
 }

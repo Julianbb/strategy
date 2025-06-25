@@ -27,6 +27,10 @@ import {
   type DBMessage,
   type Chat,
   stream,
+  strategyType,
+  type StrategyType,
+  strategy,
+  type Strategy,
 } from './schema';
 import type { ArtifactKind } from '@/components/artifact';
 import { generateUUID } from '../utils';
@@ -533,6 +537,241 @@ export async function getStreamIdsByChatId({ chatId }: { chatId: string }) {
     throw new ChatSDKError(
       'bad_request:database',
       'Failed to get stream ids by chat id',
+    );
+  }
+}
+
+export async function saveStrategyType({
+  name,
+  description,
+  userId,
+}: {
+  name: string;
+  description?: string;
+  userId: string;
+}) {
+  try {
+    return await db
+      .insert(strategyType)
+      .values({
+        name,
+        description,
+        userId,
+        createdAt: new Date(),
+      })
+      .returning();
+  } catch (error) {
+    throw new ChatSDKError(
+      'bad_request:database',
+      'Failed to save strategy type',
+    );
+  }
+}
+
+export async function getStrategyTypesByUserId({ userId }: { userId: string }) {
+  try {
+    return await db
+      .select()
+      .from(strategyType)
+      .where(eq(strategyType.userId, userId))
+      .orderBy(desc(strategyType.createdAt));
+  } catch (error) {
+    throw new ChatSDKError(
+      'bad_request:database',
+      'Failed to get strategy types by user id',
+    );
+  }
+}
+
+export async function getStrategyTypeById({ id }: { id: string }) {
+  try {
+    const [selectedStrategyType] = await db
+      .select()
+      .from(strategyType)
+      .where(eq(strategyType.id, id))
+      .limit(1);
+    return selectedStrategyType;
+  } catch (error) {
+    throw new ChatSDKError(
+      'bad_request:database',
+      'Failed to get strategy type by id',
+    );
+  }
+}
+
+export async function updateStrategyType({
+  id,
+  name,
+  description,
+}: {
+  id: string;
+  name?: string;
+  description?: string;
+}) {
+  try {
+    const updateData: Partial<StrategyType> = {};
+    if (name !== undefined) updateData.name = name;
+    if (description !== undefined) updateData.description = description;
+
+    return await db
+      .update(strategyType)
+      .set(updateData)
+      .where(eq(strategyType.id, id))
+      .returning();
+  } catch (error) {
+    throw new ChatSDKError(
+      'bad_request:database',
+      'Failed to update strategy type',
+    );
+  }
+}
+
+export async function deleteStrategyType({ id }: { id: string }) {
+  try {
+    const [deletedStrategyType] = await db
+      .delete(strategyType)
+      .where(eq(strategyType.id, id))
+      .returning();
+    return deletedStrategyType;
+  } catch (error) {
+    throw new ChatSDKError(
+      'bad_request:database',
+      'Failed to delete strategy type',
+    );
+  }
+}
+
+// Strategy functions
+export async function createStrategy({
+  id,
+  name,
+  description,
+  objective,
+  timeline,
+  strategyTypeId,
+  chatId,
+  userId,
+}: {
+  id: string;
+  name: string;
+  description?: string;
+  objective: string;
+  timeline?: string;
+  strategyTypeId: string;
+  chatId: string;
+  userId: string;
+}) {
+  try {
+    const now = new Date();
+    return await db
+      .insert(strategy)
+      .values({
+        id,
+        name,
+        description,
+        objective,
+        timeline,
+        strategyTypeId,
+        chatId,
+        userId,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .returning();
+  } catch (error) {
+    throw new ChatSDKError(
+      'bad_request:database',
+      'Failed to create strategy',
+    );
+  }
+}
+
+export async function getStrategiesByUserId({ userId }: { userId: string }) {
+  try {
+    return await db
+      .select({
+        id: strategy.id,
+        name: strategy.name,
+        description: strategy.description,
+        objective: strategy.objective,
+        timeline: strategy.timeline,
+        status: strategy.status,
+        strategyTypeId: strategy.strategyTypeId,
+        chatId: strategy.chatId,
+        userId: strategy.userId,
+        createdAt: strategy.createdAt,
+        updatedAt: strategy.updatedAt,
+        strategyTypeName: strategyType.name,
+      })
+      .from(strategy)
+      .leftJoin(strategyType, eq(strategy.strategyTypeId, strategyType.id))
+      .where(eq(strategy.userId, userId))
+      .orderBy(desc(strategy.createdAt));
+  } catch (error) {
+    throw new ChatSDKError(
+      'bad_request:database',
+      'Failed to get strategies by user id',
+    );
+  }
+}
+
+export async function updateStrategyById({
+  id,
+  name,
+  description,
+  objective,
+  timeline,
+  status,
+  userId,
+}: {
+  id: string;
+  name?: string;
+  description?: string;
+  objective?: string;
+  timeline?: string;
+  status?: 'draft' | 'active' | 'completed' | 'archived';
+  userId: string;
+}) {
+  try {
+    const updateData: Partial<Strategy> = { updatedAt: new Date() };
+    if (name !== undefined) updateData.name = name;
+    if (description !== undefined) updateData.description = description;
+    if (objective !== undefined) updateData.objective = objective;
+    if (timeline !== undefined) updateData.timeline = timeline;
+    if (status !== undefined) updateData.status = status;
+
+    const [updatedStrategy] = await db
+      .update(strategy)
+      .set(updateData)
+      .where(and(eq(strategy.id, id), eq(strategy.userId, userId)))
+      .returning();
+    
+    return updatedStrategy;
+  } catch (error) {
+    throw new ChatSDKError(
+      'bad_request:database',
+      'Failed to update strategy',
+    );
+  }
+}
+
+export async function deleteStrategyById({ 
+  id, 
+  userId 
+}: { 
+  id: string; 
+  userId: string; 
+}) {
+  try {
+    const [deletedStrategy] = await db
+      .delete(strategy)
+      .where(and(eq(strategy.id, id), eq(strategy.userId, userId)))
+      .returning();
+    return deletedStrategy;
+  } catch (error) {
+    throw new ChatSDKError(
+      'bad_request:database',
+      'Failed to delete strategy',
     );
   }
 }

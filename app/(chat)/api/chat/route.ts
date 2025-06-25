@@ -19,10 +19,17 @@ import {
 } from '@/lib/db/queries';
 import { generateUUID, getTrailingMessageId } from '@/lib/utils';
 import { generateTitleFromUserMessage } from '../../actions';
+
+
 import { createDocument } from '@/lib/ai/tools/create-document';
 import { updateDocument } from '@/lib/ai/tools/update-document';
 import { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
 import { getWeather } from '@/lib/ai/tools/get-weather';
+
+
+import {toolFactories} from "@/lib/ai/tools"
+
+
 import { isProductionEnvironment } from '@/lib/constants';
 import { myProvider } from '@/lib/ai/providers';
 import { entitlementsByUserType } from '@/lib/ai/entitlements';
@@ -72,7 +79,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { id, message, selectedChatModel, selectedVisibilityType } =
+    const { id, message, selectedChatModel, selectedVisibilityType, title } =
       requestBody;
 
     const session = await auth();
@@ -95,14 +102,14 @@ export async function POST(request: Request) {
     const chat = await getChatById({ id });
 
     if (!chat) {
-      const title = await generateTitleFromUserMessage({
+      const chatTitle = title || await generateTitleFromUserMessage({
         message,
       });
 
       await saveChat({
         id,
         userId: session.user.id,
-        title,
+        title: chatTitle,
         visibility: selectedVisibilityType,
       });
     } else {
@@ -144,8 +151,17 @@ export async function POST(request: Request) {
     const streamId = generateUUID();
     await createStreamId({ streamId, chatId: id });
 
+
     const stream = createDataStream({
       execute: (dataStream) => {
+        const toolsName = Object.values(toolFactories).map(t => t.name)
+        const tools = Object.fromEntries(
+          Object.entries(toolFactories).map(([key, { factory }]) => [
+            key,
+            factory({ session, dataStream }),
+          ])
+        );
+       
         const result = streamText({
           model: myProvider.languageModel(selectedChatModel),
           system: systemPrompt({ selectedChatModel, requestHints }),
@@ -154,23 +170,10 @@ export async function POST(request: Request) {
           experimental_activeTools:
             selectedChatModel === 'chat-model-reasoning'
               ? []
-              : [
-                  'getWeather',
-                  'createDocument',
-                  'updateDocument',
-                  'requestSuggestions',
-                ],
+              : toolsName,
           experimental_transform: smoothStream({ chunking: 'word' }),
           experimental_generateMessageId: generateUUID,
-          tools: {
-            getWeather,
-            createDocument: createDocument({ session, dataStream }),
-            updateDocument: updateDocument({ session, dataStream }),
-            requestSuggestions: requestSuggestions({
-              session,
-              dataStream,
-            }),
-          },
+          tools,
           onFinish: async ({ response }) => {
             if (session.user?.id) {
               try {

@@ -16,3 +16,15 @@ export const getWeather = tool({
     return weatherData;
   },
 });
+
+
+export const bmiCalculator = tool({
+  description: "Calculate Body Mass Index",
+  parameters: z.object({
+      weightKg: z.number(),
+      heightM: z.number()}),
+  execute: async (args: any) => {
+    const { weightKg, heightM } = args as { weightKg: number; heightM: number };
+    return  String(weightKg / (heightM * heightM))
+  }
+})

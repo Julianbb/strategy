@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { getDocumentById, saveDocument } from '@/lib/db/queries';
 import { documentHandlersByArtifactKind } from '@/lib/artifacts/server';
 
-interface UpdateDocumentProps {
+export interface UpdateDocumentProps {
   session: Session;
   dataStream: DataStreamWriter;
 }

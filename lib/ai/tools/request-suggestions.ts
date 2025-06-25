@@ -6,7 +6,7 @@ import { Suggestion } from '@/lib/db/schema';
 import { generateUUID } from '@/lib/utils';
 import { myProvider } from '../providers';
 
-interface RequestSuggestionsProps {
+export interface RequestSuggestionsProps {
   session: Session;
   dataStream: DataStreamWriter;
 }
