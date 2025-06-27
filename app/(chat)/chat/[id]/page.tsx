@@ -3,6 +3,11 @@ import { notFound, redirect } from 'next/navigation';
 
 import { auth } from '@/app/(auth)/auth';
 import { FloatingChat } from '@/components/floating-chat';
+import {DualChartRadial} from "@/components/dual-chart-radial"
+import {StrategyCard} from "@/components/strategy-summary-card"
+import {ChartAreaInteractive} from '@/components/strategy-line-chart'
+import {DataTable}  from '@/components/strategy-trades-sheets'
+import testData from '@/tests/db/data.json'
 import { getChatById, getMessagesByChatId, getStrategyChatIdFromChatId } from '@/lib/db/queries';
 import { DataStreamHandler } from '@/components/data-stream-handler';
 import { DEFAULT_CHAT_MODEL } from '@/lib/ai/models';
@@ -57,31 +62,33 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
   const cookieStore = await cookies();
   const chatModelFromCookie = cookieStore.get('chat-model');
 
-  if (!chatModelFromCookie) {
-    return (
-      <>
-        <FloatingChat
-          id={chat.id}
-          strategyChatId={strategyChatId}
-          initialMessages={convertToUIMessages(messagesFromDb)}
-          initialChatModel={DEFAULT_CHAT_MODEL}
-          initialVisibilityType={chat.visibility}
-          isReadonly={session?.user?.id !== chat.userId}
-          session={session}
-          autoResume={true}
-        />
-        <DataStreamHandler id={id} />
-      </>
-    );
-  }
-
   return (
     <>
+      <div className="flex flex-1 flex-col">
+          <div className="@container/main flex flex-1 flex-col gap-2">
+            <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+              <div className='flex justify-between'>
+                <StrategyCard />
+                <DualChartRadial
+                total_1={180}
+                current_1={120}
+                total_2={180}
+                current_2={50}
+                />
+              </div>
+             
+              <div className="px-4 lg:px-6">
+                <ChartAreaInteractive />
+              </div>
+              <DataTable data={testData} />
+            </div>
+          </div>
+        </div>
       <FloatingChat
         id={chat.id}
         strategyChatId={strategyChatId}
         initialMessages={convertToUIMessages(messagesFromDb)}
-        initialChatModel={chatModelFromCookie.value}
+        initialChatModel={chatModelFromCookie?.value || DEFAULT_CHAT_MODEL}
         initialVisibilityType={chat.visibility}
         isReadonly={session?.user?.id !== chat.userId}
         session={session}

@@ -799,29 +799,29 @@ export async function getTradeById({ id }: { id: string }) {
 export async function updateTradeById({
   id,
   userId,
-  priceCurrency,
+  priceInCurrency,
   priceInUSD,
-  costCurrency,
+  costInCurrency,
   costInUSD,
-  feeCurrency,
+  feeInCurrency,
   feeInUSD,
 }: {
   id: string;
   userId: string;
-  priceCurrency?: string;
+  priceInCurrency?: string;
   priceInUSD?: string;
-  costCurrency?: string;
+  costInCurrency?: string;
   costInUSD?: string;
-  feeCurrency?: string;
+  feeInCurrency?: string;
   feeInUSD?: string;
 }) {
   try {
     const updateData: Partial<Trades> = {};
-    if (priceCurrency !== undefined) updateData.priceInCurrency = priceCurrency;
+    if (priceInCurrency !== undefined) updateData.priceInCurrency = priceInCurrency;
     if (priceInUSD !== undefined) updateData.priceInUSD = priceInUSD;
-    if (costCurrency !== undefined) updateData.costInCurrency = costCurrency;
+    if (costInCurrency !== undefined) updateData.costInCurrency = costInCurrency;
     if (costInUSD !== undefined) updateData.costInUSD = costInUSD;
-    if (feeCurrency !== undefined) updateData.feeInCurrency = feeCurrency;
+    if (feeInCurrency !== undefined) updateData.feeInCurrency = feeInCurrency;
     if (feeInUSD !== undefined) updateData.feeInUSD = feeInUSD;
 
     const [updatedTrade] = await db

@@ -3,7 +3,7 @@ import { getWeather,bmiCalculator } from "./get-weather";
 import { requestSuggestions,RequestSuggestionsProps } from "./request-suggestions";
 import { getUserbyEmail, createUserbyEmailandPassword } from "./table-user";
 import { updateDocument,UpdateDocumentProps } from "./update-document";
-import { createTradeWithSession, CreateTradeProps } from "./table-trades";
+import { createTradeWithSession, CreateTradeProps, deleteTradeWithSession, DeleteTradeProps, updateTradeWithSession, UpdateTradeProps } from "./table-trades";
 
 
 
@@ -40,4 +40,12 @@ export const toolFactories = {
       name: 'createTradeWithSession',
       factory: (deps: CreateTradeProps) => createTradeWithSession(deps),
     },
+    deleteTradeWithSession:{
+      name:'deleteTradeWithSession',
+      factory: (deps: DeleteTradeProps) => deleteTradeWithSession(deps),
+    },
+    updateTradeWithSession:{
+      name:'updateTradeWithSession',
+      factory: (deps: UpdateTradeProps) => updateTradeWithSession(deps),
+    }
   };
