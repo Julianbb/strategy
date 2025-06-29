@@ -3,7 +3,7 @@ import { notFound, redirect } from 'next/navigation';
 
 import { auth } from '@/app/(auth)/auth';
 import { FloatingChat } from '@/components/floating-chat';
-import {DualChartRadial} from "@/components/dual-chart-radial"
+
 import {StrategyCard} from "@/components/strategy-summary-card"
 import {ChartAreaInteractive} from '@/components/strategy-line-chart'
 import {DataTable}  from '@/components/strategy-trades-sheets'
@@ -43,8 +43,8 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
     id,
   });
 
-  const strategyChatId = await getStrategyChatIdFromChatId({ chatId: id });
-  console.log("strategyChatId: "+strategyChatId)
+  const strategyChat = await getStrategyChatIdFromChatId({ chatId: id });
+  
 
   function convertToUIMessages(messages: Array<DBMessage>): Array<UIMessage> {
     return messages.map((message) => ({
@@ -67,16 +67,7 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
       <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2">
             <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-              <div className='flex justify-between'>
-                <StrategyCard />
-                <DualChartRadial
-                total_1={180}
-                current_1={120}
-                total_2={180}
-                current_2={50}
-                />
-              </div>
-             
+                <StrategyCard strategyChat={strategyChat}/>
               <div className="px-4 lg:px-6">
                 <ChartAreaInteractive />
               </div>
@@ -86,7 +77,7 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
         </div>
       <FloatingChat
         id={chat.id}
-        strategyChatId={strategyChatId}
+        strategyChatId={strategyChat.id}
         initialMessages={convertToUIMessages(messagesFromDb)}
         initialChatModel={chatModelFromCookie?.value || DEFAULT_CHAT_MODEL}
         initialVisibilityType={chat.visibility}

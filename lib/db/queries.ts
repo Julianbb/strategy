@@ -863,11 +863,11 @@ export async function deleteTradeById({
 export async function getStrategyChatIdFromChatId({ chatId }: { chatId: string }) {
   try {
     const [selectedStrategyChat] = await db
-      .select({ id: strategyChat.id })
+      .select()
       .from(strategyChat)
       .where(eq(strategyChat.chatId, chatId))
       .limit(1);
-    return selectedStrategyChat?.id;
+    return selectedStrategyChat;
   } catch (error) {
     throw new ChatSDKError(
       'bad_request:database',

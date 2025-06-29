@@ -203,15 +203,19 @@ export const strategyChat = pgTable(
     userId: uuid('userId')
       .notNull()
       .references(() => user.id),
-    name: text('name').notNull(),
+    strategyName: text('strategyName').notNull(),
     baseCurrency: varchar('baseCurrency', { length: 10 }).notNull().default('USD'),
     initialCapital_USD: numeric('initialCapital_USD', { precision: 20, scale: 8 }),
     initialCapital_Currency: numeric('initialCapital_Currency', { precision: 20, scale: 8 }),
-    initialCapitalInUSD: numeric('initialCapitalInUSD', { precision: 20, scale: 8 }),
-    currentValueInUSD: numeric('currentValueInUSD', { precision: 20, scale: 8 }),
+    
+    averagePrice_Perpetual_USD: numeric('averagePrice_Perpetual_USD', { precision: 20, scale: 8 }),
+    averagePrice_Options_USD: numeric('averagePrice_Options_USD', { precision: 20, scale: 8 }),
+    positionSize_Perpetual: numeric('positionSize_Perpetual', { precision: 20, scale: 8 }),
+    positionSize_Options: numeric('positionSize_Options', { precision: 20, scale: 8 }),
+    
     profitLoss_USD: numeric('profitLoss_USD', { precision: 20, scale: 8 }).default('0'),
     profitLoss_Currency: numeric('profitLoss_Currency', { precision: 20, scale: 8 }).default('0'),
-    profitLossInUSD: numeric('profitLossInUSD', { precision: 20, scale: 8 }).default('0'),
+    
     totalCost_USD: numeric('totalCost_USD', { precision: 20, scale: 8 }).default('0'),
     totalCost_Currency: numeric('totalCost_Currency', { precision: 20, scale: 8 }).default('0'),
     totalFees_USD: numeric('totalFees_USD', { precision: 20, scale: 8 }).default('0'),

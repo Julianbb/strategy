@@ -11,7 +11,7 @@ const client = postgres(process.env.POSTGRES_URL!);
 const db = drizzle(client);
 
 const createStrategyChatSchema = z.object({
-  name: z.string().min(1).max(200),
+  strategyName: z.string().min(1).max(200),
   baseCurrency: z.string().length(3),
   initialCapital_USD: z.number().min(0).optional(),
   initialCapital_Currency: z.number().min(0).optional(),
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     const [newStrategyChat] = await db
       .insert(strategyChat)
       .values({
-        name: validatedData.name,
+        strategyName: validatedData.strategyName,
         baseCurrency: validatedData.baseCurrency,
         initialCapital_USD: validatedData.initialCapital_USD,
         initialCapital_Currency: validatedData.initialCapital_Currency,
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
         userId: session.user.id,
         startedAt: new Date(),
         createdAt: new Date(),
-      })
+      } as any)
       .returning();
 
     return Response.json(newStrategyChat, { status: 201 });

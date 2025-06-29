@@ -134,7 +134,7 @@ export function CreateStrategyDialog({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: formData.name,
+          strategyName: formData.name,
           baseCurrency: formData.baseCurrency,
           initialCapital_USD: parseFloat(formData.initialCapital_USD) || undefined,
           initialCapital_Currency: parseFloat(formData.initialCapital_Currency) || undefined,
