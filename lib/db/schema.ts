@@ -209,7 +209,7 @@ export const strategyChat = pgTable(
     initialCapital_Currency: numeric('initialCapital_Currency', { precision: 20, scale: 8 }),
     
     averagePrice_Perpetual_USD: numeric('averagePrice_Perpetual_USD', { precision: 20, scale: 8 }),
-    averagePrice_Options_USD: numeric('averagePrice_Options_USD', { precision: 20, scale: 8 }),
+    averagePrice_Options_Currency: numeric('averagePrice_Options_Currency', { precision: 20, scale: 8 }),
     positionSize_Perpetual: numeric('positionSize_Perpetual', { precision: 20, scale: 8 }),
     positionSize_Options: numeric('positionSize_Options', { precision: 20, scale: 8 }),
     

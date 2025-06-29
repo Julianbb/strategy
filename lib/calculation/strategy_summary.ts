@@ -20,12 +20,13 @@ export function calculateStrategyMetrics(
   })();
 
   const currentValue = (() => {
-    const optionsPnL = (optionsPrice && strategyChat.averagePrice_Options_USD && strategyChat.positionSize_Options)
-      ? (Number(strategyChat.averagePrice_Options_USD) - optionsPrice) * Number(strategyChat.positionSize_Options)
+    const optionsPnL = (optionsPrice && currencyPrice && strategyChat.averagePrice_Options_Currency && strategyChat.positionSize_Options)
+      ? Number(optionsPrice - strategyChat.averagePrice_Options_Currency) * currencyPrice * Number(strategyChat.positionSize_Options)
       : 0;
     const perpetualPnL = (currencyPrice && strategyChat.averagePrice_Perpetual_USD && strategyChat.positionSize_Perpetual)
       ? (currencyPrice - Number(strategyChat.averagePrice_Perpetual_USD) ) * Number(strategyChat.positionSize_Perpetual)
       : 0;
+
     return allocation + optionsPnL + perpetualPnL;
   })();
 

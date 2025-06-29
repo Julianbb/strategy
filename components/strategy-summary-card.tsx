@@ -39,18 +39,21 @@ export function StrategyCard({ strategyChat }: StrategyCardProps) {
       try {
         if (!strategyChat.baseCurrency) return;
         
-        const instId = `${strategyChat.baseCurrency}-USDT`;
-        const res = await fetch(`https://www.okx.com/api/v5/market/ticker?instId=${instId}`);
-        const data = await res.json();
+        // Fetch spot price using REST API
+        const spotRes = await fetch(`https://www.okx.com/api/v5/market/ticker?instId=${strategyChat.baseCurrency}-USDT`);
+        const spotData = await spotRes.json();
         
-        if (data.data && data.data[0]) {
-          setCurrencyPrice(data.data[0].last);
+        // Fetch options price using REST API
+        const optionsRes = await fetch("https://www.okx.com/api/v5/public/mark-price?instType=OPTION&instId=ETH-USD-250725-2100-P");
+        const optionsData = await optionsRes.json();
+        
+        
+        if (spotData && spotData.data && spotData.data[0] && spotData.data[0].last) {
+          setCurrencyPrice(parseFloat(spotData.data[0].last));
         }
         
-        // For now, set options price same as currency price
-        // This can be updated with actual options pricing API
-        if (data.data && data.data[0]) {
-          setOptionsPrice(45);
+        if (optionsData && optionsData.data[0] && optionsData.data[0].markPx) {
+          setOptionsPrice(parseFloat(optionsData.data[0].markPx));
         }
       } catch (err) {
         console.error('Fetch error:', err);

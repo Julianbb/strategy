@@ -92,6 +92,13 @@
       "when": 1751181753838,
       "tag": "0012_flippant_polaris",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1751188848575,
+      "tag": "0013_hard_stryfe",
+      "breakpoints": true
     }
   ]
 }
