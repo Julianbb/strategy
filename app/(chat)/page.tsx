@@ -15,11 +15,6 @@ export default async function Page() {
     redirect('/api/auth/guest');
   }
 
-  const id = generateUUID();
-
-  const cookieStore = await cookies();
-  const modelIdFromCookie = cookieStore.get('chat-model');
-
 
   return (
     <>

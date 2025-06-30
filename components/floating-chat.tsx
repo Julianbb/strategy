@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
+import { useState,useCallback, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import { useChat } from '@ai-sdk/react';
 import useSWR, { useSWRConfig } from 'swr';
 import type { Attachment, UIMessage } from 'ai';
@@ -46,20 +46,17 @@ const FloatingMessages = forwardRef<
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [isUserScrolling, setIsUserScrolling] = useState(false);
   const prevMessagesLength = useRef(messages.length);
-
-  // Function to scroll to the last message
-  const scrollToLastMessage = () => {
+  const scrollToLastMessage = useCallback(() => {
     const container = messagesContainerRef.current;
     if (container && messages.length > 0) {
-      // Scroll to the bottom to show the last message
       container.scrollTop = container.scrollHeight;
     }
-  };
-
-  // Expose scroll function via ref
+  }, [messages]); // 如果 messages 很大，考虑只依赖 messages.length
+  
   useImperativeHandle(ref, () => ({
     scrollToLastMessage,
-  }), []);
+  }), [scrollToLastMessage]);
+  
 
   // Gentle scroll to bottom only when new messages arrive and user isn't actively scrolling
   useEffect(() => {
@@ -101,7 +98,7 @@ const FloatingMessages = forwardRef<
   return (
     <div
       ref={messagesContainerRef}
-      className="flex flex-col min-w-0 gap-6 flex-1 overflow-y-auto overflow-x-hidden pt-4 pb-4 px-4 relative max-w-full"
+      className="flex flex-col min-w-0 gap-6 flex-1 overflow-y-auto overflow-x-hidden p-4 relative max-w-full"
     >
       {messages.length === 0 && <Greeting />}
 
@@ -129,6 +126,8 @@ const FloatingMessages = forwardRef<
     </div>
   );
 });
+
+FloatingMessages.displayName = 'FloatingMessages';
 
 function FloatingChatContent({
   id,
@@ -296,14 +295,14 @@ export function FloatingChat(props: FloatingChatProps) {
             className="bg-black hover:bg-gray-800 text-white rounded-full p-4 shadow-lg transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
             aria-label="Open chat"
           >
-            <MessageCircle className="w-6 h-6" />
+            <MessageCircle className="size-6" />
           </button>
         ) : (
           <div className="bg-white rounded-xl shadow-2xl border border-gray-200 w-96 h-[32rem] flex flex-col overflow-hidden">
             {/* Chat Header */}
             <div className="bg-black text-white p-4 flex items-center justify-between rounded-t-xl">
               <div className="flex items-center gap-2">
-                <MessageCircle className="w-5 h-5" />
+                <MessageCircle className="size-5" />
                 <span className="font-medium">Chat Support</span>
               </div>
               <button
@@ -311,7 +310,7 @@ export function FloatingChat(props: FloatingChatProps) {
                 className="text-white hover:text-gray-200 transition-colors focus:outline-none"
                 aria-label="Close chat"
               >
-                <X className="w-5 h-5" />
+                <X className="size-5" />
               </button>
             </div>
 
@@ -325,3 +324,5 @@ export function FloatingChat(props: FloatingChatProps) {
     </>
   );
 }
+
+

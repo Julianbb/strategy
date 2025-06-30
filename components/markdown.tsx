@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import React, { memo } from 'react';
+import React, { memo,Children ,isValidElement} from 'react';
 import ReactMarkdown, { type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { CodeBlock } from './code-block';
@@ -10,10 +10,10 @@ const components: Partial<Components> = {
   pre: ({ children }) => <>{children}</>,
   p: ({ node, children, ...props }) => {
     // Check if the paragraph contains only a code block
-    const childArray = React.Children.toArray(children);
+    const childArray = Children.toArray(children);
     if (
-      React.Children.count(children) === 1 &&
-      React.isValidElement(childArray[0]) &&
+      Children.count(children) === 1 &&
+      isValidElement(childArray[0]) &&
       (childArray[0].type === 'pre' || 
        (typeof childArray[0].type === 'object' && childArray[0].props?.className?.includes('language-')))
     ) {

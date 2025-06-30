@@ -169,7 +169,7 @@ export function StrategyTypesSection() {
           onClick={startCreate}
           className="flex items-center gap-2"
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="size-4" />
           Add Strategy Type
         </Button>
       </div>
@@ -254,7 +254,7 @@ export function StrategyTypesSection() {
                       startEdit(strategyType);
                     }}
                   >
-                    <Edit className="h-4 w-4" />
+                    <Edit className="size-4" />
                   </Button>
                   <AlertDialog 
                     open={deleteDialogOpen === strategyType.id}
@@ -266,14 +266,14 @@ export function StrategyTypesSection() {
                         size="sm"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="size-4" />
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
                         <AlertDialogTitle>Delete Strategy Type</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Are you sure you want to delete "{strategyType.name}"? This action cannot be undone.
+                          Are you sure you want to delete &quot;{strategyType.name}&quot;? This action cannot be undone.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
