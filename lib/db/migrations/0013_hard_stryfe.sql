@@ -1,1 +1,0 @@
-ALTER TABLE "Strategy_Chat" RENAME COLUMN "averagePrice_Options_USD" TO "averagePrice_Options_Currency";

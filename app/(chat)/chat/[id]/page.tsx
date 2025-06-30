@@ -8,7 +8,7 @@ import {StrategyCard} from "@/components/strategy-summary-card"
 import {ChartAreaInteractive} from '@/components/strategy-line-chart'
 import {DataTable}  from '@/components/strategy-trades-sheets'
 import testData from '@/tests/db/data.json'
-import { getChatById, getMessagesByChatId, getStrategyChatIdFromChatId } from '@/lib/db/queries';
+import { getChatById, getMessagesByChatId, getStrategyChatFromChatId,getTradesByStrategyChat } from '@/lib/db/queries';
 import { DataStreamHandler } from '@/components/data-stream-handler';
 import { DEFAULT_CHAT_MODEL } from '@/lib/ai/models';
 import type { DBMessage } from '@/lib/db/schema';
@@ -39,12 +39,9 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
     }
   }
 
-  const messagesFromDb = await getMessagesByChatId({
-    id,
-  });
-
-  const strategyChat = await getStrategyChatIdFromChatId({ chatId: id });
-  
+  const messagesFromDb = await getMessagesByChatId({id});
+  const strategyChat = await getStrategyChatFromChatId({ chatId: id });
+  const tradesInCurrentStrategy = await getTradesByStrategyChat({strategyChatId: strategyChat?.id || '' });
 
   function convertToUIMessages(messages: Array<DBMessage>): Array<UIMessage> {
     return messages.map((message) => ({
@@ -67,9 +64,9 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
       <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2">
             <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-                <StrategyCard strategyChat={strategyChat}/>
+                <StrategyCard strategyChat={strategyChat} tradesInCurrentStrategy={tradesInCurrentStrategy}/>
               <div className="px-4 lg:px-6">
-                <ChartAreaInteractive />
+                <ChartAreaInteractive strategyChat={strategyChat} />
               </div>
               <DataTable data={testData} />
             </div>

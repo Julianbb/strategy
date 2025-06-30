@@ -5,8 +5,9 @@ import {DualChartRadial} from "@/components/dual-chart-radial"
 import { HelpCircle } from "lucide-react"
 import { useEffect, useState } from 'react';
 
-import {StrategyChat as StrategyChatType} from "@/lib/db/schema"
+import {StrategyChat as StrategyChatType, Trades} from "@/lib/db/schema"
 import { calculateStrategyMetrics } from "@/lib/calculation/strategy_summary"
+import { fetchPrices } from "@/lib/3party/okxapi"
 import {
   Tooltip,
   TooltipContent,
@@ -24,44 +25,42 @@ interface StrategyMetric {
 
 interface StrategyCardProps {
   strategyChat: StrategyChatType
+  tradesInCurrentStrategy: Trades[]
 }
 
 
 
 
-export function StrategyCard({ strategyChat }: StrategyCardProps) {
+export function StrategyCard({ strategyChat, tradesInCurrentStrategy }: StrategyCardProps) {
   const [currencyPrice, setCurrencyPrice] = useState<number | null>(null);
   const [optionsPrice, setOptionsPrice] = useState<number | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    async function fetchPrices() {
+    async function updatePrices() {
       try {
         if (!strategyChat.baseCurrency) return;
         
-        // Fetch spot price using REST API
-        const spotRes = await fetch(`https://www.okx.com/api/v5/market/ticker?instId=${strategyChat.baseCurrency}-USDT`);
-        const spotData = await spotRes.json();
+        // Use the same options instrument ID as in the original code
+        const { spotPrice, optionPrice } = await fetchPrices(
+          strategyChat.baseCurrency, 
+          'ETH-USD-250725-2100-P'
+        );
         
-        // Fetch options price using REST API
-        const optionsRes = await fetch("https://www.okx.com/api/v5/public/mark-price?instType=OPTION&instId=ETH-USD-250725-2100-P");
-        const optionsData = await optionsRes.json();
-        
-        
-        if (spotData && spotData.data && spotData.data[0] && spotData.data[0].last) {
-          setCurrencyPrice(parseFloat(spotData.data[0].last));
+        if (spotPrice !== null) {
+          setCurrencyPrice(spotPrice);
         }
         
-        if (optionsData && optionsData.data[0] && optionsData.data[0].markPx) {
-          setOptionsPrice(parseFloat(optionsData.data[0].markPx));
+        if (optionPrice !== null) {
+          setOptionsPrice(optionPrice);
         }
       } catch (err) {
         console.error('Fetch error:', err);
       }
     }
 
-    fetchPrices();
-    const interval = setInterval(fetchPrices, 10000);
+    updatePrices();
+    const interval = setInterval(updatePrices, 10000);
     return () => clearInterval(interval);
   }, [strategyChat.baseCurrency]);
 
@@ -72,7 +71,8 @@ export function StrategyCard({ strategyChat }: StrategyCardProps) {
   const calculatedMetrics = calculateStrategyMetrics(
     strategyChat, 
     isLoaded ? currencyPrice : null, 
-    isLoaded ? optionsPrice : null
+    isLoaded ? optionsPrice : null,
+    tradesInCurrentStrategy
   );
 
   const metrics: StrategyMetric[] = [
@@ -81,16 +81,16 @@ export function StrategyCard({ strategyChat }: StrategyCardProps) {
       value: isLoaded ? `$${calculatedMetrics.allocationInUSD.toLocaleString(undefined, { maximumFractionDigits: 0 })}` : "$0",
       isToolTipNeed: true,
       tipMessage: "Total capital allocated to this strategy (updated with live price)",
-      currency: strategyChat.initialCapital_Currency ? `${Number(strategyChat.initialCapital_Currency).toLocaleString()} ${strategyChat.baseCurrency}` : undefined,
-      usd: strategyChat.initialCapital_USD ? `$${Number(strategyChat.initialCapital_USD).toLocaleString()}` : undefined
+      currency: strategyChat.initialCapital_Currency ? `${Number(strategyChat.initialCapital_Currency).toLocaleString(undefined, { maximumFractionDigits: 6 })} ${strategyChat.baseCurrency}` : undefined,
+      usd: strategyChat.initialCapital_USD ? `$${Number(strategyChat.initialCapital_USD).toLocaleString(undefined, { maximumFractionDigits: 0 })}` : undefined
     },
     {
-      title: "Total Cost",
-      value: isLoaded ? `$${calculatedMetrics.totalCostInUSD.toLocaleString(undefined, { maximumFractionDigits: 0 })}` : "$0",
+      title: "Total Fee",
+      value: isLoaded ? `$${calculatedMetrics.totalFeeInUSD.toLocaleString(undefined, { maximumFractionDigits: 0 })}` : "$0",
       isToolTipNeed: true,
       tipMessage: "Total cost including fees and initial investment (updated with live price)",
-      currency: strategyChat.totalCost_Currency ? `${Number(strategyChat.totalCost_Currency).toLocaleString()} ${strategyChat.baseCurrency}` : undefined,
-      usd: strategyChat.totalCost_USD ? `$${Number(strategyChat.totalCost_USD).toLocaleString()}` : undefined
+      currency: isLoaded ? `${calculatedMetrics.totalFee_Currency.toLocaleString(undefined, { maximumFractionDigits: 6 })} ${strategyChat.baseCurrency}` : `0 ${strategyChat.baseCurrency}`,
+      usd: isLoaded ? `$${calculatedMetrics.totalFee_USD.toLocaleString(undefined, { maximumFractionDigits: 0 })}` : "$0"
     },
     {
       title: "Current Value",
@@ -139,9 +139,8 @@ export function StrategyCard({ strategyChat }: StrategyCardProps) {
               </div>
               <p className="text-2xl font-bold text-center w-full">{metric.value}</p>
               {(metric.currency || metric.usd) && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground font-medium justify-center w-full">
+                <div className="flex flex-col items-center gap-1 text-sm text-muted-foreground font-medium justify-center w-full">
                   {metric.currency && <span>{metric.currency}</span>}
-                  {metric.currency && metric.usd && <span>|</span>}
                   {metric.usd && <span>{metric.usd}</span>}
                 </div>
               )}
@@ -153,10 +152,10 @@ export function StrategyCard({ strategyChat }: StrategyCardProps) {
    
     </div>
      <DualChartRadial
-     total_1={strategyChat.positionSize_Options ? Number(strategyChat.positionSize_Options) : 0}
-     current_1={strategyChat.positionSize_Options ? Number(strategyChat.positionSize_Options) : 0}
-     total_2={strategyChat.positionSize_Options ? Number(strategyChat.positionSize_Options) : 0}
-     current_2={strategyChat.positionSize_Perpetual ? Number(strategyChat.positionSize_Perpetual) : 0}
+     total_1={calculatedMetrics.positionSizeOptions ? Number(calculatedMetrics.positionSizeOptions) : 0}
+     current_1={calculatedMetrics.positionSizeOptions ? Number(calculatedMetrics.positionSizeOptions) : 0}
+     total_2={calculatedMetrics.positionSizeOptions ? Number(calculatedMetrics.positionSizeOptions) : 0}
+     current_2={calculatedMetrics.positionSizePerpetual ? Number(calculatedMetrics.positionSizePerpetual) : 0}
      title_1="Options"
      description_1="Current options position size"
      title_2="Perpetual"

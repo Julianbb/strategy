@@ -207,19 +207,6 @@ export const strategyChat = pgTable(
     baseCurrency: varchar('baseCurrency', { length: 10 }).notNull().default('USD'),
     initialCapital_USD: numeric('initialCapital_USD', { precision: 20, scale: 8 }),
     initialCapital_Currency: numeric('initialCapital_Currency', { precision: 20, scale: 8 }),
-    
-    averagePrice_Perpetual_USD: numeric('averagePrice_Perpetual_USD', { precision: 20, scale: 8 }),
-    averagePrice_Options_Currency: numeric('averagePrice_Options_Currency', { precision: 20, scale: 8 }),
-    positionSize_Perpetual: numeric('positionSize_Perpetual', { precision: 20, scale: 8 }),
-    positionSize_Options: numeric('positionSize_Options', { precision: 20, scale: 8 }),
-    
-    profitLoss_USD: numeric('profitLoss_USD', { precision: 20, scale: 8 }).default('0'),
-    profitLoss_Currency: numeric('profitLoss_Currency', { precision: 20, scale: 8 }).default('0'),
-    
-    totalCost_USD: numeric('totalCost_USD', { precision: 20, scale: 8 }).default('0'),
-    totalCost_Currency: numeric('totalCost_Currency', { precision: 20, scale: 8 }).default('0'),
-    totalFees_USD: numeric('totalFees_USD', { precision: 20, scale: 8 }).default('0'),
-    totalFees_Currency: numeric('totalFees_Currency', { precision: 20, scale: 8 }).default('0'),
     status: varchar('status', { enum: ['active', 'paused', 'stopped', 'completed'] }).notNull().default('active'),
     totalTrades: numeric('totalTrades').notNull().default('0'),
     startedAt: timestamp('startedAt').notNull(),
@@ -240,14 +227,14 @@ export const trades = pgTable(
     userId: uuid('userId')
       .notNull()
       .references(() => user.id),
-    product: text('product').notNull(),
+    product: varchar('product').notNull(),
+    productType: varchar('productType', { enum: ['perpetual', 'option', 'spot'] }).notNull(),
     side: varchar('side', { enum: ['buy', 'sell'] }).notNull(),
+    optionType: varchar('optionType', { enum: ['call', 'put'] }), // only if productType = 'option'
     orderType: varchar('orderType', { enum: ['market', 'limit', 'stop_loss', 'take_profit'] }).notNull().default('market'),
     priceInCurrency: numeric('priceCurrency',  { precision: 20, scale: 8 }),
     priceInUSD: numeric('priceInUSD', { precision: 20, scale: 8 }),
     amount: numeric('amount', { precision: 20, scale: 8 }).notNull(),
-    costInCurrency: numeric('costCurrency', { precision: 20, scale: 8 }),
-    costInUSD: numeric('costInUSD', { precision: 20, scale: 8 }),
     feeInCurrency: numeric('feeCurrency', { precision: 20, scale: 8 }),
     feeInUSD: numeric('feeInUSD', { precision: 20, scale: 8 }),
     executedAt: timestamp('executedAt').notNull(),
@@ -256,3 +243,13 @@ export const trades = pgTable(
 );
 
 export type Trades = InferSelectModel<typeof trades>;
+
+
+export const strategySnapshot = pgTable('Strategy_Snapshot', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  strategyChatId: uuid('strategyChatId').references(() => strategyChat.id).notNull(),
+  timestamp: timestamp('timestamp').notNull(),
+  currentValueInUSD: numeric('currentValue', { precision: 20, scale: 8 }).notNull(),
+});
+
+export type StrategySnapshot = InferSelectModel<typeof strategySnapshot>;

@@ -33,6 +33,8 @@ import {
   type StrategyChat,
   trades,
   type Trades,
+  strategySnapshot,
+  type StrategySnapshot,
 } from './schema';
 import type { ArtifactKind } from '@/components/artifact';
 import { generateUUID } from '../utils';
@@ -647,13 +649,13 @@ export async function createTrade({
   strategyChatId,
   userId,
   product,
+  productType,
   side,
+  optionType,
   orderType,
   priceInCurrency,
   priceInUSD,
   amount,
-  costInCurrency,
-  costInUSD,
   feeInCurrency,
   feeInUSD,
   executedAt,
@@ -661,50 +663,31 @@ export async function createTrade({
   strategyChatId: string;
   userId: string;
   product: string;
+  productType: 'perpetual' | 'option' | 'spot';
   side: 'buy' | 'sell';
+  optionType?: 'call' | 'put';
   orderType?: 'market' | 'limit' | 'stop_loss' | 'take_profit';
   priceInCurrency?: string;
   priceInUSD?: string;
   amount: string;
-  costInCurrency?: string;
-  costInUSD?: string;
   feeInCurrency?: string;
   feeInUSD?: string;
   executedAt: Date;
 }) {
   try {
-
-    console.log({
-      strategyChatId,
-      userId,
-      product,
-      side,
-      orderType,
-      priceInCurrency,
-      priceInUSD,
-      amount,
-      costInCurrency,
-      costInUSD,
-      feeInCurrency,
-      feeInUSD,
-      executedAt,
-    });
-
-
-
     return await db
       .insert(trades)
       .values({
         strategyChatId,
         userId,
         product,
+        productType,
         side,
+        optionType: optionType || null,
         orderType: orderType || 'market',
         priceInCurrency: priceInCurrency || null,
         priceInUSD: priceInUSD || null,
         amount,
-        costInCurrency: costInCurrency || null,
-        costInUSD: costInUSD || null,
         feeInCurrency: feeInCurrency || null,
         feeInUSD: feeInUSD || null,
         executedAt,
@@ -799,30 +782,49 @@ export async function getTradeById({ id }: { id: string }) {
 export async function updateTradeById({
   id,
   userId,
+  product,
+  productType,
+  side,
+  optionType,
+  orderType,
   priceInCurrency,
   priceInUSD,
+  amount,
   costInCurrency,
   costInUSD,
   feeInCurrency,
   feeInUSD,
+  executedAt,
 }: {
   id: string;
   userId: string;
+  product?: string;
+  productType?: 'perpetual' | 'option' | 'spot';
+  side?: 'buy' | 'sell';
+  optionType?: 'call' | 'put';
+  orderType?: 'market' | 'limit' | 'stop_loss' | 'take_profit';
   priceInCurrency?: string;
   priceInUSD?: string;
+  amount?: string;
   costInCurrency?: string;
   costInUSD?: string;
   feeInCurrency?: string;
   feeInUSD?: string;
+  executedAt?: Date;
 }) {
   try {
     const updateData: Partial<Trades> = {};
+    if (product !== undefined) updateData.product = product;
+    if (productType !== undefined) updateData.productType = productType;
+    if (side !== undefined) updateData.side = side;
+    if (optionType !== undefined) updateData.optionType = optionType;
+    if (orderType !== undefined) updateData.orderType = orderType;
     if (priceInCurrency !== undefined) updateData.priceInCurrency = priceInCurrency;
     if (priceInUSD !== undefined) updateData.priceInUSD = priceInUSD;
-    if (costInCurrency !== undefined) updateData.costInCurrency = costInCurrency;
-    if (costInUSD !== undefined) updateData.costInUSD = costInUSD;
+    if (amount !== undefined) updateData.amount = amount;
     if (feeInCurrency !== undefined) updateData.feeInCurrency = feeInCurrency;
     if (feeInUSD !== undefined) updateData.feeInUSD = feeInUSD;
+    if (executedAt !== undefined) updateData.executedAt = executedAt;
 
     const [updatedTrade] = await db
       .update(trades)
@@ -860,7 +862,7 @@ export async function deleteTradeById({
   }
 }
 
-export async function getStrategyChatIdFromChatId({ chatId }: { chatId: string }) {
+export async function getStrategyChatFromChatId({ chatId }: { chatId: string }) {
   try {
     const [selectedStrategyChat] = await db
       .select()
@@ -872,6 +874,43 @@ export async function getStrategyChatIdFromChatId({ chatId }: { chatId: string }
     throw new ChatSDKError(
       'bad_request:database',
       'Failed to get strategy chat id from chat id',
+    );
+  }
+}
+
+export async function getStrategySnapshots({
+  strategyChatId,
+  limit,
+  daysBack,
+}: {
+  strategyChatId: string;
+  limit?: number;
+  daysBack?: number;
+}) {
+  try {
+    const conditions = [eq(strategySnapshot.strategyChatId, strategyChatId)];
+    
+    if (daysBack) {
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - daysBack);
+      conditions.push(gte(strategySnapshot.timestamp, startDate));
+    }
+
+    const query = db
+      .select()
+      .from(strategySnapshot)
+      .where(and(...conditions))
+      .orderBy(asc(strategySnapshot.timestamp));
+
+    if (limit) {
+      return await query.limit(limit);
+    }
+
+    return await query;
+  } catch (error) {
+    throw new ChatSDKError(
+      'bad_request:database',
+      'Failed to get strategy snapshots',
     );
   }
 }
