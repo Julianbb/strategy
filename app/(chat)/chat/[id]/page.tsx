@@ -7,7 +7,6 @@ import { FloatingChat } from '@/components/floating-chat';
 import {StrategyCard} from "@/components/strategy-summary-card"
 import {ChartAreaInteractive} from '@/components/strategy-line-chart'
 import {DataTable}  from '@/components/strategy-trades-sheets'
-import testData from '@/tests/db/data.json'
 import { getChatById, getMessagesByChatId, getStrategyChatFromChatId,getTradesByStrategyChat } from '@/lib/db/queries';
 import { DataStreamHandler } from '@/components/data-stream-handler';
 import { DEFAULT_CHAT_MODEL } from '@/lib/ai/models';
@@ -68,7 +67,7 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
               <div className="px-4 lg:px-6">
                 <ChartAreaInteractive strategyChat={strategyChat} />
               </div>
-              <DataTable data={testData} />
+              <DataTable tradesInCurrentStrategy={tradesInCurrentStrategy} baseCurrency={strategyChat.baseCurrency} />
             </div>
           </div>
         </div>
