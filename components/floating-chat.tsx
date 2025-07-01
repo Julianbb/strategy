@@ -4,19 +4,18 @@ import { useState,useCallback, useEffect, useRef, forwardRef, useImperativeHandl
 import { useChat } from '@ai-sdk/react';
 import useSWR, { useSWRConfig } from 'swr';
 import type { Attachment, UIMessage } from 'ai';
-import type { VisibilityType } from './visibility-selector';
+
 import type { Session } from 'next-auth';
 import type { Vote } from '@/lib/db/schema';
 import { MessageCircle, X } from 'lucide-react';
 import { PreviewMessage, ThinkingMessage } from './message';
-import { Greeting } from './greeting';
 import { MultimodalInput } from './multimodal-input';
 import { fetcher, fetchWithErrorHandlers, generateUUID } from '@/lib/utils';
 import { unstable_serialize } from 'swr/infinite';
 import { getChatHistoryPaginationKey } from './sidebar-history';
 import { toast } from './toast';
 import { useSearchParams } from 'next/navigation';
-import { useChatVisibility } from '@/hooks/use-chat-visibility';
+
 import { useAutoResume } from '@/hooks/use-auto-resume';
 import { ChatSDKError } from '@/lib/errors';
 
@@ -25,7 +24,6 @@ interface FloatingChatProps {
   strategyChatId: string;
   initialMessages: Array<UIMessage>;
   initialChatModel: string;
-  initialVisibilityType: VisibilityType;
   isReadonly: boolean;
   session: Session;
   autoResume: boolean;
@@ -100,7 +98,6 @@ const FloatingMessages = forwardRef<
       ref={messagesContainerRef}
       className="flex flex-col min-w-0 gap-6 flex-1 overflow-y-auto overflow-x-hidden p-4 relative max-w-full"
     >
-      {messages.length === 0 && <Greeting />}
 
       {messages.map((message, index) => (
         <PreviewMessage
@@ -134,7 +131,6 @@ function FloatingChatContent({
   strategyChatId,
   initialMessages,
   initialChatModel,
-  initialVisibilityType,
   isReadonly,
   autoResume,
   shouldScrollToLast,
@@ -142,10 +138,6 @@ function FloatingChatContent({
   const { mutate } = useSWRConfig();
   const messagesRef = useRef<{ scrollToLastMessage: () => void }>(null);
 
-  const { visibilityType } = useChatVisibility({
-    chatId: id,
-    initialVisibilityType,
-  });
 
   const {
     messages,
@@ -171,7 +163,6 @@ function FloatingChatContent({
       strategyChatId,
       message: body.messages.at(-1),
       selectedChatModel: initialChatModel,
-      selectedVisibilityType: visibilityType,
     }),
     onFinish: () => {
       mutate(unstable_serialize(getChatHistoryPaginationKey));
@@ -255,7 +246,6 @@ function FloatingChatContent({
             messages={messages}
             setMessages={setMessages}
             append={append}
-            selectedVisibilityType={visibilityType}
           />
         </div>
       )}

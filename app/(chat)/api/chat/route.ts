@@ -5,8 +5,11 @@ import {
   smoothStream,
   streamText,
 } from 'ai';
+import { xai } from '@ai-sdk/xai';
+import { anthropic } from '@ai-sdk/anthropic';
+
 import { auth, type UserType } from '@/app/(auth)/auth';
-import { type RequestHints, systemPrompt } from '@/lib/ai/prompts';
+
 import {
   createStreamId,
   deleteChatById,
@@ -74,7 +77,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { id, strategyChatId, message, selectedChatModel, selectedVisibilityType, title } =
+    const { id, strategyChatId, message, selectedChatModel, title } =
       requestBody;
 
     const session = await auth();
@@ -105,7 +108,6 @@ export async function POST(request: Request) {
         id,
         userId: session.user.id,
         title: chatTitle,
-        visibility: selectedVisibilityType,
       });
     } else {
       if (chat.userId !== session.user.id) {
@@ -121,14 +123,7 @@ export async function POST(request: Request) {
       message,
     });
 
-    const { longitude, latitude, city, country } = geolocation(request);
 
-    const requestHints: RequestHints = {
-      longitude,
-      latitude,
-      city,
-      country,
-    };
 
     await saveMessages({
       messages: [
@@ -148,29 +143,29 @@ export async function POST(request: Request) {
 
 
     const stream = createDataStream({
+ 
       execute: (dataStream) => {
+        
         const toolsName = Object.values(toolFactories).map(t => t.name)
         const tools = Object.fromEntries(
           Object.entries(toolFactories).map(([key, { factory }]) => [
             key,
-            factory({ session, dataStream, strategyChatId: strategyChatId || ""}),
+            factory({ session, strategyChatId: strategyChatId || ""}),
           ])
         );
-       
+        
         const result = streamText({
-          model: myProvider.languageModel(selectedChatModel),
-          system: systemPrompt({ selectedChatModel, requestHints }),
+          model: anthropic('claude-3-haiku-20240307'),
           messages,
           maxSteps: 5,
-          experimental_activeTools:
-            selectedChatModel === 'chat-model-reasoning'
-              ? []
-              : toolsName,
+          experimental_activeTools:toolsName,
           experimental_transform: smoothStream({ chunking: 'word' }),
           experimental_generateMessageId: generateUUID,
           tools,
           onFinish: async ({ response }) => {
+            
             if (session.user?.id) {
+             
               try {
                 const assistantId = getTrailingMessageId({
                   messages: response.messages.filter(
@@ -217,7 +212,8 @@ export async function POST(request: Request) {
           sendReasoning: true,
         });
       },
-      onError: () => {
+      onError: (error) => {
+       
         return 'Oops, an error occurred!';
       },
     });
@@ -271,9 +267,6 @@ export async function GET(request: Request) {
     return new ChatSDKError('not_found:chat').toResponse();
   }
 
-  if (chat.visibility === 'private' && chat.userId !== session.user.id) {
-    return new ChatSDKError('forbidden:chat').toResponse();
-  }
 
   const streamIds = await getStreamIdsByChatId({ chatId });
 

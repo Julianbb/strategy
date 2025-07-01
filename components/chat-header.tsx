@@ -11,19 +11,16 @@ import { PlusIcon, VercelIcon } from './icons';
 import { useSidebar } from './ui/sidebar';
 import { memo } from 'react';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
-import { type VisibilityType, VisibilitySelector } from './visibility-selector';
 import type { Session } from 'next-auth';
 
 function PureChatHeader({
   chatId,
   selectedModelId,
-  selectedVisibilityType,
   isReadonly,
   session,
 }: {
   chatId: string;
   selectedModelId: string;
-  selectedVisibilityType: VisibilityType;
   isReadonly: boolean;
   session: Session;
 }) {
@@ -60,14 +57,6 @@ function PureChatHeader({
           session={session}
           selectedModelId={selectedModelId}
           className="order-1 md:order-2"
-        />
-      )}
-
-      {!isReadonly && (
-        <VisibilitySelector
-          chatId={chatId}
-          selectedVisibilityType={selectedVisibilityType}
-          className="order-1 md:order-3"
         />
       )}
     </header>

@@ -8,7 +8,7 @@ import {StrategyCard} from "@/components/strategy-summary-card"
 import {ChartAreaInteractive} from '@/components/strategy-line-chart'
 import {DataTable}  from '@/components/strategy-trades-sheets'
 import { getChatById, getMessagesByChatId, getStrategyChatFromChatId,getTradesByStrategyChat } from '@/lib/db/queries';
-import { DataStreamHandler } from '@/components/data-stream-handler';
+
 import { DEFAULT_CHAT_MODEL } from '@/lib/ai/models';
 import type { DBMessage } from '@/lib/db/schema';
 import type { Attachment, UIMessage } from 'ai';
@@ -28,15 +28,10 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
     redirect('/api/auth/guest');
   }
 
-  if (chat.visibility === 'private') {
-    if (!session.user) {
-      return notFound();
-    }
-
-    if (session.user.id !== chat.userId) {
-      return notFound();
-    }
+  if (session.user.id !== chat.userId) {
+    return notFound();
   }
+  
 
   const messagesFromDb = await getMessagesByChatId({id});
   const strategyChat = await getStrategyChatFromChatId({ chatId: id });
@@ -76,12 +71,10 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
         strategyChatId={strategyChat.id}
         initialMessages={convertToUIMessages(messagesFromDb)}
         initialChatModel={chatModelFromCookie?.value || DEFAULT_CHAT_MODEL}
-        initialVisibilityType={chat.visibility}
         isReadonly={session?.user?.id !== chat.userId}
         session={session}
         autoResume={true}
       />
-      <DataStreamHandler id={id} />
     </>
   );
 }

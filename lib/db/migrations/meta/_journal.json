@@ -5,15 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1751204812498,
-      "tag": "0000_short_hellcat",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1751261883889,
-      "tag": "0001_third_quasimodo",
+      "when": 1751382824884,
+      "tag": "0000_wooden_polaris",
       "breakpoints": true
     }
   ]

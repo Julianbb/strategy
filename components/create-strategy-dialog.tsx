@@ -119,7 +119,6 @@ export function CreateStrategyDialog({
             ]
           },
           selectedChatModel: 'chat-model',
-          selectedVisibilityType: 'private',
           title: chatTitle
         }),
       });
