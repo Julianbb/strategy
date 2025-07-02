@@ -1,6 +1,7 @@
 import type { NextAuthConfig } from 'next-auth';
 
 export const authConfig = {
+
   pages: {
     signIn: '/login',
     newUser: '/',
@@ -10,4 +11,5 @@ export const authConfig = {
     // while this file is also used in non-Node.js environments
   ],
   callbacks: {},
+  trustHost: process.env.AUTH_TRUST_HOST === 'true',
 } satisfies NextAuthConfig;
