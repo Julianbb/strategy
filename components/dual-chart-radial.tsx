@@ -15,7 +15,7 @@ interface DualChartRadialProps {
 
 export function DualChartRadial({ total_1, current_1, total_2, current_2, title_1, description_1, title_2, description_2 }: DualChartRadialProps) {
   return (
-    <div className="h-2/5 grid grid-cols-2 gap-4 py-4 px-6">
+    <div className="w-full grid grid-cols-2 gap-4">
       <ChartRadialShape
         title={title_1}
         description={description_1}

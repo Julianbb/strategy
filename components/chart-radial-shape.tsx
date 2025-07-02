@@ -43,15 +43,15 @@ export function ChartRadialShape({ title, description, total_number, current_num
     },
   } satisfies ChartConfig
   return (
-    <Card className="flex flex-col ">
-      <CardHeader className="items-center pb-0">
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
+    <Card className="flex flex-col">
+      <CardHeader className="items-start pb-2 flex-shrink-0">
+        <CardTitle className="text-sm">{title}</CardTitle>
+        <CardDescription className="text-xs text-left">{description}</CardDescription>
       </CardHeader>
-      <CardContent className="flex-1 pb-0">
+      <CardContent className="pb-2 flex items-center justify-center">
         <ChartContainer
           config={chartConfig}
-          className="mx-auto aspect-square max-h-[100px]"
+          className="mx-auto aspect-square w-full max-w-[100px]"
         >
           <RadialBarChart
             data={chartData}

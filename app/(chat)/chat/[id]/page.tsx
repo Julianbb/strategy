@@ -2,11 +2,7 @@ import { cookies } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 
 import { auth } from '@/app/(auth)/auth';
-import { FloatingChat } from '@/components/floating-chat';
-
-import {StrategyCard} from "@/components/strategy-summary-card"
-import {ChartAreaInteractive} from '@/components/strategy-line-chart'
-import {DataTable}  from '@/components/strategy-trades-sheets'
+import { MobileChatLayout } from '@/components/mobile-chat-layout';
 import { getChatById, getMessagesByChatId, getStrategyChatFromChatId,getTradesByStrategyChat } from '@/lib/db/queries';
 
 import { DEFAULT_CHAT_MODEL } from '@/lib/ai/models';
@@ -55,25 +51,15 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
 
   return (
     <>
-      <div className="flex flex-1 flex-col">
-          <div className="@container/main flex flex-1 flex-col gap-2">
-            <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-                <StrategyCard strategyChat={strategyChat} tradesInCurrentStrategy={tradesInCurrentStrategy}/>
-              <div className="px-4 lg:px-6">
-                <ChartAreaInteractive strategyChat={strategyChat} />
-              </div>
-              <DataTable tradesInCurrentStrategy={tradesInCurrentStrategy} baseCurrency={strategyChat.baseCurrency} />
-            </div>
-          </div>
-        </div>
-      <FloatingChat
-        id={chat.id}
+      <MobileChatLayout
+        strategyChat={strategyChat}
+        tradesInCurrentStrategy={tradesInCurrentStrategy}
+        chatId={chat.id}
         strategyChatId={strategyChat.id}
         initialMessages={convertToUIMessages(messagesFromDb)}
         initialChatModel={chatModelFromCookie?.value || DEFAULT_CHAT_MODEL}
         isReadonly={session?.user?.id !== chat.userId}
         session={session}
-        autoResume={true}
       />
     </>
   );

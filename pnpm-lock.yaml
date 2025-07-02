@@ -57,7 +57,7 @@ dependencies:
     specifier: ^2.1.0
     version: 2.1.7(@types/react-dom@18.3.7)(@types/react@18.3.23)(react-dom@19.0.0-rc-45804af1-20241021)(react@19.0.0-rc-45804af1-20241021)
   '@radix-ui/react-select':
-    specifier: ^2.1.2
+    specifier: ^2.2.5
     version: 2.2.5(@types/react-dom@18.3.7)(@types/react@18.3.23)(react-dom@19.0.0-rc-45804af1-20241021)(react@19.0.0-rc-45804af1-20241021)
   '@radix-ui/react-separator':
     specifier: ^1.1.0

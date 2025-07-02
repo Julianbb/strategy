@@ -114,22 +114,26 @@ export function StrategyCard({ strategyChat, tradesInCurrentStrategy }: Strategy
 
 
   return (
-    <div className='flex justify-between'>
-    <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-12 p-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
-    <Card className="@container/card">
+    <div className="px-4 lg:px-6">
+      {/* Mobile: Stack vertically, Desktop: Side by side */}
+      <div className="flex flex-col lg:flex-row lg:justify-between gap-6 lg:items-stretch">
+  {/* Strategy Summary Card */}
+  <div className="flex-1 lg:flex-[2] min-w-0">
+    <Card className="@container/card h-full">
       <CardHeader>
-        <CardTitle>Strategy Summary</CardTitle>
+        <CardTitle className="text-lg md:text-xl">Strategy Summary</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-5 gap-8">
+        {/* Mobile: 2 columns, Tablet: 3 columns, Desktop: 5 columns */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 lg:gap-8">
           {metrics.map((metric, index) => (
-            <div key={index} className="flex flex-col items-center space-y-2 min-w-[120px]">
-              <div className="flex items-center gap-1">
-                <h3 className="text-sm font-medium text-muted-foreground">{metric.title}</h3>
+            <div key={index} className="flex flex-col items-center space-y-2">
+              <div className="flex items-center gap-1 text-center">
+                <h3 className="text-xs md:text-sm font-medium text-muted-foreground">{metric.title}</h3>
                 {metric.isToolTipNeed && metric.tipMessage && (
                   <Tooltip>
                     <TooltipTrigger>
-                      <HelpCircle className="size-3 text-muted-foreground hover:text-foreground cursor-help" />
+                      <HelpCircle className="size-3 text-muted-foreground hover:text-foreground cursor-help flex-shrink-0" />
                     </TooltipTrigger>
                     <TooltipContent>
                       <p>{metric.tipMessage}</p>
@@ -137,11 +141,11 @@ export function StrategyCard({ strategyChat, tradesInCurrentStrategy }: Strategy
                   </Tooltip>
                 )}
               </div>
-              <p className="text-2xl font-bold text-center w-full">{metric.value}</p>
+              <p className="text-lg md:text-xl lg:text-2xl font-bold text-center w-full break-words">{metric.value}</p>
               {(metric.currency || metric.usd) && (
-                <div className="flex flex-col items-center gap-1 text-sm text-muted-foreground font-medium justify-center w-full">
-                  {metric.currency && <span>{metric.currency}</span>}
-                  {metric.usd && <span>{metric.usd}</span>}
+                <div className="flex flex-col items-center gap-1 text-xs md:text-sm text-muted-foreground font-medium justify-center w-full text-center">
+                  {metric.currency && <span className="break-words">{metric.currency}</span>}
+                  {metric.usd && <span className="break-words">{metric.usd}</span>}
                 </div>
               )}
             </div>
@@ -149,19 +153,40 @@ export function StrategyCard({ strategyChat, tradesInCurrentStrategy }: Strategy
         </div>
       </CardContent>
     </Card>
-   
+  </div>
+
+  {/* Chart - Hidden on mobile, shown on larger screens */}
+  <div className="hidden lg:block lg:flex-[1] lg:max-w-md h-full">
+    <div className="h-full overflow-hidden">
+      <DualChartRadial
+        total_1={calculatedMetrics.positionSizeOptions ? Number(calculatedMetrics.positionSizeOptions) : 0}
+        current_1={calculatedMetrics.positionSizeOptions ? Number(calculatedMetrics.positionSizeOptions) : 0}
+        total_2={calculatedMetrics.positionSizeOptions ? Number(calculatedMetrics.positionSizeOptions) : 0}
+        current_2={calculatedMetrics.positionSizePerpetual ? Number(calculatedMetrics.positionSizePerpetual) : 0}
+        title_1="Options"
+        description_1="Current options position size"
+        title_2="Perpetual"
+        description_2="Current perpetual position size"
+      />
     </div>
-     <DualChartRadial
-     total_1={calculatedMetrics.positionSizeOptions ? Number(calculatedMetrics.positionSizeOptions) : 0}
-     current_1={calculatedMetrics.positionSizeOptions ? Number(calculatedMetrics.positionSizeOptions) : 0}
-     total_2={calculatedMetrics.positionSizeOptions ? Number(calculatedMetrics.positionSizeOptions) : 0}
-     current_2={calculatedMetrics.positionSizePerpetual ? Number(calculatedMetrics.positionSizePerpetual) : 0}
-     title_1="Options"
-     description_1="Current options position size"
-     title_2="Perpetual"
-     description_2="Current perpetual position size"
-     />
-   </div>
+  </div>
+</div>
+
+
+      {/* Chart - Mobile version, stacked below on small screens */}
+      <div className="lg:hidden mt-6">
+        <DualChartRadial
+          total_1={calculatedMetrics.positionSizeOptions ? Number(calculatedMetrics.positionSizeOptions) : 0}
+          current_1={calculatedMetrics.positionSizeOptions ? Number(calculatedMetrics.positionSizeOptions) : 0}
+          total_2={calculatedMetrics.positionSizeOptions ? Number(calculatedMetrics.positionSizeOptions) : 0}
+          current_2={calculatedMetrics.positionSizePerpetual ? Number(calculatedMetrics.positionSizePerpetual) : 0}
+          title_1="Options"
+          description_1="Current options position size"
+          title_2="Perpetual"
+          description_2="Current perpetual position size"
+        />
+      </div>
+    </div>
 
   )
 }

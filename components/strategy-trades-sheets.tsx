@@ -68,7 +68,7 @@ const createTradeColumns = (baseCurrency: string): ColumnDef<TradesType>[] => [
     accessorKey: "product",
     header: "Product",
     cell: ({ row }) => (
-      <div className="font-medium">
+      <div className="font-medium whitespace-nowrap max-w-[120px] truncate">
         {row.original.product}
       </div>
     ),
@@ -79,7 +79,7 @@ const createTradeColumns = (baseCurrency: string): ColumnDef<TradesType>[] => [
     cell: ({ row }) => (
       <Badge
         variant="outline"
-        className={`px-2 py-1 ${
+        className={`px-1 py-0 text-xs whitespace-nowrap ${
           row.original.side === 'buy'
             ? 'border-green-500 text-green-700 dark:text-green-400'
             : 'border-red-500 text-red-700 dark:text-red-400'
@@ -98,7 +98,7 @@ const createTradeColumns = (baseCurrency: string): ColumnDef<TradesType>[] => [
       const currencyType = productType === 'option' ? 'currency' : 'usd'
       const currency = productType === 'option' ? baseCurrency : undefined
       return (
-        <div className="text-right font-mono">
+        <div className="text-right font-mono text-xs whitespace-nowrap">
           {formatCurrency(price, currencyType, currency)}
         </div>
       )
@@ -113,7 +113,7 @@ const createTradeColumns = (baseCurrency: string): ColumnDef<TradesType>[] => [
       const currencyType = productType === 'option' ? 'currency' : 'usd'
       const currency = productType === 'option' ? baseCurrency : undefined
       return (
-        <div className="text-right font-mono">
+        <div className="text-right font-mono text-xs whitespace-nowrap">
           {formatCurrency(fee, currencyType, currency)}
         </div>
       )
@@ -123,16 +123,16 @@ const createTradeColumns = (baseCurrency: string): ColumnDef<TradesType>[] => [
     accessorKey: "amount",
     header: () => <div className="text-right">Amount</div>,
     cell: ({ row }) => (
-      <div className="text-right font-mono">
+      <div className="text-right font-mono text-xs whitespace-nowrap">
         {parseFloat(row.original.amount).toFixed(2)}
       </div>
     ),
   },
   {
     accessorKey: "executedAt",
-    header: "Executed Time",
+    header: "Time",
     cell: ({ row }) => (
-      <div className="text-sm text-muted-foreground">
+      <div className="text-xs text-muted-foreground whitespace-nowrap max-w-[140px] truncate">
         {formatDateTime(row.original.executedAt)}
       </div>
     ),
@@ -166,51 +166,61 @@ export function DataTable({
   })
 
   return (
-    <div className="w-full flex-col justify-start gap-6">
+    <div className="w-full flex flex-col justify-start gap-6 overflow-hidden">
       <div className="relative flex flex-col gap-4 px-4 lg:px-6">
-        <div className="rounded-lg border">
-          <Table>
-            <TableHeader className="bg-muted sticky top-0 z-10">
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => {
-                    return (
-                      <TableHead key={header.id} colSpan={header.colSpan}>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
-                      </TableHead>
-                    )
-                  })}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id}>
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </TableCell>
-                    ))}
+        <div className="rounded-lg border w-full overflow-hidden">
+          <div className="overflow-x-auto">
+            <Table className="min-w-[700px]">
+              <TableHeader className="bg-muted sticky top-0 z-10">
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => {
+                      return (
+                        <TableHead 
+                          key={header.id} 
+                          colSpan={header.colSpan}
+                          className="px-1 py-2 text-xs"
+                        >
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
+                        </TableHead>
+                      )
+                    })}
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={createTradeColumns(baseCurrency).length}
-                    className="h-24 text-center"
-                  >
-                    No trades found.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows?.length ? (
+                  table.getRowModel().rows.map((row) => (
+                    <TableRow key={row.id}>
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell 
+                          key={cell.id}
+                          className="px-1 py-2"
+                        >
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={createTradeColumns(baseCurrency).length}
+                      className="h-24 text-center"
+                    >
+                      No trades found.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+              </Table>
+            </div>
+          </div>
         </div>
         <div className="flex items-center justify-between px-4">
           <div className="flex w-full items-center gap-8 lg:w-fit">
@@ -286,7 +296,6 @@ export function DataTable({
           </div>
         </div>
       </div>
-    </div>
   )
 }
 
