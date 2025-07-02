@@ -44,7 +44,7 @@ export function ChartRadialShape({ title, description, total_number, current_num
   } satisfies ChartConfig
   return (
     <Card className="flex flex-col">
-      <CardHeader className="items-start pb-2 flex-shrink-0">
+      <CardHeader className="items-start pb-2 shrink-0">
         <CardTitle className="text-sm">{title}</CardTitle>
         <CardDescription className="text-xs text-left">{description}</CardDescription>
       </CardHeader>

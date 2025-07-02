@@ -133,7 +133,7 @@ export function StrategyCard({ strategyChat, tradesInCurrentStrategy }: Strategy
                 {metric.isToolTipNeed && metric.tipMessage && (
                   <Tooltip>
                     <TooltipTrigger>
-                      <HelpCircle className="size-3 text-muted-foreground hover:text-foreground cursor-help flex-shrink-0" />
+                      <HelpCircle className="size-3 text-muted-foreground hover:text-foreground cursor-help shrink-0" />
                     </TooltipTrigger>
                     <TooltipContent>
                       <p>{metric.tipMessage}</p>
