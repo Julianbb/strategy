@@ -45,6 +45,14 @@ const chartConfig = {
   },
 } satisfies ChartConfig
 
+
+
+function downsampleByStep(data: ChartData[], step: number) {
+  return data.filter((_, index) => index % step === 0)
+}
+
+
+
 export function ChartAreaInteractive({ strategyChat }: { strategyChat?: StrategyChat }) {
   const isMobile = useIsMobile()
   const [timeRange, setTimeRange] = React.useState("30d")
@@ -79,9 +87,15 @@ export function ChartAreaInteractive({ strategyChat }: { strategyChat?: Strategy
           throw new Error('Failed to fetch strategy snapshots')
         }
 
-        const formattedData: ChartData[] = await response.json()
+        let interval = 3
+        if (timeRange === "30d") interval = 6
+        else if (timeRange === "90d") interval = 30
+        
+        const rawData = await response.json()
+        const formattedData: ChartData[] = downsampleByStep(rawData, interval)
 
         setChartData(formattedData)
+        
       } catch (error) {
         console.error('Error fetching strategy snapshots:', error)
         setChartData([])
@@ -149,6 +163,7 @@ export function ChartAreaInteractive({ strategyChat }: { strategyChat?: Strategy
         <ChartContainer
           config={chartConfig}
           className="aspect-auto h-[250px] w-full"
+          style={{ minWidth: '300px', minHeight: '250px' }}
         >
           {loading ? (
             <div className="flex h-full items-center justify-center">
@@ -194,6 +209,11 @@ export function ChartAreaInteractive({ strategyChat }: { strategyChat?: Strategy
                   return date.toLocaleDateString("en-US", {
                     month: "short",
                     day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: false,
+                    timeZone: "Asia/Bangkok"
+
                   })
                 }}
               />
@@ -202,15 +222,18 @@ export function ChartAreaInteractive({ strategyChat }: { strategyChat?: Strategy
                 defaultIndex={isMobile ? -1 : 10}
                 content={
                   <ChartTooltipContent
-                    labelFormatter={(value) => {
-                      return new Date(value).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                      })
-                    }}
+                  labelFormatter={(value) => {
+                    const date = new Date(value)
+                    return new Intl.DateTimeFormat("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: false,
+                    }).format(date)
+                  }}                             
                     formatter={(value) => [
-                      `$${parseFloat(value as string).toFixed(2)}`,
-                      "Strategy Value"
+                      `$${parseFloat(value as string).toFixed(2)}`
                     ]}
                     indicator="dot"
                   />

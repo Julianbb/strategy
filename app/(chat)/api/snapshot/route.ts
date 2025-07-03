@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
       });
   
       const formattedData = snapshots.map((snapshot) => ({
-        date: snapshot.timestamp.toISOString().split('T')[0],
+        date: snapshot.timestamp.toISOString(),
         value: parseFloat(snapshot.currentValueInUSD),
       }));
   
