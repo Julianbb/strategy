@@ -76,7 +76,7 @@ export function CreateStrategyDialog({
     setIsCreating(true);
 
     try {
-      const chatId = generateUUID();
+      const strategyChatId = generateUUID();
       const messageId = generateUUID();
       const currentDate = new Date();
       const chatTitle = formData.name;
@@ -101,11 +101,16 @@ export function CreateStrategyDialog({
       `;
 
       // Create chat first (required for strategy foreign key reference)
-      const chatResponse = await fetch('/api/chat', {
+      const strategyChatResponse = await fetch('/api/strategy-chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          id: chatId,
+          id: strategyChatId,
+          strategyName: formData.name,
+          baseCurrency: formData.baseCurrency,
+          initialCapital_USD: parseFloat(formData.initialCapital_USD) || undefined,
+          initialCapital_Currency: parseFloat(formData.initialCapital_Currency) || undefined,
+          strategyTypeId: strategyType.id,
           message: {
             id: messageId,
             createdAt: currentDate,
@@ -117,38 +122,17 @@ export function CreateStrategyDialog({
                 type: 'text'
               }
             ]
-          },
-          selectedChatModel: 'chat-model',
-          title: chatTitle
+          }
         }),
       });
-
-      if (!chatResponse.ok) {
-        console.error('Failed to create chat');
-        return;
-      }
-
-      // Create strategy after chat is successfully created
-      const strategyResponse = await fetch('/api/strategy-chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          strategyName: formData.name,
-          baseCurrency: formData.baseCurrency,
-          initialCapital_USD: parseFloat(formData.initialCapital_USD) || undefined,
-          initialCapital_Currency: parseFloat(formData.initialCapital_Currency) || undefined,
-          strategyTypeId: strategyType.id,
-          chatId: chatId
-        }),
-      });
-
-      if (strategyResponse.ok) {
+     
+      if (strategyChatResponse.ok) {
         // Reset form and close dialog
         setFormData({ name: '', baseCurrency: 'ETH', initialCapital_USD: '', initialCapital_Currency: '' });
         onOpenChange(false);
         
         // Navigate to the chat
-        router.push(`/chat/${chatId}`);
+        router.push(`/chat/${strategyChatId}`);
       } else {
         console.error('Failed to create strategy or chat');
       }

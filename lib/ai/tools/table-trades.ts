@@ -23,7 +23,7 @@ export const createTradeWithSession = ({ session, strategyChatId }: CreateTradeP
       amount: z.string().describe('The amount/quantity of the asset traded'),
       feeInCurrency: z.string().optional().describe('The trading fee in the base currency'),
       feeInUSD: z.string().optional().describe('The trading fee converted to USD'),
-      executedAt: z.string().describe('The timestamp when the trade was executed (ISO format)'),
+      executedAt: z.string().describe('The date when the trade was executed, if year not given, please use year 2025'),
     }),
     execute: async ({ 
       product,

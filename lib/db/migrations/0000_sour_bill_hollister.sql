@@ -1,10 +1,3 @@
-CREATE TABLE IF NOT EXISTS "Chat" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"createdAt" timestamp NOT NULL,
-	"title" text NOT NULL,
-	"userId" uuid NOT NULL
-);
---> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "Message_v2" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"chatId" uuid NOT NULL,
@@ -17,7 +10,6 @@ CREATE TABLE IF NOT EXISTS "Message_v2" (
 CREATE TABLE IF NOT EXISTS "Strategy_Chat" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"strategyTypeId" uuid NOT NULL,
-	"chatId" uuid NOT NULL,
 	"userId" uuid NOT NULL,
 	"strategyName" text NOT NULL,
 	"baseCurrency" varchar(10) DEFAULT 'USD' NOT NULL,
@@ -84,25 +76,13 @@ CREATE TABLE IF NOT EXISTS "Vote_v2" (
 );
 --> statement-breakpoint
 DO $$ BEGIN
- ALTER TABLE "Chat" ADD CONSTRAINT "Chat_userId_User_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE no action ON UPDATE no action;
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
- ALTER TABLE "Message_v2" ADD CONSTRAINT "Message_v2_chatId_Chat_id_fk" FOREIGN KEY ("chatId") REFERENCES "public"."Chat"("id") ON DELETE no action ON UPDATE no action;
+ ALTER TABLE "Message_v2" ADD CONSTRAINT "Message_v2_chatId_Strategy_Chat_id_fk" FOREIGN KEY ("chatId") REFERENCES "public"."Strategy_Chat"("id") ON DELETE no action ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
 --> statement-breakpoint
 DO $$ BEGIN
  ALTER TABLE "Strategy_Chat" ADD CONSTRAINT "Strategy_Chat_strategyTypeId_Strategy_Type_id_fk" FOREIGN KEY ("strategyTypeId") REFERENCES "public"."Strategy_Type"("id") ON DELETE no action ON UPDATE no action;
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
- ALTER TABLE "Strategy_Chat" ADD CONSTRAINT "Strategy_Chat_chatId_Chat_id_fk" FOREIGN KEY ("chatId") REFERENCES "public"."Chat"("id") ON DELETE no action ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
@@ -126,7 +106,7 @@ EXCEPTION
 END $$;
 --> statement-breakpoint
 DO $$ BEGIN
- ALTER TABLE "Stream" ADD CONSTRAINT "Stream_chatId_Chat_id_fk" FOREIGN KEY ("chatId") REFERENCES "public"."Chat"("id") ON DELETE no action ON UPDATE no action;
+ ALTER TABLE "Stream" ADD CONSTRAINT "Stream_chatId_Strategy_Chat_id_fk" FOREIGN KEY ("chatId") REFERENCES "public"."Strategy_Chat"("id") ON DELETE no action ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
@@ -144,7 +124,7 @@ EXCEPTION
 END $$;
 --> statement-breakpoint
 DO $$ BEGIN
- ALTER TABLE "Vote_v2" ADD CONSTRAINT "Vote_v2_chatId_Chat_id_fk" FOREIGN KEY ("chatId") REFERENCES "public"."Chat"("id") ON DELETE no action ON UPDATE no action;
+ ALTER TABLE "Vote_v2" ADD CONSTRAINT "Vote_v2_chatId_Strategy_Chat_id_fk" FOREIGN KEY ("chatId") REFERENCES "public"."Strategy_Chat"("id") ON DELETE no action ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;

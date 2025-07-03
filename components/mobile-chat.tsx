@@ -19,7 +19,6 @@ import { ChatSDKError } from '@/lib/errors';
 
 interface MobileChatProps {
   id: string;
-  strategyChatId: string;
   initialMessages: Array<UIMessage>;
   initialChatModel: string;
   isReadonly: boolean;
@@ -124,7 +123,6 @@ MobileChatMessages.displayName = 'MobileChatMessages';
 
 export function MobileChat({
   id,
-  strategyChatId,
   initialMessages,
   initialChatModel,
   isReadonly,
@@ -155,7 +153,6 @@ export function MobileChat({
     fetch: fetchWithErrorHandlers,
     experimental_prepareRequestBody: (body) => ({
       id,
-      strategyChatId,
       message: body.messages.at(-1),
       selectedChatModel: initialChatModel,
     }),

@@ -1,5 +1,5 @@
 import { auth } from '@/app/(auth)/auth';
-import { getChatById, getVotesByChatId, voteMessage } from '@/lib/db/queries';
+import { getStrategyChatById, getVotesByChatId, voteMessage } from '@/lib/db/queries';
 import { ChatSDKError } from '@/lib/errors';
 
 export async function GET(request: Request) {
@@ -19,7 +19,7 @@ export async function GET(request: Request) {
     return new ChatSDKError('unauthorized:vote').toResponse();
   }
 
-  const chat = await getChatById({ id: chatId });
+  const chat = await getStrategyChatById({ id: chatId });
 
   if (!chat) {
     return new ChatSDKError('not_found:chat').toResponse();
@@ -55,7 +55,7 @@ export async function PATCH(request: Request) {
     return new ChatSDKError('unauthorized:vote').toResponse();
   }
 
-  const chat = await getChatById({ id: chatId });
+  const chat = await getStrategyChatById({ id: chatId });
 
   if (!chat) {
     return new ChatSDKError('not_found:vote').toResponse();

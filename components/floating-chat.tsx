@@ -21,7 +21,6 @@ import { ChatSDKError } from '@/lib/errors';
 
 interface FloatingChatProps {
   id: string;
-  strategyChatId: string;
   initialMessages: Array<UIMessage>;
   initialChatModel: string;
   isReadonly: boolean;
@@ -128,7 +127,6 @@ FloatingMessages.displayName = 'FloatingMessages';
 
 function FloatingChatContent({
   id,
-  strategyChatId,
   initialMessages,
   initialChatModel,
   isReadonly,
@@ -152,6 +150,7 @@ function FloatingChatContent({
     experimental_resume,
     data,
   } = useChat({
+    api:'/api/strategy-chat',
     id,
     initialMessages,
     experimental_throttle: 100,
@@ -160,9 +159,7 @@ function FloatingChatContent({
     fetch: fetchWithErrorHandlers,
     experimental_prepareRequestBody: (body) => ({
       id,
-      strategyChatId,
       message: body.messages.at(-1),
-      selectedChatModel: initialChatModel,
     }),
     onFinish: () => {
       mutate(unstable_serialize(getChatHistoryPaginationKey));

@@ -1,58 +1,9 @@
 {
-  "id": "9545f786-18ea-4872-a24d-00dcc8e9b02a",
+  "id": "e546842b-0114-4cbe-9313-00747092cbab",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
-    "public.Chat": {
-      "name": "Chat",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "createdAt": {
-          "name": "createdAt",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "title": {
-          "name": "title",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "userId": {
-          "name": "userId",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "Chat_userId_User_id_fk": {
-          "name": "Chat_userId_User_id_fk",
-          "tableFrom": "Chat",
-          "tableTo": "User",
-          "columnsFrom": [
-            "userId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
     "public.Message_v2": {
       "name": "Message_v2",
       "schema": "",
@@ -97,10 +48,10 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "Message_v2_chatId_Chat_id_fk": {
-          "name": "Message_v2_chatId_Chat_id_fk",
+        "Message_v2_chatId_Strategy_Chat_id_fk": {
+          "name": "Message_v2_chatId_Strategy_Chat_id_fk",
           "tableFrom": "Message_v2",
-          "tableTo": "Chat",
+          "tableTo": "Strategy_Chat",
           "columnsFrom": [
             "chatId"
           ],
@@ -127,12 +78,6 @@
         },
         "strategyTypeId": {
           "name": "strategyTypeId",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "chatId": {
-          "name": "chatId",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
@@ -209,19 +154,6 @@
           "tableTo": "Strategy_Type",
           "columnsFrom": [
             "strategyTypeId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "Strategy_Chat_chatId_Chat_id_fk": {
-          "name": "Strategy_Chat_chatId_Chat_id_fk",
-          "tableFrom": "Strategy_Chat",
-          "tableTo": "Chat",
-          "columnsFrom": [
-            "chatId"
           ],
           "columnsTo": [
             "id"
@@ -376,10 +308,10 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "Stream_chatId_Chat_id_fk": {
-          "name": "Stream_chatId_Chat_id_fk",
+        "Stream_chatId_Strategy_Chat_id_fk": {
+          "name": "Stream_chatId_Strategy_Chat_id_fk",
           "tableFrom": "Stream",
-          "tableTo": "Chat",
+          "tableTo": "Strategy_Chat",
           "columnsFrom": [
             "chatId"
           ],
@@ -583,10 +515,10 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "Vote_v2_chatId_Chat_id_fk": {
-          "name": "Vote_v2_chatId_Chat_id_fk",
+        "Vote_v2_chatId_Strategy_Chat_id_fk": {
+          "name": "Vote_v2_chatId_Strategy_Chat_id_fk",
           "tableFrom": "Vote_v2",
-          "tableTo": "Chat",
+          "tableTo": "Strategy_Chat",
           "columnsFrom": [
             "chatId"
           ],

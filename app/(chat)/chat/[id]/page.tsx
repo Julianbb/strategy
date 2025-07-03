@@ -3,7 +3,7 @@ import { notFound, redirect } from 'next/navigation';
 
 import { auth } from '@/app/(auth)/auth';
 import { MobileChatLayout } from '@/components/mobile-chat-layout';
-import { getChatById, getMessagesByChatId, getStrategyChatFromChatId,getTradesByStrategyChat } from '@/lib/db/queries';
+import { getStrategyChatById, getMessagesByChatId,getTradesByStrategyChat } from '@/lib/db/queries';
 
 import { DEFAULT_CHAT_MODEL } from '@/lib/ai/models';
 import type { DBMessage } from '@/lib/db/schema';
@@ -12,9 +12,9 @@ import type { Attachment, UIMessage } from 'ai';
 export default async function Page(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   const { id } = params;
-  const chat = await getChatById({ id });
+  const strategyChat = await getStrategyChatById({ id });
 
-  if (!chat) {
+  if (!strategyChat) {
     notFound();
   }
 
@@ -24,14 +24,13 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
     redirect('/api/auth/guest');
   }
 
-  if (session.user.id !== chat.userId) {
+  if (session.user.id !== strategyChat.userId) {
     return notFound();
   }
   
 
   const messagesFromDb = await getMessagesByChatId({id});
-  const strategyChat = await getStrategyChatFromChatId({ chatId: id });
-  const tradesInCurrentStrategy = await getTradesByStrategyChat({strategyChatId: strategyChat?.id || '' });
+  const tradesInCurrentStrategy = await getTradesByStrategyChat({strategyChatId: id });
 
   function convertToUIMessages(messages: Array<DBMessage>): Array<UIMessage> {
     return messages.map((message) => ({
@@ -54,11 +53,10 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
       <MobileChatLayout
         strategyChat={strategyChat}
         tradesInCurrentStrategy={tradesInCurrentStrategy}
-        chatId={chat.id}
-        strategyChatId={strategyChat.id}
+        chatId={id}
         initialMessages={convertToUIMessages(messagesFromDb)}
         initialChatModel={chatModelFromCookie?.value || DEFAULT_CHAT_MODEL}
-        isReadonly={session?.user?.id !== chat.userId}
+        isReadonly={session?.user?.id !== strategyChat.userId}
         session={session}
       />
     </>

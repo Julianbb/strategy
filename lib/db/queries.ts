@@ -17,12 +17,10 @@ import postgres from 'postgres';
 
 import {
   user,
-  chat,
   type User,
   message,
   vote,
   type DBMessage,
-  type Chat,
   stream,
   strategyType,
   type StrategyType,
@@ -85,36 +83,73 @@ export async function createGuestUser() {
   }
 }
 
-export async function saveChat({
+export async function saveStrategyChat({
   id,
   userId,
-  title,
+  strategyTypeId,
+  strategyName,
+  baseCurrency = 'USD',
+  initialCapital_USD,
+  initialCapital_Currency,
 }: {
   id: string;
   userId: string;
-  title: string;
+  strategyTypeId: string;
+  strategyName: string;
+  baseCurrency?: string;
+  initialCapital_USD?: string;
+  initialCapital_Currency?: string;
 }) {
   try {
-    return await db.insert(chat).values({
+    return await db.insert(strategyChat).values({
       id,
-      createdAt: new Date(),
       userId,
-      title,
+      strategyTypeId,
+      strategyName,
+      baseCurrency,
+      initialCapital_USD,
+      initialCapital_Currency,
+      startedAt: new Date(),
+      createdAt: new Date(),
     });
   } catch (error) {
     throw new ChatSDKError('bad_request:database', 'Failed to save chat');
   }
 }
 
-export async function deleteChatById({ id }: { id: string }) {
+export async function updateStrategyChatStatus({
+  id,
+  status,
+}: {
+  id: string;
+  status: 'active' | 'paused' | 'stopped' | 'completed';
+}) {
+  try {
+    const [updatedChat] = await db
+      .update(strategyChat)
+      .set({ status })
+      .where(eq(strategyChat.id, id))
+      .returning();
+    return updatedChat;
+  } catch (error) {
+    throw new ChatSDKError(
+      'bad_request:database',
+      'Failed to update strategy chat status',
+    );
+  }
+}
+
+export async function deleteStrategyChatById({ id }: { id: string }) {
   try {
     await db.delete(vote).where(eq(vote.chatId, id));
     await db.delete(message).where(eq(message.chatId, id));
     await db.delete(stream).where(eq(stream.chatId, id));
+    await db.delete(trades).where(eq(trades.strategyChatId, id));
+    await db.delete(strategySnapshot).where(eq(strategySnapshot.strategyChatId, id));
 
     const [chatsDeleted] = await db
-      .delete(chat)
-      .where(eq(chat.id, id))
+      .delete(strategyChat)
+      .where(eq(strategyChat.id, id))
       .returning();
     return chatsDeleted;
   } catch (error) {
@@ -125,7 +160,7 @@ export async function deleteChatById({ id }: { id: string }) {
   }
 }
 
-export async function getChatsByUserId({
+export async function getStrategyChatsByUserId({
   id,
   limit,
   startingAfter,
@@ -142,22 +177,22 @@ export async function getChatsByUserId({
     const query = (whereCondition?: SQL<any>) =>
       db
         .select()
-        .from(chat)
+        .from(strategyChat)
         .where(
           whereCondition
-            ? and(whereCondition, eq(chat.userId, id))
-            : eq(chat.userId, id),
+            ? and(whereCondition, eq(strategyChat.userId, id))
+            : eq(strategyChat.userId, id),
         )
-        .orderBy(desc(chat.createdAt))
+        .orderBy(desc(strategyChat.createdAt))
         .limit(extendedLimit);
 
-    let filteredChats: Array<Chat> = [];
+    let filteredChats: Array<StrategyChat> = [];
 
     if (startingAfter) {
       const [selectedChat] = await db
         .select()
-        .from(chat)
-        .where(eq(chat.id, startingAfter))
+        .from(strategyChat)
+        .where(eq(strategyChat.id, startingAfter))
         .limit(1);
 
       if (!selectedChat) {
@@ -167,12 +202,12 @@ export async function getChatsByUserId({
         );
       }
 
-      filteredChats = await query(gt(chat.createdAt, selectedChat.createdAt));
+      filteredChats = await query(gt(strategyChat.createdAt, selectedChat.createdAt));
     } else if (endingBefore) {
       const [selectedChat] = await db
         .select()
-        .from(chat)
-        .where(eq(chat.id, endingBefore))
+        .from(strategyChat)
+        .where(eq(strategyChat.id, endingBefore))
         .limit(1);
 
       if (!selectedChat) {
@@ -182,7 +217,7 @@ export async function getChatsByUserId({
         );
       }
 
-      filteredChats = await query(lt(chat.createdAt, selectedChat.createdAt));
+      filteredChats = await query(lt(strategyChat.createdAt, selectedChat.createdAt));
     } else {
       filteredChats = await query();
     }
@@ -201,9 +236,9 @@ export async function getChatsByUserId({
   }
 }
 
-export async function getChatById({ id }: { id: string }) {
+export async function getStrategyChatById({ id }: { id: string }) {
   try {
-    const [selectedChat] = await db.select().from(chat).where(eq(chat.id, id));
+    const [selectedChat] = await db.select().from(strategyChat).where(eq(strategyChat.id, id));
     return selectedChat;
   } catch (error) {
     throw new ChatSDKError('bad_request:database', 'Failed to get chat by id');
@@ -342,10 +377,10 @@ export async function getMessageCountByUserId({
     const [stats] = await db
       .select({ count: count(message.id) })
       .from(message)
-      .innerJoin(chat, eq(message.chatId, chat.id))
+      .innerJoin(strategyChat, eq(message.chatId, strategyChat.id))
       .where(
         and(
-          eq(chat.userId, id),
+          eq(strategyChat.userId, id),
           gte(message.createdAt, twentyFourHoursAgo),
           eq(message.role, 'user'),
         ),
@@ -715,21 +750,7 @@ export async function deleteTradeById({
   }
 }
 
-export async function getStrategyChatFromChatId({ chatId }: { chatId: string }) {
-  try {
-    const [selectedStrategyChat] = await db
-      .select()
-      .from(strategyChat)
-      .where(eq(strategyChat.chatId, chatId))
-      .limit(1);
-    return selectedStrategyChat;
-  } catch (error) {
-    throw new ChatSDKError(
-      'bad_request:database',
-      'Failed to get strategy chat id from chat id',
-    );
-  }
-}
+
 
 export async function getStrategySnapshots({
   strategyChatId,

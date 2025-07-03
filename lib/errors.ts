@@ -17,7 +17,8 @@ export type Surface =
   | 'vote'
   | 'document'
   | 'suggestions'
-  | 'strategy';
+  | 'strategy'
+  | 'internal_server_error';
 
 export type ErrorCode = `${ErrorType}:${Surface}`;
 
@@ -33,7 +34,8 @@ export const visibilityBySurface: Record<Surface, ErrorVisibility> = {
   vote: 'response',
   document: 'response',
   suggestions: 'response',
-  strategy:'response'
+  strategy:'response',
+  internal_server_error:'response',
 };
 
 export class ChatSDKError extends Error {
@@ -84,11 +86,15 @@ export function getMessageByErrorCode(errorCode: ErrorCode): string {
   switch (errorCode) {
     case 'bad_request:api':
       return "The request couldn't be processed. Please check your input and try again.";
+    
+      case 'bad_request:internal_server_error':
+      return 'internal server error';
 
     case 'unauthorized:auth':
       return 'You need to sign in before continuing.';
     case 'forbidden:auth':
       return 'Your account does not have access to this feature.';
+
 
     
     case 'rate_limit:chat':

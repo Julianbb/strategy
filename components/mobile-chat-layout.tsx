@@ -14,7 +14,6 @@ interface MobileChatLayoutProps {
   strategyChat: any;
   tradesInCurrentStrategy: any[];
   chatId: string;
-  strategyChatId: string;
   initialMessages: UIMessage[];
   initialChatModel: string;
   isReadonly: boolean;
@@ -25,7 +24,6 @@ export function MobileChatLayout({
   strategyChat,
   tradesInCurrentStrategy,
   chatId,
-  strategyChatId,
   initialMessages,
   initialChatModel,
   isReadonly,
@@ -46,7 +44,6 @@ export function MobileChatLayout({
             <div className="flex flex-1 flex-col">
               <MobileChat
                 id={chatId}
-                strategyChatId={strategyChatId}
                 initialMessages={initialMessages}
                 initialChatModel={initialChatModel}
                 isReadonly={isReadonly}
@@ -96,7 +93,6 @@ export function MobileChatLayout({
       <div className="hidden md:flex">
         <FloatingChat
           id={chatId}
-          strategyChatId={strategyChatId}
           initialMessages={initialMessages}
           initialChatModel={initialChatModel}
           isReadonly={isReadonly}
