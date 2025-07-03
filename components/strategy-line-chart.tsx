@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Area, AreaChart, CartesianGrid, XAxis, Line } from "recharts"
+import { Area, AreaChart, CartesianGrid, XAxis, Line, YAxis } from "recharts"
 
 import { useIsMobile } from "@/hooks/use-mobile"
 import {
@@ -95,6 +95,13 @@ export function ChartAreaInteractive({ strategyChat }: { strategyChat?: Strategy
 
   const filteredData = chartData
 
+  const values = filteredData.map(d => d.value)
+  const min = Math.min(...values)
+  const max = Math.max(...values)
+  const padding = (max - min) * 0.1
+  const yDomain: [number, number] = [min - padding, max + padding]
+  
+
   return (
     <Card className="@container/card">
       <CardHeader>
@@ -168,6 +175,14 @@ export function ChartAreaInteractive({ strategyChat }: { strategyChat?: Strategy
                 </linearGradient>
               </defs>
               <CartesianGrid vertical={false} />
+              <YAxis 
+                domain={yDomain} 
+                tickLine={false} 
+                axisLine={false} 
+                tickMargin={8} 
+                width={70}
+                tickFormatter={(value) => Number(value).toFixed(2)} />
+
               <XAxis
                 dataKey="date"
                 tickLine={false}

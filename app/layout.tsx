@@ -8,6 +8,7 @@ import { SessionProvider } from 'next-auth/react';
 
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://strategy.julian3.vip'),
   title: 'Chat to Record Startegy',
   description: 'this is to record strategy using the AI Chat.',
 };
