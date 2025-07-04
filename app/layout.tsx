@@ -6,14 +6,15 @@ import { ThemeProvider } from '@/components/theme-provider';
 import './globals.css';
 import { SessionProvider } from 'next-auth/react';
 
-
 export const metadata: Metadata = {
   metadataBase: new URL('https://strategy.julian3.vip'),
-  title: 'Chat to Record Startegy',
-  description: 'this is to record strategy using the AI Chat.',
+  title: 'Next.js Chatbot Template',
+  description: 'Next.js chatbot template using the AI SDK.',
 };
 
-
+export const viewport = {
+  maximumScale: 1, // Disable auto-zoom on mobile Safari
+};
 
 const geist = Geist({
   subsets: ['latin'],
@@ -68,20 +69,7 @@ export default async function RootLayout({
             __html: THEME_COLOR_SCRIPT,
           }}
         />
-
-        {/* <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" /> */}
-        {/* <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="Strategy" />
-        <link rel="manifest" href="/manifest.json" />
-        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
-        <meta name="theme-color" content="#ffffff" /> */}
-
-
-
       </head>
-      
-      
       <body className="antialiased">
         <ThemeProvider
           attribute="class"
