@@ -70,26 +70,34 @@ export default async function RootLayout({
             __html: THEME_COLOR_SCRIPT,
           }}
         />
-        {/* iOS PWA Full Screen Configuration */}
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="Strategy" />
-        <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
         
-        {/* PWA Manifest */}
-        <link rel="manifest" href="/manifest.json" />
-        
-        {/* iOS Icons */}
-        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192x192.png" />
-        
-        {/* iOS Splash Screens */}
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        
-        {/* Prevent iOS Safari behaviors */}
-        <meta name="format-detection" content="telephone=no" />
-        <meta name="msapplication-tap-highlight" content="no" />
+  {/* 基础视口设置 - 修正版本 */}
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
+  
+  {/* PWA 基础配置 */}
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Strategy" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  
+  {/* 主题颜色 */}
+  <meta name="theme-color" content="#ffffff" />
+  
+  {/* PWA Manifest */}
+  <link rel="manifest" href="/manifest.json" />
+  
+  {/* iOS Icons - 确保路径正确 */}
+  <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-180x180.png" />
+  <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192x192.png" />
+  
+  {/* Favicon */}
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16x16.png" />
+  
+  {/* 防止 iOS Safari 特殊行为 */}
+  <meta name="format-detection" content="telephone=no" />
+  <meta name="msapplication-tap-highlight" content="no" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       </head>
       <body className="antialiased">
         <ThemeProvider

@@ -14,7 +14,7 @@ body {
     height: 100%;
     /* 不要使用 fixed 定位 */
     position: relative;
-    overflow: hidden;
+    overflow: visible;
     overscroll-behavior: none;
     -webkit-overflow-scrolling: touch;
     -webkit-tap-highlight-color: transparent;
@@ -24,7 +24,7 @@ body {
 #__next {
     height: 100%;
     position: relative;
-    overflow: hidden;
+    overflow: visible;
 }
 
 /* iOS Safe Area Support */
@@ -37,11 +37,8 @@ body {
 
 /* 可滚动的内容区域 */
 .app-content {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    position: relative;
+    min-height: 100vh;
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
@@ -50,7 +47,7 @@ body {
     padding-left: var(--safe-area-inset-left);
     padding-right: var(--safe-area-inset-right);
     /* 重要：允许触摸事件正常传递 */
-    touch-action: pan-y;
+    touch-action: manipulation;
 }
 
 /* 关键修复：确保输入框可以正常工作 */
