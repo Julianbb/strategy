@@ -4,30 +4,6 @@
 
 
 
-input,
-textarea {
-    user-select: text;
-    /* 防止选择行为干扰 */
-    appearance: none;
-    /* 取消部分 iOS 默认样式 */
-    position: relative;
-    z-index: 10;
-    /* 提高层级，确保它位于其他元素之上 */
-}
-
-.skeleton input,
-.skeleton textarea {
-    pointer-events: auto !important;
-    /* 确保输入框可以交互 */
-}
-
-/* 暂时禁用动画以排除是否是动画问题 */
-input,
-textarea {
-    animation: none !important;
-}
-
-
 :root {
     --foreground-rgb: 0, 0, 0;
     --background-start-rgb: 214, 219, 220;
