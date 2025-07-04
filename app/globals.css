@@ -63,7 +63,11 @@ a,
     user-select: auto;
     -webkit-touch-callout: default;
     /* 确保可以获得焦点 */
-    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+    /* 确保按钮可以被点击 */
+    pointer-events: auto;
+    /* 确保有足够的点击区域 */
+    min-height: 44px;
 }
 
 /* 输入框特殊处理 */
@@ -95,6 +99,9 @@ form,
     /* 确保表单在 z-index 层级正确 */
     position: relative;
     z-index: 1;
+    /* 确保表单元素可以接收触摸事件 */
+    pointer-events: auto;
+    touch-action: manipulation;
 }
 
 /* 防止父元素影响输入框 */
@@ -134,6 +141,24 @@ form,
 /* 防止拉动刷新 */
 .prevent-pull-refresh {
     overscroll-behavior-y: contain;
+}
+
+/* PWA 按钮修复 */
+button[type="submit"],
+button[type="button"],
+.btn {
+    /* 确保按钮在 PWA 中可以正常点击 */
+    -webkit-appearance: button;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    touch-action: manipulation;
+    cursor: pointer;
+    /* 确保按钮有足够的点击区域 */
+    min-height: 44px;
+    min-width: 44px;
+    position: relative;
+    z-index: 1;
 }
 
 :root {
