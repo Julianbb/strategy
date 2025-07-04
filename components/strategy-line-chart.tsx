@@ -117,7 +117,7 @@ export function ChartAreaInteractive({ strategyChat }: { strategyChat?: Strategy
   
 
   return (
-    <Card className="@container/card">
+    <Card >
       <CardHeader>
         <CardTitle>Value Of Strategy</CardTitle>
         <CardDescription>
@@ -163,7 +163,6 @@ export function ChartAreaInteractive({ strategyChat }: { strategyChat?: Strategy
         <ChartContainer
           config={chartConfig}
           className="aspect-auto h-[250px] w-full"
-          style={{ minWidth: '300px', minHeight: '250px' }}
         >
           {loading ? (
             <div className="flex h-full items-center justify-center">

@@ -28,20 +28,20 @@ import { memo, useState } from 'react';
 
 const getStatusIcon = (status: string, isUpdating?: boolean) => {
   if (isUpdating) {
-    return <Loader2 className="w-3 h-3 text-gray-400 animate-spin" />;
+    return <Loader2 className="size-3 text-gray-400 animate-spin" />;
   }
   
   switch (status) {
     case 'active':
-      return <Play className="w-3 h-3 text-green-500" />;
+      return <Play className="size-3 text-green-500" />;
     case 'paused':
-      return <Pause className="w-3 h-3 text-yellow-500" />;
+      return <Pause className="size-3 text-yellow-500" />;
     case 'stopped':
-      return <Square className="w-3 h-3 text-red-500" />;
+      return <Square className="size-3 text-red-500" />;
     case 'completed':
-      return <CheckCircle className="w-3 h-3 text-blue-500" />;
+      return <CheckCircle className="size-3 text-blue-500" />;
     default:
-      return <Play className="w-3 h-3 text-gray-500" />;
+      return <Play className="size-3 text-gray-500" />;
   }
 };
 
@@ -55,7 +55,7 @@ const PureChatItem = ({
   chat: StrategyChat;
   isActive: boolean;
   onDelete: (chatId: string) => void;
-  onStatusChange: (chatId: string, status: 'active' | 'paused' | 'stopped' | 'completed') => void;
+  onStatusChange: (chatId: string, status: 'active' | 'paused' | 'stopped' | 'completed') => Promise<void>;
   setOpenMobile: (open: boolean) => void;
 }) => {
   const [isUpdating, setIsUpdating] = useState(false);
@@ -97,7 +97,7 @@ const PureChatItem = ({
                 disabled={isUpdating}
                 onSelect={() => handleStatusChange('paused')}
               >
-                <Pause className="w-4 h-4" />
+                <Pause className="size-4" />
                 <span>Pause</span>
               </DropdownMenuItem>
               <DropdownMenuItem
@@ -105,7 +105,7 @@ const PureChatItem = ({
                 disabled={isUpdating}
                 onSelect={() => handleStatusChange('stopped')}
               >
-                <Square className="w-4 h-4" />
+                <Square className="size-4" />
                 <span>Stop</span>
               </DropdownMenuItem>
               <DropdownMenuItem
@@ -113,7 +113,7 @@ const PureChatItem = ({
                 disabled={isUpdating}
                 onSelect={() => handleStatusChange('completed')}
               >
-                <CheckCircle className="w-4 h-4" />
+                <CheckCircle className="size-4" />
                 <span>Complete</span>
               </DropdownMenuItem>
             </>
@@ -126,7 +126,7 @@ const PureChatItem = ({
                 disabled={isUpdating}
                 onSelect={() => handleStatusChange('active')}
               >
-                <Play className="w-4 h-4" />
+                <Play className="size-4" />
                 <span>Resume</span>
               </DropdownMenuItem>
               <DropdownMenuItem
@@ -134,7 +134,7 @@ const PureChatItem = ({
                 disabled={isUpdating}
                 onSelect={() => handleStatusChange('stopped')}
               >
-                <Square className="w-4 h-4" />
+                <Square className="size-4" />
                 <span>Stop</span>
               </DropdownMenuItem>
               <DropdownMenuItem
@@ -142,7 +142,7 @@ const PureChatItem = ({
                 disabled={isUpdating}
                 onSelect={() => handleStatusChange('completed')}
               >
-                <CheckCircle className="w-4 h-4" />
+                <CheckCircle className="size-4" />
                 <span>Complete</span>
               </DropdownMenuItem>
             </>
@@ -154,7 +154,7 @@ const PureChatItem = ({
               disabled={isUpdating}
               onSelect={() => handleStatusChange('active')}
             >
-              <Play className="w-4 h-4" />
+              <Play className="size-4" />
               <span>Restart</span>
             </DropdownMenuItem>
           )}

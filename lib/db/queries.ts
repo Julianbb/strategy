@@ -125,9 +125,16 @@ export async function updateStrategyChatStatus({
   status: 'active' | 'paused' | 'stopped' | 'completed';
 }) {
   try {
+    const updateData: any = { status };
+    
+    // Set endedAt when status is 'stopped' or 'completed'
+    if (status === 'stopped' || status === 'completed') {
+      updateData.endedAt = new Date();
+    }
+    
     const [updatedChat] = await db
       .update(strategyChat)
-      .set({ status })
+      .set(updateData)
       .where(eq(strategyChat.id, id))
       .returning();
     return updatedChat;
@@ -785,6 +792,33 @@ export async function getStrategySnapshots({
     throw new ChatSDKError(
       'bad_request:database',
       'Failed to get strategy snapshots',
+    );
+  }
+}
+
+export async function getLatestOptionInstrument({
+  strategyChatId,
+}: {
+  strategyChatId: string;
+}) {
+  try {
+    const [latestOptionTrade] = await db
+      .select({ product: trades.product })
+      .from(trades)
+      .where(
+        and(
+          eq(trades.strategyChatId, strategyChatId),
+          eq(trades.productType, 'option')
+        )
+      )
+      .orderBy(trades.executedAt) // oldest one
+      .limit(1);
+    
+    return latestOptionTrade?.product || null;
+  } catch (error) {
+    throw new ChatSDKError(
+      'bad_request:database',
+      'Failed to get latest option instrument',
     );
   }
 }

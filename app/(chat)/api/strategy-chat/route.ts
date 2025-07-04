@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server';
+import { NextRequest,after } from 'next/server';
 
 
 
@@ -14,7 +14,7 @@ import { anthropic } from '@ai-sdk/anthropic';
 
 import { auth } from '@/app/(auth)/auth';
 
-
+import type { StrategyChat } from '@/lib/db/schema';
 import {
   createStreamId,
   deleteStrategyChatById,
@@ -26,15 +26,15 @@ import {
   updateStrategyChatStatus,
 } from '@/lib/db/queries';
 import { generateUUID, getTrailingMessageId } from '@/lib/utils';
-
-
-
-
-
+import { ChatSDKError } from '@/lib/errors';
 import {toolFactories} from "@/lib/ai/tools"
-
-
 import { isProductionEnvironment } from '@/lib/constants';
+
+
+
+
+
+
 
 import { createStrategyChatSchema, updateStrategyChatStatusSchema, type PostRequestBody, type PatchRequestBody } from './schema';
 
@@ -42,10 +42,10 @@ import {
   createResumableStreamContext,
   type ResumableStreamContext,
 } from 'resumable-stream';
-import { after } from 'next/server';
-import type { StrategyChat } from '@/lib/db/schema';
+
+
 import { differenceInSeconds } from 'date-fns';
-import { ChatSDKError } from '@/lib/errors';
+
 
 export const maxDuration = 60;
 

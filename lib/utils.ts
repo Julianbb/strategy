@@ -83,3 +83,24 @@ export function sanitizeText(text: string) {
 
 
 
+
+
+export const convertInstrumentFlexible = (instrument: string) => {
+  return instrument.replace(/(\w+)-(\d{4})(\d{2})(\d{2})-(\d+)-([CP])/, (match, symbol, year, month, day, strike, type) => {
+    // 将4位年份转换为2位年份
+    const shortYear = year.slice(-2);
+    
+    // 处理symbol：在货币对中间添加连字符
+    // 假设都是6位的货币对格式 (如 ETHUSD, BTCUSD)
+    let formattedSymbol = symbol;
+    if (symbol.length === 6) {
+      // 前3位-后3位 (ETH-USD)
+      formattedSymbol = `${symbol.slice(0, 3)}-${symbol.slice(3)}`;
+    } else if (symbol.length === 7) {
+      // 处理特殊情况，如 BTCUSDT -> BTC-USDT
+      formattedSymbol = `${symbol.slice(0, 3)}-${symbol.slice(3)}`;
+    }
+    
+    return `${formattedSymbol}-${shortYear}${month}${day}-${strike}-${type}`;
+  });
+};
