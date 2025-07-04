@@ -2,15 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-
-input,
-textarea {
-    position: relative;
-    /* 保证输入框在页面中层级足够 */
-    z-index: 10;
-    /* 确保它不会被其他层覆盖 */
-}
-
 :root {
     --foreground-rgb: 0, 0, 0;
     --background-start-rgb: 214, 219, 220;
