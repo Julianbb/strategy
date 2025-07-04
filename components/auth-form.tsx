@@ -51,6 +51,7 @@ export function AuthForm({
               id="password"
               name="password"
               type="password"
+              autoComplete='password'
               required
             />
           </div>

@@ -27,6 +27,11 @@ export default function Page() {
   const { update: updateSession } = useSession();
 
   useEffect(() => {
+    setEmail('');
+    setIsSuccessful(false);
+  }, []);
+
+  useEffect(() => {
     if (state.status === 'user_exists') {
       toast({ type: 'error', description: 'Account already exists!' });
     } else if (state.status === 'failed') {
@@ -43,7 +48,7 @@ export default function Page() {
       updateSession();
       router.refresh();
     }
-  }, [state]);
+  }, [state, router, updateSession]);
 
   const handleSubmit = (formData: FormData) => {
     setEmail(formData.get('email') as string);
@@ -53,7 +58,7 @@ export default function Page() {
   return (
     <div className="flex h-dvh w-screen items-center justify-center bg-background">
       <div className="w-full max-w-md mx-4">
-        <AuthForm action={handleSubmit} defaultEmail={email}>
+        <AuthForm key="register-form" action={handleSubmit} defaultEmail={email}>
           <SubmitButton isSuccessful={isSuccessful}>Sign Up</SubmitButton>
           <p className="text-center text-sm text-gray-600 mt-4 dark:text-zinc-400">
             {'Already have an account? '}
