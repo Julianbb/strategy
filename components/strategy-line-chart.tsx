@@ -211,9 +211,8 @@ export function ChartAreaInteractive({ strategyChat }: { strategyChat?: Strategy
                     hour: "2-digit",
                     minute: "2-digit",
                     hour12: false,
-                    timeZone: "Asia/Bangkok"
-
-                  })
+                    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+                  }).replace(' at ', ' ')
                 }}
               />
               <ChartTooltip
@@ -229,7 +228,8 @@ export function ChartAreaInteractive({ strategyChat }: { strategyChat?: Strategy
                       hour: "2-digit",
                       minute: "2-digit",
                       hour12: false,
-                    }).format(date)
+                      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+                    }).format(date).replace(' at ', ' ')
                   }}                             
                     formatter={(value) => [
                       `$${parseFloat(value as string).toFixed(2)}`
