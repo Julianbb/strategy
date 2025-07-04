@@ -2,163 +2,97 @@
 @tailwind components;
 @tailwind utilities;
 
-/* iOS PWA Fullscreen Styles */
-html {
-    height: 100%;
-    /* 避免使用 100vh 在 PWA 中的问题 */
-    height: -webkit-fill-available;
-}
+/* 在你现有的 globals.css 文件末尾添加以下内容 */
 
-body {
-    margin: 0;
-    height: 100%;
-    /* 不要使用 fixed 定位 */
-    position: relative;
-    overflow: visible;
-    overscroll-behavior: none;
-    -webkit-overflow-scrolling: touch;
-    -webkit-tap-highlight-color: transparent;
-    /* 完全移除 user-select 限制 */
-}
+/* iOS PWA 安全区域支持 */
+@layer base {
+    :root {
+        --safe-area-inset-top: env(safe-area-inset-top);
+        --safe-area-inset-bottom: env(safe-area-inset-bottom);
+        --safe-area-inset-left: env(safe-area-inset-left);
+        --safe-area-inset-right: env(safe-area-inset-right);
+    }
 
-#__next {
-    height: 100%;
-    position: relative;
-    overflow: visible;
-}
+    /* PWA 全屏模式优化 */
+    @supports (padding: env(safe-area-inset-top)) {
+        body {
+            /* 安全区域内边距 */
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
+        }
+    }
 
-/* iOS Safe Area Support */
-:root {
-    --safe-area-inset-top: env(safe-area-inset-top);
-    --safe-area-inset-right: env(safe-area-inset-right);
-    --safe-area-inset-bottom: env(safe-area-inset-bottom);
-    --safe-area-inset-left: env(safe-area-inset-left);
-}
+    /* 禁用 iOS 默认行为 */
+    body.standalone-mode {
+        -webkit-touch-callout: none;
+        -webkit-tap-highlight-color: transparent;
 
-/* 可滚动的内容区域 */
-.app-content {
-    position: relative;
-    min-height: 100vh;
-    overflow-y: auto;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
-    padding-top: var(--safe-area-inset-top);
-    padding-bottom: var(--safe-area-inset-bottom);
-    padding-left: var(--safe-area-inset-left);
-    padding-right: var(--safe-area-inset-right);
-    /* 重要：允许触摸事件正常传递 */
-    touch-action: manipulation;
-}
+        /* 防止橡皮筋效果 */
+        position: fixed;
+        overflow: auto;
+        width: 100%;
+        height: 100%;
 
-/* 关键修复：确保输入框可以正常工作 */
-input,
-textarea,
-select,
-button,
-a,
-[contenteditable] {
-    /* 允许正常的触摸交互 */
-    touch-action: manipulation;
-    -webkit-user-select: auto;
-    user-select: auto;
-    -webkit-touch-callout: default;
-    /* 确保可以获得焦点 */
-    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
-    /* 确保按钮可以被点击 */
-    pointer-events: auto;
-    /* 确保有足够的点击区域 */
-    min-height: 44px;
-}
+        /* 平滑滚动 */
+        -webkit-overflow-scrolling: touch;
+    }
 
-/* 输入框特殊处理 */
-input:not([type="checkbox"]):not([type="radio"]),
-textarea,
-[contenteditable="true"] {
-    /* 强制允许文本选择 */
-    -webkit-user-select: text !important;
-    user-select: text !important;
-    /* 确保可以点击 */
-    pointer-events: auto !important;
-    /* 修复 iOS PWA 中的聚焦问题 */
-    -webkit-appearance: none;
-    appearance: none;
-    /* 添加最小高度确保可点击区域 */
-    min-height: 44px;
-    /* 确保有足够的内边距 */
-    padding: 12px;
-    /* 添加边框让用户看到输入框 */
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 16px;
-    /* 防止 iOS 自动缩放 */
-}
-
-/* 表单容器 */
-form,
-.form-container {
-    /* 确保表单在 z-index 层级正确 */
-    position: relative;
-    z-index: 1;
-    /* 确保表单元素可以接收触摸事件 */
-    pointer-events: auto;
-    touch-action: manipulation;
-}
-
-/* 防止父元素影响输入框 */
-* {
-    /* 不要在全局使用 pointer-events: none */
-    /* 不要在全局使用 user-select: none */
-}
-
-/* 只在需要的地方禁用选择 */
-.no-select {
-    -webkit-user-select: none;
-    user-select: none;
-    -webkit-touch-callout: none;
-}
-
-/* 修复 iOS 15+ PWA 输入框 bug */
-@supports (-webkit-touch-callout: none) {
-
+    /* 允许特定元素选择文本 */
     input,
     textarea,
-    select {
-        /* 使用 3D 变换触发硬件加速 */
-        -webkit-transform: translateZ(0);
-        transform: translateZ(0);
-        /* 确保输入框在独立的层 */
-        will-change: transform;
+    [contenteditable="true"] {
+        -webkit-user-select: auto;
+        user-select: auto;
     }
 }
 
-/* 处理虚拟键盘 */
-@supports (padding-bottom: env(keyboard-inset-height)) {
-    .app-content:has(input:focus, textarea:focus) {
-        padding-bottom: calc(var(--safe-area-inset-bottom) + env(keyboard-inset-height));
+/* 固定元素的安全区域适配 */
+@layer components {
+    .fixed-header {
+        @apply fixed top-0 left-0 right-0 z-50;
+        padding-top: env(safe-area-inset-top);
+    }
+
+    .fixed-bottom {
+        @apply fixed bottom-0 left-0 right-0 z-50;
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .safe-area-padding {
+        padding-top: env(safe-area-inset-top);
+        padding-bottom: env(safe-area-inset-bottom);
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
     }
 }
 
-/* 防止拉动刷新 */
-.prevent-pull-refresh {
-    overscroll-behavior-y: contain;
-}
+/* 工具类 */
+@layer utilities {
+    .pt-safe {
+        padding-top: env(safe-area-inset-top);
+    }
 
-/* PWA 按钮修复 */
-button[type="submit"],
-button[type="button"],
-.btn {
-    /* 确保按钮在 PWA 中可以正常点击 */
-    -webkit-appearance: button;
-    -webkit-user-select: none;
-    user-select: none;
-    -webkit-touch-callout: none;
-    touch-action: manipulation;
-    cursor: pointer;
-    /* 确保按钮有足够的点击区域 */
-    min-height: 44px;
-    min-width: 44px;
-    position: relative;
-    z-index: 1;
+    .pb-safe {
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .pl-safe {
+        padding-left: env(safe-area-inset-left);
+    }
+
+    .pr-safe {
+        padding-right: env(safe-area-inset-right);
+    }
+
+    .h-screen-safe {
+        height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    }
+
+    .min-h-screen-safe {
+        min-height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    }
 }
 
 :root {

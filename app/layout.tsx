@@ -1,20 +1,43 @@
 import { Toaster } from 'sonner';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { ThemeProvider } from '@/components/theme-provider';
-
 import './globals.css';
 import { SessionProvider } from 'next-auth/react';
-
+import Script from 'next/script';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://strategy.julian3.vip'),
-  title: 'Chat to Record Startegy',
-  description: 'this is to record strategy using the AI Chat.',
+  metadataBase: new URL('https://chat.vercel.ai'),
+  title: 'Next.js Chatbot Template',
+  description: 'Next.js chatbot template using the AI SDK.',
+  applicationName: 'Next.js Chatbot',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Next.js Chatbot',
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  manifest: '/manifest.json',
+  icons: {
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
 };
 
-export const viewport = {
-  maximumScale: 1, // Disable auto-zoom on mobile Safari
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
 };
 
 const geist = Geist({
@@ -71,33 +94,37 @@ export default async function RootLayout({
           }}
         />
         
-  {/* 基础视口设置 - 修正版本 */}
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
-  
-  {/* PWA 基础配置 */}
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Strategy" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  
-  {/* 主题颜色 */}
-  <meta name="theme-color" content="#ffffff" />
-  
-  {/* PWA Manifest */}
-  <link rel="manifest" href="/manifest.json" />
-  
-  {/* iOS Icons - 确保路径正确 */}
-  <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-180x180.png" />
-  <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192x192.png" />
-  
-  {/* Favicon */}
-  <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32x32.png" />
-  <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16x16.png" />
-  
-  {/* 防止 iOS Safari 特殊行为 */}
-  <meta name="format-detection" content="telephone=no" />
-  <meta name="msapplication-tap-highlight" content="no" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        {/* iOS PWA 启动画面 */}
+        {/* iPhone X, XS, 11 Pro */}
+        <link
+          rel="apple-touch-startup-image"
+          media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)"
+          href="/splash-1125x2436.png"
+        />
+        {/* iPhone XR, 11 */}
+        <link
+          rel="apple-touch-startup-image"
+          media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)"
+          href="/splash-828x1792.png"
+        />
+        {/* iPhone 12, 13, 14, 15 */}
+        <link
+          rel="apple-touch-startup-image"
+          media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)"
+          href="/splash-1170x2532.png"
+        />
+        {/* iPhone 12, 13, 14, 15 Pro Max */}
+        <link
+          rel="apple-touch-startup-image"
+          media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)"
+          href="/splash-1290x2796.png"
+        />
+        {/* iPhone 12, 13 mini */}
+        <link
+          rel="apple-touch-startup-image"
+          media="(device-width: 360px) and (device-height: 780px) and (-webkit-device-pixel-ratio: 3)"
+          href="/splash-1080x2340.png"
+        />
       </head>
       <body className="antialiased">
         <ThemeProvider
@@ -106,49 +133,106 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <div className="app-content prevent-pull-refresh">
-            <Toaster position="top-center" />
-            <SessionProvider>{children}</SessionProvider>
-          </div>
+          <Toaster position="top-center" />
+          <SessionProvider>{children}</SessionProvider>
         </ThemeProvider>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              // Prevent iOS system behaviors that could exit fullscreen
-              document.addEventListener('touchstart', function(e) {
-                if (e.touches.length > 1) {
-                  e.preventDefault();
-                }
-              }, { passive: false });
-              
-              // Prevent context menu
-              document.addEventListener('contextmenu', function(e) {
-                e.preventDefault();
-              });
-              
-              // Prevent double tap zoom
-              let lastTouchEnd = 0;
-              document.addEventListener('touchend', function(e) {
-                let now = (new Date()).getTime();
-                if (now - lastTouchEnd <= 300) {
-                  e.preventDefault();
-                }
-                lastTouchEnd = now;
-              }, false);
-              
-              // Ensure all links stay within the app
-              document.addEventListener('click', function(e) {
-                const link = e.target.closest('a');
-                if (link && link.href && !link.href.includes(window.location.hostname)) {
-                  if (!link.target || link.target === '_self') {
+        
+        <Script id="pwa-handler" strategy="afterInteractive">
+          {`
+            (function() {
+              // 检测是否在 standalone 模式
+              const isStandalone = window.navigator.standalone || 
+                                   window.matchMedia('(display-mode: standalone)').matches;
+
+              // 只在 standalone 模式下应用限制
+              if (isStandalone) {
+                // 禁用下拉刷新
+                let touchStartY = 0;
+                
+                document.addEventListener('touchstart', function(e) {
+                  touchStartY = e.touches[0].clientY;
+                }, { passive: true });
+
+                document.addEventListener('touchmove', function(e) {
+                  const touchY = e.touches[0].clientY;
+                  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                  
+                  // 只在页面顶部且向下拉时阻止
+                  if (scrollTop === 0 && touchY > touchStartY && e.cancelable) {
                     e.preventDefault();
-                    window.location.href = link.href;
                   }
-                }
+                }, { passive: false });
+
+                // 禁用双击缩放
+                let lastTouchEnd = 0;
+                document.addEventListener('touchend', function(e) {
+                  const now = Date.now();
+                  if (now - lastTouchEnd <= 300) {
+                    e.preventDefault();
+                  }
+                  lastTouchEnd = now;
+                }, false);
+
+                // 禁用长按弹出菜单
+                document.addEventListener('contextmenu', function(e) {
+                  e.preventDefault();
+                });
+
+                // 添加 standalone 类名到 body
+                document.body.classList.add('standalone-mode');
+              }
+
+              // PWA 安装提示
+              let deferredPrompt;
+              
+              window.addEventListener('beforeinstallprompt', function(e) {
+                // 阻止默认安装提示
+                e.preventDefault();
+                // 保存事件以便稍后触发
+                deferredPrompt = e;
+                
+                // 可以在这里显示自定义安装按钮
+                // 例如：document.getElementById('install-button').style.display = 'block';
+                
+                // 或者触发自定义事件
+                window.dispatchEvent(new CustomEvent('pwa-install-available', { detail: { prompt: deferredPrompt } }));
               });
-            `,
-          }}
-        />
+
+              // 监听安装成功
+              window.addEventListener('appinstalled', function() {
+                console.log('PWA was installed');
+                deferredPrompt = null;
+              });
+
+              // 监听 iOS 添加到主屏幕提示
+              if ('standalone' in window.navigator && !window.navigator.standalone && /iPhone|iPod|iPad/i.test(navigator.userAgent)) {
+                // 可以在这里显示 iOS 安装提示
+                window.dispatchEvent(new CustomEvent('ios-install-prompt'));
+              }
+
+              // 适配主题切换时的状态栏颜色（与现有主题系统集成）
+              const updateStatusBarStyle = () => {
+                if (!isStandalone) return;
+                
+                const isDark = document.documentElement.classList.contains('dark');
+                const metaStatusBar = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
+                
+                if (metaStatusBar) {
+                  metaStatusBar.setAttribute('content', isDark ? 'black-translucent' : 'default');
+                }
+              };
+
+              // 监听主题变化
+              const themeObserver = new MutationObserver(updateStatusBarStyle);
+              themeObserver.observe(document.documentElement, { 
+                attributes: true, 
+                attributeFilter: ['class'] 
+              });
+              
+              updateStatusBarStyle();
+            })();
+          `}
+        </Script>
       </body>
     </html>
   );
