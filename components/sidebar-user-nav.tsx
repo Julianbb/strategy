@@ -19,6 +19,7 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { toast } from './toast';
 import { LoaderIcon } from './icons';
 import { guestRegex } from '@/lib/constants';
@@ -85,8 +86,8 @@ export function SidebarUserNav({ user }: { user: User }) {
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild data-testid="user-nav-item-auth">
-              <button
-                type="button"
+              <Link
+                href={isGuest ? '/login' : '/'}
                 className="w-full cursor-pointer"
                 onClick={() => {
                   if (status === 'loading') {
@@ -101,7 +102,6 @@ export function SidebarUserNav({ user }: { user: User }) {
 
                   if (isGuest) {
                     setOpenMobile(false);
-                    router.push('/login');
                   } else {
                     signOut({
                       redirectTo: '/',
@@ -110,7 +110,7 @@ export function SidebarUserNav({ user }: { user: User }) {
                 }}
               >
                 {isGuest ? 'Login to your account' : 'Sign out'}
-              </button>
+              </Link>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
