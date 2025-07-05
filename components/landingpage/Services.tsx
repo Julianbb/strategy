@@ -1,4 +1,4 @@
-import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { MagnifierIcon, WalletIcon, ChartIcon } from "./Icons";
 import cubeLeg from "../assets/cube-leg.png";
 
@@ -66,7 +66,7 @@ export const Services = () => {
         </div>
 
         <img
-          src={cubeLeg}
+          src={cubeLeg.src}
           className="w-[300px] md:w-[500px] lg:w-[600px] object-contain"
           alt="About services"
         />
