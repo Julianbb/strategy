@@ -27,11 +27,6 @@ export default function Page() {
   const { update: updateSession } = useSession();
 
   useEffect(() => {
-    setEmail('');
-    setIsSuccessful(false);
-  }, []);
-
-  useEffect(() => {
     if (state.status === 'failed') {
       toast({
         type: 'error',
@@ -47,7 +42,7 @@ export default function Page() {
       updateSession();
       router.refresh();
     }
-  }, [state.status, router, updateSession]);
+  }, [state.status]);
 
   const handleSubmit = (formData: FormData) => {
     setEmail(formData.get('email') as string);
@@ -57,7 +52,7 @@ export default function Page() {
   return (
     <div className="flex h-dvh w-screen items-center justify-center bg-background">
       <div className="w-full max-w-md mx-4">
-        <AuthForm key="login-form" action={handleSubmit} defaultEmail={email}>
+        <AuthForm action={handleSubmit} defaultEmail={email}>
           <SubmitButton isSuccessful={isSuccessful}>Sign in</SubmitButton>
           <p className="text-center text-sm text-gray-600 mt-4 dark:text-zinc-400">
             {"Don't have an account? "}
