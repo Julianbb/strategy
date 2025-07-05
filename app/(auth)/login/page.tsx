@@ -5,19 +5,26 @@ import { useRouter } from 'next/navigation';
 import { useActionState, useEffect, useState } from 'react';
 import { toast } from '@/components/toast';
 
-import { AuthForm } from '@/components/auth-form';
-import { SubmitButton } from '@/components/submit-button';
 
+import { LoaderIcon } from '@/components/icons';
 import { login, type LoginActionState } from '../actions';
 import { useSession } from 'next-auth/react';
+
+import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 
 export default function Page() {
   const router = useRouter();
 
-  const [email, setEmail] = useState('');
-  const [isSuccessful, setIsSuccessful] = useState(false);
-
-  const [state, formAction] = useActionState<LoginActionState, FormData>(
+  const [state, formAction, isPending] = useActionState<LoginActionState, FormData>(
     login,
     {
       status: 'idle',
@@ -38,34 +45,95 @@ export default function Page() {
         description: 'Failed validating your submission!',
       });
     } else if (state.status === 'success') {
-      setIsSuccessful(true);
       updateSession();
       router.refresh();
     }
   }, [state.status]);
 
   const handleSubmit = (formData: FormData) => {
-    setEmail(formData.get('email') as string);
+
     formAction(formData);
   };
 
   return (
-    <div className="flex h-dvh w-screen items-center justify-center bg-background">
-      <div className="w-full max-w-md mx-4">
-        <AuthForm action={handleSubmit} defaultEmail={email}>
-          <SubmitButton isSuccessful={isSuccessful}>Sign in</SubmitButton>
-          <p className="text-center text-sm text-gray-600 mt-4 dark:text-zinc-400">
-            {"Don't have an account? "}
-            <Link
+<div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
+<div className="w-full max-w-sm">
+<Card>
+        <CardHeader>
+          <CardTitle>Login to your account</CardTitle>
+          <CardDescription>
+            Enter your email below to login to your account
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form action={handleSubmit} >
+            <div className="flex flex-col gap-6">
+              <div className="grid gap-3">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  name="email"
+                  placeholder="m@example.com"
+                  autoComplete="email"
+                  autoFocus
+                  required
+                />
+              </div>
+              <div className="grid gap-3">
+                <div className="flex items-center">
+                  <Label htmlFor="password">Password</Label>
+                  <a
+                    href="#"
+                    className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
+                  >
+                    Forgot your password?
+                  </a>
+                </div>
+                <Input 
+                id="password" 
+                type="password" 
+                name="password" 
+                autoComplete="password"
+                required 
+                />
+              </div>
+              <div className="flex flex-col gap-3">
+                <Button type="submit" className="w-full" disabled={isPending}>
+                  {isPending ? (
+                    <div className="flex items-center gap-2">
+                      Signing in...
+                      <span className="animate-spin absolute right-4">
+                        <LoaderIcon />
+                      </span>
+                    </div>
+                  ) : (
+                    'Login'
+                  )}
+                </Button>
+                <Button variant="outline" className="w-full">
+                  Login with Google
+                </Button>
+              </div>
+            </div>
+            <div className="mt-4 text-center text-sm">
+              Don&apos;t have an account?{" "}
+              <Link
               href="/register"
               className="font-semibold text-gray-800 hover:underline dark:text-zinc-200"
             >
               Sign up
             </Link>
-            {' for free.'}
-          </p>
-        </AuthForm>
-      </div>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+       </div>
     </div>
-  );
+  )
+
+
 }
+
+
+
