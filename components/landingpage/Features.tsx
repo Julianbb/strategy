@@ -6,6 +6,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import Image from 'next/image';
+
 import image from "../assets/growth.png";
 import image3 from "../assets/reflecting.png";
 import image4 from "../assets/looking-ahead.png";
@@ -85,7 +87,7 @@ export const Features = () => {
             <CardContent>{description}</CardContent>
 
             <CardFooter>
-              <img
+              <Image
                 src={image}
                 alt="About feature"
                 className="w-[200px] lg:w-[300px] mx-auto"

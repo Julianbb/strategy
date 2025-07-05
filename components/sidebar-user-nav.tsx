@@ -17,19 +17,18 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar
 } from '@/components/ui/sidebar';
-import { useRouter } from 'next/navigation';
+
 import Link from 'next/link';
 import { toast } from './toast';
 import { LoaderIcon } from './icons';
 import { guestRegex } from '@/lib/constants';
 
-import {
-  useSidebar
-} from '@/components/ui/sidebar';
+
 
 export function SidebarUserNav({ user }: { user: User }) {
-  const router = useRouter();
+
   const { data, status } = useSession();
   const { setTheme, resolvedTheme } = useTheme();
   const { setOpenMobile } = useSidebar();

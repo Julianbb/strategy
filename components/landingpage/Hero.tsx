@@ -1,5 +1,4 @@
-import { Button } from "@/components/ui/button";
-import { buttonVariants } from "@/components/ui/button";
+import { Button,buttonVariants } from "@/components/ui/button";
 import { HeroCards } from "./HeroCards";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
 
@@ -40,7 +39,7 @@ export const Hero = () => {
             })}`}
           >
             Github Repository
-            <GitHubLogoIcon className="ml-2 w-5 h-5" />
+            <GitHubLogoIcon className="ml-2 size-5" />
           </a>
         </div>
       </div>
