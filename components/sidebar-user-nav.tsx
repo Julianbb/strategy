@@ -102,7 +102,6 @@ export function SidebarUserNav({ user }: { user: User }) {
                   if (isGuest) {
                     setOpenMobile(false);
                     router.push('/login');
-                    router.refresh();
                   } else {
                     signOut({
                       redirectTo: '/',

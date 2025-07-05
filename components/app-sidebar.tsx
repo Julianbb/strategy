@@ -47,7 +47,6 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                   onClick={() => {
                     setOpenMobile(false);
                     router.push('/');
-                    router.refresh();
                   }}
                 >
                   <PlusIcon />
