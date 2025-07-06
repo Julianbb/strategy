@@ -2,7 +2,6 @@
 
 import { isToday, isYesterday, subMonths, subWeeks } from 'date-fns';
 import { useParams, useRouter } from 'next/navigation';
-import type { User } from 'next-auth';
 import { useState, useMemo, useCallback } from 'react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
@@ -16,16 +15,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import {
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarMenu,
-} from '@/components/ui/sidebar';
+
 import type { StrategyChat } from '@/lib/db/schema';
 import { fetcher } from '@/lib/utils';
-import { ChatItem } from './sidebar-history-item';
+import { ChatItem } from '@/components/sidebar-history-item';
 import useSWRInfinite from 'swr/infinite';
-import { LoaderIcon } from './icons';
+import { LoaderIcon } from '@/components/icons';
 
 type GroupedChats = {
   today: StrategyChat[];
@@ -93,7 +88,7 @@ export function getChatHistoryPaginationKey(
   return `/api/history?ending_before=${firstChatFromPage.id}&limit=${PAGE_SIZE}`;
 }
 
-export function SidebarHistory() {
+export default function StrategyChatPage() {
 
   const { id } = useParams();
 
@@ -232,11 +227,11 @@ export function SidebarHistory() {
 
   if (isLoading) {
     return (
-      <SidebarGroup>
+      <>
         <div className="px-2 py-1 text-xs text-sidebar-foreground/50">
           Today
         </div>
-        <SidebarGroupContent>
+        <>
           <div className="flex flex-col">
             {[44, 32, 28, 64, 52].map((item) => (
               <div
@@ -254,20 +249,18 @@ export function SidebarHistory() {
               </div>
             ))}
           </div>
-        </SidebarGroupContent>
-      </SidebarGroup>
+        </>
+      </>
     );
   }
 
   if (hasEmptyChatHistory) {
     return (
-      <SidebarGroup>
-        <SidebarGroupContent>
+
           <div className="px-2 text-zinc-500 w-full flex flex-row justify-center items-center text-sm gap-2">
             Your conversations will appear here once you start chatting!
           </div>
-        </SidebarGroupContent>
-      </SidebarGroup>
+ 
     );
   }
 
@@ -294,10 +287,10 @@ export function SidebarHistory() {
   };
 
   return (
-    <>
-      <SidebarGroup>
-        <SidebarGroupContent>
-          <SidebarMenu>
+    <div>
+      <div>
+        <div>
+    
             <div className="flex flex-col gap-6">
               {renderChatGroup(groupedChats.today, 'Today')}
               {renderChatGroup(groupedChats.yesterday, 'Yesterday')}
@@ -305,7 +298,7 @@ export function SidebarHistory() {
               {renderChatGroup(groupedChats.lastMonth, 'Last 30 days')}
               {renderChatGroup(groupedChats.older, 'Older than last month')}
             </div>
-          </SidebarMenu>
+  
 
           <motion.div onViewportEnter={handleLoadMore} />
 
@@ -321,8 +314,8 @@ export function SidebarHistory() {
               <div>Loading Chats...</div>
             </div>
           )}
-        </SidebarGroupContent>
-      </SidebarGroup>
+        </div>
+      </div>
 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
@@ -341,6 +334,6 @@ export function SidebarHistory() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+    </div>
   );
 }

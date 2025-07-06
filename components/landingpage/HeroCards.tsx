@@ -41,9 +41,11 @@ export const HeroCards = () => {
       <Card className="absolute right-[20px] top-4 w-80 flex flex-col justify-center items-center drop-shadow-xl shadow-black/10 dark:shadow-white/10">
         <CardHeader className="mt-8 flex justify-center items-center pb-2">
           <Image
+            width={24}
+            height={24}
             src="https://i.pravatar.cc/150?img=58"
             alt="user avatar"
-            className="absolute grayscale-0 -top-12 rounded-full size-24 aspect-square object-cover"
+            className="absolute grayscale-0 top-12 rounded-full size-24 aspect-square object-cover"
           />
           <CardTitle className="text-center">Leo Miranda</CardTitle>
           <CardDescription className="font-normal text-primary">

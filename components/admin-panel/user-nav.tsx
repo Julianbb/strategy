@@ -1,8 +1,8 @@
 "use client";
-
+import { toast } from '@/components/toast';
 import Link from "next/link";
 import { LayoutGrid, LogOut, User } from "lucide-react";
-
+import { signOut, useSession } from 'next-auth/react';
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -20,8 +20,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
+import { useRouter } from 'next/navigation';
+
+import { guestRegex } from '@/lib/constants';
 
 export function UserNav() {
+
+  const router = useRouter();
+  const { data, status } = useSession();
+  const isGuest = guestRegex.test(data?.user?.email ?? '');
+
   return (
     <DropdownMenu>
       <TooltipProvider disableHoverableContent>
@@ -68,7 +76,25 @@ export function UserNav() {
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="hover:cursor-pointer" onClick={() => {}}>
+        <DropdownMenuItem className="hover:cursor-pointer"  onClick={() => {
+                  if (status === 'loading') {
+                    toast({
+                      type: 'error',
+                      description:
+                        'Checking authentication status, please try again!',
+                    });
+
+                    return;
+                  }
+
+                  if (isGuest) {
+                    router.push('/login');
+                  } else {
+                    signOut({
+                      redirectTo: '/',
+                    });
+                  }
+                }}>
           <LogOut className="size-4 mr-3 text-muted-foreground" />
           Sign out
         </DropdownMenuItem>

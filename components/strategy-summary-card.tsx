@@ -11,6 +11,7 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
+  TooltipProvider
 } from "@/components/ui/tooltip"
 
 
@@ -121,6 +122,7 @@ export function StrategyCard({ strategyChat, tradesInCurrentStrategy }: Strategy
                     <div className="flex items-center gap-1 text-center">
                       <h3 className="text-xs md:text-sm font-medium text-muted-foreground">{metric.title}</h3>
                       {metric.isToolTipNeed && metric.tipMessage && (
+                        <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger>
                             <HelpCircle className="size-3 text-muted-foreground hover:text-foreground cursor-help shrink-0" />
@@ -129,6 +131,7 @@ export function StrategyCard({ strategyChat, tradesInCurrentStrategy }: Strategy
                             <p>{metric.tipMessage}</p>
                           </TooltipContent>
                         </Tooltip>
+                        </TooltipProvider>
                       )}
                     </div>
                     <p className="text-lg md:text-xl lg:text-2xl font-bold text-center w-full break-words">{metric.value}</p>

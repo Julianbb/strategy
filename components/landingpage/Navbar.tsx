@@ -17,7 +17,7 @@ import {
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
 import { buttonVariants } from "@/components/ui/button";
 import { Menu } from "lucide-react";
-import { ModeToggle } from "./mode-toggle";
+import { ModeToggle } from "@/components/mode-toggle";
 import { LogoIcon } from "./Icons";
 
 interface RouteProps {
@@ -73,9 +73,8 @@ export const Navbar = () => {
                 <Menu
                   className="flex md:hidden size-5"
                   onClick={() => setIsOpen(true)}
-                >
-                  <span className="sr-only">Menu Icon</span>
-                </Menu>
+                />
+                <span className="sr-only">Menu Icon</span>
               </SheetTrigger>
 
               <SheetContent side={"left"}>
@@ -128,19 +127,10 @@ export const Navbar = () => {
             ))}
           </nav>
 
-          <div className="hidden md:flex gap-2">
-            <a
-              rel="noreferrer noopener"
-              href="https://github.com/leoMirandaa/shadcn-landing-page.git"
-              target="_blank"
-              className={`border ${buttonVariants({ variant: "secondary" })}`}
-            >
-              <GitHubLogoIcon className="mr-2 size-5" />
-              Github
-            </a>
+        
 
-            <ModeToggle />
-          </div>
+          <ModeToggle />
+ 
         </NavigationMenuList>
       </NavigationMenu>
     </header>

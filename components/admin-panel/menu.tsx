@@ -15,6 +15,12 @@ import {
   TooltipContent,
   TooltipProvider
 } from "@/components/ui/tooltip";
+import { toast } from '@/components/toast';
+
+import { useRouter } from 'next/navigation';
+
+import { guestRegex } from '@/lib/constants';
+import { signOut, useSession } from 'next-auth/react';
 
 interface MenuProps {
   isOpen: boolean | undefined;
@@ -23,6 +29,11 @@ interface MenuProps {
 export function Menu({ isOpen }: MenuProps) {
   const pathname = usePathname();
   const menuList = getMenuList(pathname);
+
+  const router = useRouter();
+  const { data, status } = useSession();
+  const isGuest = guestRegex.test(data?.user?.email ?? '');
+
 
   return (
     <ScrollArea className="[&>div>div[style]]:!block">
@@ -118,7 +129,23 @@ export function Menu({ isOpen }: MenuProps) {
               <Tooltip delayDuration={100}>
                 <TooltipTrigger asChild>
                   <Button
-                    onClick={() => {}}
+                    onClick={() => {
+                      if (status === 'loading') {
+                        toast({
+                          type: 'error',
+                          description:
+                            'Checking authentication status, please try again!',
+                        });
+                        return;
+                      }
+                      if (isGuest) {
+                        router.push('/login');
+                      } else {
+                        signOut({
+                          redirectTo: '/login',
+                        });
+                      }
+                    }}
                     variant="outline"
                     className="w-full justify-center h-10 mt-5"
                   >
@@ -131,7 +158,7 @@ export function Menu({ isOpen }: MenuProps) {
                         isOpen === false ? "opacity-0 hidden" : "opacity-100"
                       )}
                     >
-                      Sign out
+                      Sign out1
                     </p>
                   </Button>
                 </TooltipTrigger>

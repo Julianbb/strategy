@@ -1,3 +1,5 @@
+'use client'
+
 import type { StrategyChat } from '@/lib/db/schema';
 import {
   SidebarMenuAction,
@@ -25,6 +27,7 @@ import {
 } from './icons';
 import { Play, Pause, Square, CheckCircle, Loader2 } from 'lucide-react';
 import { memo, useState } from 'react';
+import { Button } from './ui/button';
 
 const getStatusIcon = (status: string, isUpdating?: boolean) => {
   if (isUpdating) {
@@ -50,13 +53,11 @@ const PureChatItem = ({
   isActive,
   onDelete,
   onStatusChange,
-  setOpenMobile,
 }: {
   chat: StrategyChat;
   isActive: boolean;
   onDelete: (chatId: string) => void;
   onStatusChange: (chatId: string, status: 'active' | 'paused' | 'stopped' | 'completed') => Promise<void>;
-  setOpenMobile: (open: boolean) => void;
 }) => {
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -70,13 +71,13 @@ const PureChatItem = ({
   };
 
   return (
-    <SidebarMenuItem>
-      <SidebarMenuButton asChild isActive={isActive}>
-        <Link href={`/chat/${chat.id}`} onClick={() => setOpenMobile(false)}>
+    <div>
+      <Button asChild >
+        <Link href={`/dashboard/chat/${chat.id}`}>
           {getStatusIcon(chat.status, isUpdating)}
           <span>{chat.strategyName}</span>
         </Link>
-      </SidebarMenuButton>
+      </Button>
 
       <DropdownMenu modal={true}>
         <DropdownMenuTrigger asChild>
@@ -169,7 +170,7 @@ const PureChatItem = ({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-    </SidebarMenuItem>
+    </div>
   );
 };
 
@@ -197,8 +198,7 @@ export const ChatItem = memo(PureChatItem, (prevProps, nextProps) => {
   
   // 检查回调函数是否改变（虽然通常它们应该是稳定的）
   if (prevProps.onDelete !== nextProps.onDelete || 
-      prevProps.onStatusChange !== nextProps.onStatusChange ||
-      prevProps.setOpenMobile !== nextProps.setOpenMobile) {
+      prevProps.onStatusChange !== nextProps.onStatusChange) {
     return false;
   }
   

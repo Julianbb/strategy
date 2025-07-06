@@ -59,13 +59,13 @@ export function getMenuList(pathname: string): Group[] {
           ]
         },
         {
-          href: "/categories",
-          label: "Categories",
+          href: "/dashboard/strategy-type",
+          label: "Types",
           icon: Bookmark
         },
         {
-          href: "/tags",
-          label: "Tags",
+          href: "/dashboard/chat",
+          label: "Strategy",
           icon: Tag
         }
       ]

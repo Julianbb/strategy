@@ -1,6 +1,6 @@
 'use client';
 
-import { SidebarToggle } from '@/components/sidebar-toggle';
+
 import { Button } from '@/components/ui/button';
 
 export type MobileView = 'chat' | 'summary' | 'trades';
@@ -20,7 +20,7 @@ export function MobileHeader({ activeView, onViewChange }: MobileHeaderProps) {
   return (
     <header className="flex md:hidden sticky top-0 z-40 bg-background border-b">
       <div className="flex items-center justify-between w-full px-4 py-2">
-        <SidebarToggle />
+
         
         {/* Mobile View Selector */}
         <div className="flex flex-1 justify-center mx-4">
