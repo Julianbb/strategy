@@ -71,7 +71,7 @@ const groupChatsByDate = (chats: StrategyChat[]): GroupedChats => {
   );
 };
 
-export function getChatHistoryPaginationKey(
+function getChatHistoryPaginationKey(
   pageIndex: number,
   previousPageData: ChatHistory,
 ) {
