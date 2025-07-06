@@ -44,17 +44,6 @@ const THEME_COLOR_SCRIPT = `\
   updateThemeColor();
 })();`;
 
-const PWA_SCRIPT = `\
-(function () {
-  if (
-    window.matchMedia('(display-mode: standalone)').matches ||
-    window.navigator.standalone
-  ) {
-    document.addEventListener('DOMContentLoaded', function () {
-      document.body.classList.add('pwa-safe-area');
-    });
-  }
-})();`;
 
 export default function RootLayout({
   children,
@@ -69,7 +58,6 @@ export default function RootLayout({
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_COLOR_SCRIPT }} />
-        <script dangerouslySetInnerHTML={{ __html: PWA_SCRIPT }} />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#ffffff" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -81,9 +69,9 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <Toaster position="top-center" />
           <SessionProvider>
-            <div className='className="min-h-screen bg-white pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"'>
+           
               {children}
-            </div>
+        
           </SessionProvider>
         </ThemeProvider>
       </body>
