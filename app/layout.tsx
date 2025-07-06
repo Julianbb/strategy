@@ -65,6 +65,22 @@ export default async function RootLayout({
             __html: THEME_COLOR_SCRIPT,
           }}
         />
+         <script
+    dangerouslySetInnerHTML={{
+      __html: `
+        (function () {
+          if (
+            window.matchMedia('(display-mode: standalone)').matches ||
+            window.navigator.standalone
+          ) {
+            document.addEventListener('DOMContentLoaded', function () {
+              document.body.classList.add('pwa-safe-area');
+            });
+          }
+        })();
+      `,
+    }}
+  />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#ffffff" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
