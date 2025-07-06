@@ -1,7 +1,7 @@
 import { Button,buttonVariants } from "@/components/ui/button";
 import { HeroCards } from "./HeroCards";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
-
+import Link from "next/link";
 export const Hero = () => {
   return (
     <section className="container grid lg:grid-cols-2 place-items-center py-20 md:py-32 gap-10">
@@ -28,7 +28,9 @@ export const Hero = () => {
         </p>
 
         <div className="space-y-4 md:space-y-0 md:space-x-4">
-          <Button className="w-full md:w-1/3">Get Started</Button>
+          <Link href="/dashboard" >
+          <Button className="w-full md:w-1/3 "> Get Started</Button>
+          </Link>
 
           <a
             rel="noreferrer noopener"
