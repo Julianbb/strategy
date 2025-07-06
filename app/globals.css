@@ -7,6 +7,8 @@
 /* PWA 安全区域 padding（在 JS 中只会在 standalone 模式下加） */
 
 body {
+    @apply min-h-screen select-none bg-zinc-50 text-zinc-900 antialiased p-safe dark:bg-zinc-900 dark:text-zinc-50;
+
     /* PWA enhancements */
     -webkit-overflow-scrolling: touch;
     -webkit-tap-highlight-color: transparent;
