@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Ellipsis, LogOut } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { usePathname,useRouter } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 import { getMenuList } from "@/lib/menu-list";
@@ -17,7 +17,6 @@ import {
 } from "@/components/ui/tooltip";
 import { toast } from '@/components/toast';
 
-import { useRouter } from 'next/navigation';
 
 import { guestRegex } from '@/lib/constants';
 import { signOut, useSession } from 'next-auth/react';

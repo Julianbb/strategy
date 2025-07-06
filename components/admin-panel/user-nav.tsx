@@ -91,7 +91,7 @@ export function UserNav() {
                     router.push('/login');
                   } else {
                     signOut({
-                      redirectTo: '/',
+                      redirectTo: '/login',
                     });
                   }
                 }}>
