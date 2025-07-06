@@ -3,6 +3,13 @@
 @tailwind utilities;
 
 
+html,
+body {
+    background-color: red;
+    /* 或你想要的背景色 */
+    color: #000;
+}
+
 body.pwa-safe-area {
     padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
