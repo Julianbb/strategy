@@ -60,11 +60,11 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: THEME_COLOR_SCRIPT }} />
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
-        {/* <meta name="theme-color" content="#ffffff" /> */}
-        {/* <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" /> */}
-        {/* <meta name='viewport' content='width=device-width, initial-scale=1, user-scalable=0, viewport-fit=cover'/> */}
-        {/*  */}
+        <meta name="theme-color" content="#ffffff" /> 
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name='viewport' content='width=device-width, initial-scale=1, user-scalable=0, viewport-fit=cover'/>
+    
       </head>
       <body className="antialiased bg-white">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
