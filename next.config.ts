@@ -6,9 +6,9 @@ const withPWA = require("next-pwa")({
 });
 
 module.exports = withPWA({
-  // experimental: {
-  //   ppr: true,
-  // },
+  experimental: {
+    ppr: true,
+  },
   images: {
     remotePatterns: [
       {

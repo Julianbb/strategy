@@ -78,7 +78,7 @@ export default function Page() {
                   autoComplete="email"
                   autoFocus
                   required
-                  style={{ fontSize: '16px' }} // 防止iOS缩放
+             
                 />
               </div>
               <div className="grid gap-3">
@@ -97,7 +97,7 @@ export default function Page() {
                 name="password" 
                 autoComplete="password"
                 required 
-                style={{ fontSize: '16px' }} // 防止iOS缩放
+           
                 />
               </div>
               <div className="flex flex-col gap-3">
