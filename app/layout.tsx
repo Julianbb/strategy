@@ -2,7 +2,6 @@ import { Toaster } from 'sonner';
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { ThemeProvider } from '@/components/theme-provider';
-
 import './globals.css';
 import { SessionProvider } from 'next-auth/react';
 
@@ -10,10 +9,6 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://strategy.julian3.vip'),
   title: 'Next.js Chatbot Template',
   description: 'Next.js chatbot template using the AI SDK.',
-};
-
-export const viewport = {
-  maximumScale: 1, // Disable auto-zoom on mobile Safari
 };
 
 const geist = Geist({
@@ -30,6 +25,7 @@ const geistMono = Geist_Mono({
 
 const LIGHT_THEME_COLOR = 'hsl(0 0% 100%)';
 const DARK_THEME_COLOR = 'hsl(240deg 10% 3.92%)';
+
 const THEME_COLOR_SCRIPT = `\
 (function() {
   var html = document.documentElement;
@@ -48,7 +44,19 @@ const THEME_COLOR_SCRIPT = `\
   updateThemeColor();
 })();`;
 
-export default async function RootLayout({
+const PWA_SCRIPT = `\
+(function () {
+  if (
+    window.matchMedia('(display-mode: standalone)').matches ||
+    window.navigator.standalone
+  ) {
+    document.addEventListener('DOMContentLoaded', function () {
+      document.body.classList.add('pwa-safe-area');
+    });
+  }
+})();`;
+
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -57,49 +65,26 @@ export default async function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${geist.variable} ${geistMono.variable}`}
+      className={`bg-white ${geist.variable} ${geistMono.variable}`}
     >
       <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: THEME_COLOR_SCRIPT,
-          }}
-        />
-         <script
-    dangerouslySetInnerHTML={{
-      __html: `
-        (function () {
-          if (
-            window.matchMedia('(display-mode: standalone)').matches ||
-            window.navigator.standalone
-          ) {
-            document.addEventListener('DOMContentLoaded', function () {
-              document.body.classList.add('pwa-safe-area');
-            });
-          }
-        })();
-      `,
-    }}
-  />
+        <script dangerouslySetInnerHTML={{ __html: THEME_COLOR_SCRIPT }} />
+        <script dangerouslySetInnerHTML={{ __html: PWA_SCRIPT }} />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#ffffff" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
-
-
-
       </head>
-      <body className="antialiased">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
+      <body className="antialiased bg-white">
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <Toaster position="top-center" />
-          <SessionProvider>{children}</SessionProvider>
+          <SessionProvider>
+            <div className='className="min-h-screen bg-white pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"'>
+              {children}
+            </div>
+          </SessionProvider>
         </ThemeProvider>
       </body>
     </html>
