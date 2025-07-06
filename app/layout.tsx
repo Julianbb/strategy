@@ -7,7 +7,7 @@ import { SessionProvider } from 'next-auth/react';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://strategy.julian3.vip'),
-  title: 'Next.js Chatbot Template',
+  title: 'Chat Strategy',
   description: 'Next.js chatbot template using the AI SDK.',
 };
 
