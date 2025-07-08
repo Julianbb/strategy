@@ -157,7 +157,7 @@ export function Menu({ isOpen }: MenuProps) {
                         isOpen === false ? "opacity-0 hidden" : "opacity-100"
                       )}
                     >
-                      Sign out1
+                      Sign out
                     </p>
                   </Button>
                 </TooltipTrigger>

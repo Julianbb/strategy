@@ -163,8 +163,8 @@ export function StrategyTypesSection() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Strategy Types</h2>
+      <div className="flex items-center justify-end">
+       
         <Button
           onClick={startCreate}
           className="flex items-center gap-2"
