@@ -27,11 +27,11 @@ export function MobileHeader({ activeView, onViewChange }: MobileHeaderProps) {
         {/* Back Button */}
         <Button
           variant="ghost"
-          size="lg"
+          size="icon"
           className="p-2"
-          onClick={() => router.back()}
+          onClick={() => router.push("/dashboard/chat")}
         >
-          <ChevronLeft className="size-8" />
+          <ChevronLeft className="size-12" />
         </Button>
         
         {/* Mobile View Selector */}
