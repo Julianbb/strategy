@@ -21,7 +21,7 @@ export default function ChatLayout({
         </div>
         
         {/* No container padding on mobile for [id] routes */}
-        <div className="md:container md:py-8  md:px-8">
+        <div className="md:container md:p-8">
           {children}
         </div>
       </div>
