@@ -1,5 +1,5 @@
 'use client'
-
+import {useRouter } from 'next/navigation';
 import type { StrategyChat } from '@/lib/db/schema';
 import {
   SidebarMenuAction,
@@ -60,6 +60,7 @@ const PureChatItem = ({
   onStatusChange: (chatId: string, status: 'active' | 'paused' | 'stopped' | 'completed') => Promise<void>;
 }) => {
   const [isUpdating, setIsUpdating] = useState(false);
+  const router = useRouter();
 
   const handleStatusChange = async (newStatus: 'active' | 'paused' | 'stopped' | 'completed') => {
     setIsUpdating(true);
@@ -72,11 +73,11 @@ const PureChatItem = ({
 
   return (
     <div>
-      <Button asChild >
-        <Link href={`/dashboard/chat/${chat.id}`}>
+      <Button className='cursor-pointer' asChild onClick={()=>router.push(`/dashboard/chat/${chat.id}`)}>
+        <div>
           {getStatusIcon(chat.status, isUpdating)}
           <span>{chat.strategyName}</span>
-        </Link>
+        </div>
       </Button>
 
       <DropdownMenu modal={true}>
