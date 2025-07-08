@@ -194,7 +194,7 @@ export function MobileChat({
       });
 
       setHasAppendedQuery(true);
-      window.history.replaceState({}, '', `/chat/${id}`);
+      window.history.replaceState({}, '', `/dashboard/chat/${id}`);
     }
   }, [query, append, hasAppendedQuery, id]);
 
