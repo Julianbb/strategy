@@ -132,7 +132,7 @@ export function CreateStrategyDialog({
         onOpenChange(false);
         
         // Navigate to the chat
-        router.push(`/chat/${strategyChatId}`);
+        router.push(`/dashboard/chat/${strategyChatId}`);
       } else {
         console.error('Failed to create strategy or chat');
       }
