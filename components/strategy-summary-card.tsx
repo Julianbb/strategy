@@ -100,7 +100,7 @@ export function StrategyCard({ strategyChat, tradesInCurrentStrategy }: Strategy
 
 
   return (
-    <div className="px-4 lg:px-6">
+    <div className="">
       {/* Mobile: Stack vertically, Desktop: Side by side */}
       <div className="flex flex-col lg:flex-row lg:justify-between gap-6 lg:items-stretch">
         {/* Strategy Summary Card */}

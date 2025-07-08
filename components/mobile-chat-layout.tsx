@@ -76,11 +76,9 @@ export function MobileChatLayout({
         {/* Desktop view - show all content as before */}
         <div className="hidden md:flex md:flex-1 md:flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2 w-full max-w-full">
-            <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6 w-full max-w-full">
+            <div className="flex flex-col gap-4 md:gap-6 w-full max-w-full">
               <StrategyCard strategyChat={strategyChat} tradesInCurrentStrategy={tradesInCurrentStrategy} />
-              <div className="px-4 lg:px-6">
-                <ChartAreaInteractive strategyChat={strategyChat} />
-              </div>
+              <ChartAreaInteractive strategyChat={strategyChat} />
               <div className="w-full max-w-full overflow-hidden">
                 <DataTable tradesInCurrentStrategy={tradesInCurrentStrategy} baseCurrency={strategyChat?.baseCurrency} />
               </div>

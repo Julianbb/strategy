@@ -149,7 +149,7 @@ export function DataTable({
           )}
         </div>
       ) : (
-        <div className="relative flex flex-col gap-4 px-4 lg:px-6">
+        <div className="relative flex flex-col gap-4">
           <div className="rounded-lg border">
             <Table>
               <TableHeader className="bg-muted sticky top-0 z-10">

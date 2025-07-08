@@ -14,7 +14,7 @@ export default async function Page() {
 
   return (
     <ContentLayout title="Strategy Types">
-      <div className="flex flex-col gap-6 p-6">
+      <div className="flex flex-col gap-6">
         <StrategyTypesSection />
       </div>
       </ContentLayout>

@@ -33,7 +33,25 @@ export function Menu({ isOpen }: MenuProps) {
   const { data, status } = useSession();
   const isGuest = guestRegex.test(data?.user?.email ?? '');
 
+  const handleSignOut = () => {
+    if (status === 'loading') {
+      toast({
+        type: 'error',
+        description:
+          'Checking authentication status, please try again!',
+      });
+      return;
+    }
+    if (isGuest) {
+      router.push('/login');
+    } else {
+      signOut({
+        redirectTo: '/login',
+      });
+    }
+  };
 
+  
   return (
     <ScrollArea className="[&>div>div[style]]:!block">
       <nav className="mt-8 size-full">
@@ -128,25 +146,9 @@ export function Menu({ isOpen }: MenuProps) {
               <Tooltip delayDuration={100}>
                 <TooltipTrigger asChild>
                   <Button
-                    onClick={() => {
-                      if (status === 'loading') {
-                        toast({
-                          type: 'error',
-                          description:
-                            'Checking authentication status, please try again!',
-                        });
-                        return;
-                      }
-                      if (isGuest) {
-                        router.push('/login');
-                      } else {
-                        signOut({
-                          redirectTo: '/login',
-                        });
-                      }
-                    }}
+                    onClick={handleSignOut}
                     variant="outline"
-                    className="w-full justify-center h-10 mt-5"
+                    className="w-full justify-center h-10 mt-8 mb-4"
                   >
                     <span className={cn(isOpen === false ? "" : "mr-4")}>
                       <LogOut size={18} />
@@ -157,12 +159,12 @@ export function Menu({ isOpen }: MenuProps) {
                         isOpen === false ? "opacity-0 hidden" : "opacity-100"
                       )}
                     >
-                      Sign out
+                      {isGuest ? "Login" : "Sign out"}
                     </p>
                   </Button>
                 </TooltipTrigger>
                 {isOpen === false && (
-                  <TooltipContent side="right">Sign out</TooltipContent>
+                  <TooltipContent side="right">{isGuest ? "Login" : "Sign out"}</TooltipContent>
                 )}
               </Tooltip>
             </TooltipProvider>
