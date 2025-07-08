@@ -227,7 +227,7 @@ export default function StrategyChatPage() {
 
   if (isLoading) {
     return (
-      <div className='container py-8 px-4 sm:px-8'>
+      <div>
         <div className="px-2 py-1 text-xs text-sidebar-foreground/50">
           Today
         </div>
@@ -256,11 +256,10 @@ export default function StrategyChatPage() {
 
   if (hasEmptyChatHistory) {
     return (
-      <div className='container py-8 px-4 sm:px-8'>
+
         <div className="px-2 text-zinc-500 w-full flex flex-row justify-center items-center text-sm gap-2">
           Your conversations will appear here once you start chatting!
         </div>
-      </div>
  
     );
   }
@@ -288,7 +287,7 @@ export default function StrategyChatPage() {
   };
 
   return (
-    <div className='container py-8 px-4 sm:px-8'>
+    <div >
       <div>
         <div>
             <div className="flex flex-col gap-6">

@@ -32,7 +32,7 @@ export function MobileChatLayout({
   const [activeView, setActiveView] = useState<MobileView>('chat');
 
   return (
-    <>
+    <div className=''>
       {/* Mobile header with view selector - only visible on mobile */}
       <MobileHeader activeView={activeView} onViewChange={setActiveView} />
       
@@ -98,6 +98,6 @@ export function MobileChatLayout({
           autoResume={true}
         />
       </div>
-    </>
+    </div>
   );
 }

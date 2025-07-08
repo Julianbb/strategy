@@ -1,6 +1,7 @@
 'use client';
 
-
+import { ChevronLeft } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 
 export type MobileView = 'chat' | 'summary' | 'trades';
@@ -11,6 +12,8 @@ interface MobileHeaderProps {
 }
 
 export function MobileHeader({ activeView, onViewChange }: MobileHeaderProps) {
+  const router = useRouter();
+  
   const views: { key: MobileView; label: string }[] = [
     { key: 'chat', label: 'Chat' },
     { key: 'summary', label: 'Summary' },
@@ -19,8 +22,17 @@ export function MobileHeader({ activeView, onViewChange }: MobileHeaderProps) {
 
   return (
     <header className="flex md:hidden sticky top-0 z-40 bg-background border-b">
-      <div className="flex items-center justify-center w-full px-4 py-2">
-
+      <div className="flex items-center justify-between w-full px-4 py-2">
+        
+        {/* Back Button */}
+        <Button
+          variant="ghost"
+          size="lg"
+          className="p-2"
+          onClick={() => router.back()}
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
         
         {/* Mobile View Selector */}
         <div className="flex justify-center mx-4">
@@ -38,6 +50,9 @@ export function MobileHeader({ activeView, onViewChange }: MobileHeaderProps) {
             ))}
           </div>
         </div>
+        
+        {/* Spacer to balance the layout */}
+        <div className="w-8" />
         
       </div>
     </header>
