@@ -214,7 +214,7 @@ export function MobileChat({
       />
 
       {!isReadonly && (
-        <div className="border-t border-gray-200 p-3">
+        <div className="sticky bottom-0 border-t border-gray-200 p-3 bg-background">
           <MultimodalInput
             chatId={id}
             input={input}

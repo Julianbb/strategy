@@ -31,7 +31,7 @@ export function MobileHeader({ activeView, onViewChange }: MobileHeaderProps) {
           className="p-2"
           onClick={() => router.back()}
         >
-          <ChevronLeft className="h-4 w-4" />
+          <ChevronLeft className="size-8" />
         </Button>
         
         {/* Mobile View Selector */}
