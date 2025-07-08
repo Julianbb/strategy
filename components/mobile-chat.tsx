@@ -157,6 +157,7 @@ export function MobileChat({
     experimental_resume,
     data,
   } = useChat({
+    api:'/api/strategy-chat',
     id,
     initialMessages,
     experimental_throttle: 100,
