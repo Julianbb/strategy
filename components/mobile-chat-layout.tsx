@@ -55,7 +55,7 @@ export function MobileChatLayout({
           
           {activeView === 'summary' && (
             <div className="@container/main flex flex-1 flex-col gap-2 overflow-auto">
-              <div className="flex flex-col gap-4 size-4">
+              <div className="flex flex-col gap-4 p-4">
                 <StrategyCard strategyChat={strategyChat} tradesInCurrentStrategy={tradesInCurrentStrategy} />
                 <div className="px-4 lg:px-6">
                   <ChartAreaInteractive strategyChat={strategyChat} />
