@@ -8,6 +8,7 @@ import type { Attachment, UIMessage } from 'ai';
 import type { Session } from 'next-auth';
 import type { Vote } from '@/lib/db/schema';
 import { MessageCircle, X } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { PreviewMessage, ThinkingMessage } from './message';
 import { MultimodalInput } from './multimodal-input';
 import { fetcher, fetchWithErrorHandlers, generateUUID } from '@/lib/utils';
@@ -18,6 +19,7 @@ import { useSearchParams } from 'next/navigation';
 
 import { useAutoResume } from '@/hooks/use-auto-resume';
 import { ChatSDKError } from '@/lib/errors';
+import { useScrollToBottom } from '@/hooks/use-scroll-to-bottom';
 
 interface FloatingChatProps {
   id: string;
@@ -38,8 +40,11 @@ const FloatingMessages = forwardRef<
     setMessages: any;
     reload: any;
     isReadonly: boolean;
+    endRef: React.RefObject<HTMLDivElement>;
+    onViewportEnter: () => void;
+    onViewportLeave: () => void;
   }
->(({ chatId, status, votes, messages, setMessages, reload, isReadonly }, ref) => {
+>(({ chatId, status, votes, messages, setMessages, reload, isReadonly, endRef, onViewportEnter, onViewportLeave }, ref) => {
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [isUserScrolling, setIsUserScrolling] = useState(false);
   const prevMessagesLength = useRef(messages.length);
@@ -119,6 +124,13 @@ const FloatingMessages = forwardRef<
       {status === 'submitted' &&
         messages.length > 0 &&
         messages[messages.length - 1].role === 'user' && <ThinkingMessage />}
+        
+      <motion.div
+        ref={endRef}
+        className="shrink-0 min-w-[24px] min-h-[24px]"
+        onViewportLeave={onViewportLeave}
+        onViewportEnter={onViewportEnter}
+      />
     </div>
   );
 });
@@ -198,6 +210,8 @@ function FloatingChatContent({
 
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
 
+  const { isAtBottom, scrollToBottom, endRef, onViewportEnter, onViewportLeave } = useScrollToBottom();
+
   // Scroll to last message when dialog opens
   useEffect(() => {
     if (shouldScrollToLast && messagesRef.current) {
@@ -227,6 +241,9 @@ function FloatingChatContent({
         setMessages={setMessages}
         reload={reload}
         isReadonly={isReadonly}
+        endRef={endRef}
+        onViewportEnter={onViewportEnter}
+        onViewportLeave={onViewportLeave}
       />
 
       {!isReadonly && (
@@ -243,6 +260,8 @@ function FloatingChatContent({
             messages={messages}
             setMessages={setMessages}
             append={append}
+            isAtBottom={isAtBottom}
+            scrollToBottom={scrollToBottom}
           />
         </div>
       )}

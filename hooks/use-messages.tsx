@@ -5,15 +5,16 @@ import type { UseChatHelpers } from '@ai-sdk/react';
 export function useMessages({
   chatId,
   status,
+  scrollToBottom,
 }: {
   chatId: string;
   status: UseChatHelpers['status'];
+  scrollToBottom: (behavior?: ScrollBehavior) => void;
 }) {
   const {
     containerRef,
     endRef,
     isAtBottom,
-    scrollToBottom,
     onViewportEnter,
     onViewportLeave,
   } = useScrollToBottom();
@@ -33,11 +34,21 @@ export function useMessages({
     }
   }, [status]);
 
+  // Scroll when new messages arrive after submitting
+  useEffect(() => {
+    if (hasSentMessage && status === 'streaming') {
+      // Use a slight delay to ensure the new message is rendered
+      const timeoutId = setTimeout(() => {
+        scrollToBottom('smooth');
+      }, 100);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [hasSentMessage, status, scrollToBottom]);
+
   return {
     containerRef,
     endRef,
     isAtBottom,
-    scrollToBottom,
     onViewportEnter,
     onViewportLeave,
     hasSentMessage,

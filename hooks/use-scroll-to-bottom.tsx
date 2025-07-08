@@ -18,7 +18,23 @@ export function useScrollToBottom() {
 
   useEffect(() => {
     if (scrollBehavior) {
-      endRef.current?.scrollIntoView({ behavior: scrollBehavior });
+      // Find the scrollable container (messages container)
+      const scrollContainer = containerRef.current || 
+                             document.querySelector('[data-testid="messages-container"]') || 
+                             document.querySelector('.overflow-y-scroll');
+      
+      if (scrollContainer) {
+        scrollContainer.scrollTo({
+          top: scrollContainer.scrollHeight,
+          behavior: scrollBehavior
+        });
+      } else {
+        // Fallback to scrollIntoView with better options
+        endRef.current?.scrollIntoView({ 
+          behavior: scrollBehavior, 
+          block: 'nearest'
+        });
+      }
       setScrollBehavior(false);
     }
   }, [setScrollBehavior, scrollBehavior]);

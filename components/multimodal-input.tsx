@@ -25,7 +25,6 @@ import equal from 'fast-deep-equal';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowDown } from 'lucide-react';
-import { useScrollToBottom } from '@/hooks/use-scroll-to-bottom';
 
 function PureMultimodalInput({
   chatId,
@@ -40,6 +39,8 @@ function PureMultimodalInput({
   append,
   handleSubmit,
   className,
+  isAtBottom,
+  scrollToBottom,
 }: {
   chatId: string;
   input: UseChatHelpers['input'];
@@ -53,6 +54,8 @@ function PureMultimodalInput({
   append: UseChatHelpers['append'];
   handleSubmit: UseChatHelpers['handleSubmit'];
   className?: string;
+  isAtBottom: boolean;
+  scrollToBottom: (behavior?: ScrollBehavior) => void;
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { width } = useWindowSize();
@@ -182,13 +185,8 @@ function PureMultimodalInput({
     [setAttachments],
   );
 
-  const { isAtBottom, scrollToBottom } = useScrollToBottom();
-
-  useEffect(() => {
-    if (status === 'submitted') {
-      scrollToBottom();
-    }
-  }, [status, scrollToBottom]);
+  // Removed immediate scroll on submit to prevent over-scrolling
+  // The scroll will happen naturally when the message is added to the messages array
 
   return (
     <div className="relative w-full flex flex-col gap-4">
@@ -199,7 +197,7 @@ function PureMultimodalInput({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
             transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-            className="absolute left-1/2 bottom-28 -translate-x-1/2 z-50"
+            className="absolute inset-x-0 bottom-28 z-50 flex justify-center"
           >
             <Button
               data-testid="scroll-to-bottom-button"
@@ -208,7 +206,7 @@ function PureMultimodalInput({
               variant="outline"
               onClick={(event) => {
                 event.preventDefault();
-                scrollToBottom();
+                scrollToBottom('smooth');
               }}
             >
               <ArrowDown />

@@ -16,6 +16,7 @@ interface MessagesProps {
   setMessages: UseChatHelpers['setMessages'];
   reload: UseChatHelpers['reload'];
   isReadonly: boolean;
+  scrollToBottom: (behavior?: ScrollBehavior) => void;
 }
 
 function PureMessages({
@@ -26,6 +27,7 @@ function PureMessages({
   setMessages,
   reload,
   isReadonly,
+  scrollToBottom,
 }: MessagesProps) {
   const {
     containerRef: messagesContainerRef,
@@ -36,6 +38,7 @@ function PureMessages({
   } = useMessages({
     chatId,
     status,
+    scrollToBottom,
   });
 
   return (

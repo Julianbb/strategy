@@ -16,6 +16,8 @@ import { toast } from './toast';
 import { useSearchParams } from 'next/navigation';
 import { useAutoResume } from '@/hooks/use-auto-resume';
 import { ChatSDKError } from '@/lib/errors';
+import { useScrollToBottom } from '@/hooks/use-scroll-to-bottom';
+import { motion } from 'framer-motion';
 
 interface MobileChatProps {
   id: string;
@@ -36,8 +38,11 @@ const MobileChatMessages = forwardRef<
     setMessages: any;
     reload: any;
     isReadonly: boolean;
+    endRef: React.RefObject<HTMLDivElement>;
+    onViewportEnter: () => void;
+    onViewportLeave: () => void;
   }
->(({ chatId, status, votes, messages, setMessages, reload, isReadonly }, ref) => {
+>(({ chatId, status, votes, messages, setMessages, reload, isReadonly, endRef, onViewportEnter, onViewportLeave }, ref) => {
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [isUserScrolling, setIsUserScrolling] = useState(false);
   const prevMessagesLength = useRef(messages.length);
@@ -115,6 +120,13 @@ const MobileChatMessages = forwardRef<
       {status === 'submitted' &&
         messages.length > 0 &&
         messages[messages.length - 1].role === 'user' && <ThinkingMessage />}
+        
+      <motion.div
+        ref={endRef}
+        className="shrink-0 min-w-[24px] min-h-[24px]"
+        onViewportLeave={onViewportLeave}
+        onViewportEnter={onViewportEnter}
+      />
     </div>
   );
 });
@@ -192,6 +204,8 @@ export function MobileChat({
 
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
 
+  const { isAtBottom, scrollToBottom, endRef, onViewportEnter, onViewportLeave } = useScrollToBottom();
+
   useAutoResume({
     autoResume,
     initialMessages,
@@ -211,6 +225,9 @@ export function MobileChat({
         setMessages={setMessages}
         reload={reload}
         isReadonly={isReadonly}
+        endRef={endRef}
+        onViewportEnter={onViewportEnter}
+        onViewportLeave={onViewportLeave}
       />
 
       {!isReadonly && (
@@ -227,6 +244,8 @@ export function MobileChat({
             messages={messages}
             setMessages={setMessages}
             append={append}
+            isAtBottom={isAtBottom}
+            scrollToBottom={scrollToBottom}
           />
         </div>
       )}

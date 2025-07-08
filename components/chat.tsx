@@ -10,6 +10,7 @@ import { fetcher, fetchWithErrorHandlers, generateUUID } from '@/lib/utils';
 
 import { MultimodalInput } from './multimodal-input';
 import { Messages } from './messages';
+import { useScrollToBottom } from '@/hooks/use-scroll-to-bottom';
 
 
 import { unstable_serialize } from 'swr/infinite';
@@ -100,6 +101,8 @@ export function Chat({
 
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
 
+  const { isAtBottom, scrollToBottom } = useScrollToBottom();
+
   useAutoResume({
     autoResume,
     initialMessages,
@@ -126,6 +129,7 @@ export function Chat({
           setMessages={setMessages}
           reload={reload}
           isReadonly={isReadonly}
+          scrollToBottom={scrollToBottom}
         />
 
         <form className="flex mx-auto px-4 bg-background pb-4 md:pb-6 gap-2 w-full md:max-w-3xl">
@@ -142,6 +146,8 @@ export function Chat({
               messages={messages}
               setMessages={setMessages}
               append={append}
+              isAtBottom={isAtBottom}
+              scrollToBottom={scrollToBottom}
             />
           )}
         </form>
