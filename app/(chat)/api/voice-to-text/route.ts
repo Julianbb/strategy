@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const transcription = await openai.audio.translations.create({
+    const transcription = await openai.audio.transcriptions.create({
       file: audioFile,
       model: 'whisper-1',
     });
