@@ -136,6 +136,7 @@ function PureVoiceButton({
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     setIsTouchDevice(true);
     setIsLongPressing(true);
     
@@ -146,7 +147,10 @@ function PureVoiceButton({
     }, 1000);
   }, [startRecording]);
 
-  const handleTouchEnd = useCallback(() => {
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     // Clear the long press timeout if still waiting
     if (longPressTimeoutRef.current) {
       clearTimeout(longPressTimeoutRef.current);
@@ -161,6 +165,11 @@ function PureVoiceButton({
     }
   }, [isRecording, stopRecording]);
 
+  const handleContextMenu = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
   const progressPercentage = (recordingTime / 60) * 100;
   const circumference = 2 * Math.PI * 14; // radius of 14
   const strokeDashoffset = circumference - (progressPercentage / 100) * circumference;
@@ -174,9 +183,19 @@ function PureVoiceButton({
           isRecording ? "bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700" : "",
           isLongPressing ? "bg-yellow-500 hover:bg-yellow-600 dark:bg-yellow-600 dark:hover:bg-yellow-700" : ""
         )}
+        style={{
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+          MozUserSelect: 'none',
+          msUserSelect: 'none',
+          WebkitTouchCallout: 'none',
+          WebkitTapHighlightColor: 'transparent',
+          touchAction: 'none'
+        }}
         onClick={handleClick}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
+        onContextMenu={handleContextMenu}
         disabled={status !== 'ready'}
         variant="ghost"
       >
