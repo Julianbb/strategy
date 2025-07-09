@@ -165,18 +165,39 @@ function PureVoiceButton({
     }
   }, [isRecording, stopRecording]);
 
+  const handleTouchCancel = useCallback((e: React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Clear the long press timeout if still waiting
+    if (longPressTimeoutRef.current) {
+      clearTimeout(longPressTimeoutRef.current);
+      longPressTimeoutRef.current = null;
+    }
+    
+    setIsLongPressing(false);
+    
+    // Stop recording immediately if currently recording
+    if (isRecording) {
+      stopRecording();
+    }
+  }, [isRecording, stopRecording]);
+
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
   }, []);
 
   const progressPercentage = (recordingTime / 60) * 100;
-  const radius = isLongPressing ? 28 : 14; // 2x bigger during long press
+  const radius = 14; // Keep radius consistent, scaling is handled by CSS transform
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (progressPercentage / 100) * circumference;
 
   return (
-    <div className="relative">
+    <div className={cx(
+      "relative transition-transform duration-200 ease-out",
+      isLongPressing ? "scale-[2]" : "scale-100"
+    )}>
       <Button
         data-testid="voice-button"
         className={cx(
@@ -196,6 +217,7 @@ function PureVoiceButton({
         onClick={handleClick}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
+        onTouchCancel={handleTouchCancel}
         onContextMenu={handleContextMenu}
         disabled={status !== 'ready'}
         variant="ghost"
@@ -208,15 +230,12 @@ function PureVoiceButton({
       
       {(isRecording || isLongPressing) && (
         <svg
-          className={cx(
-            "absolute pointer-events-none transition-all duration-200 ease-out",
-            isLongPressing ? "w-16 h-16 -inset-4" : "w-full h-full inset-0"
-          )}
-          viewBox={isLongPressing ? "0 0 64 64" : "0 0 32 32"}
+          className="absolute inset-0 w-full h-full pointer-events-none"
+          viewBox="0 0 32 32"
         >
           <circle
-            cx={isLongPressing ? "32" : "16"}
-            cy={isLongPressing ? "32" : "16"}
+            cx="16"
+            cy="16"
             r={radius}
             fill="none"
             stroke="currentColor"
@@ -227,7 +246,7 @@ function PureVoiceButton({
             className="text-white opacity-80"
             style={{
               transform: 'rotate(-90deg)',
-              transformOrigin: isLongPressing ? '32px 32px' : '16px 16px',
+              transformOrigin: '16px 16px',
               transition: 'stroke-dashoffset 0.1s ease-out'
             }}
           />
