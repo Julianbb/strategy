@@ -32,9 +32,12 @@ function PureVoiceButton({
   const [isTouchActive, setIsTouchActive] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
+  const [isCancelZone, setIsCancelZone] = useState(false);
+  const [touchStartY, setTouchStartY] = useState(0);
   const longPressTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const recordingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   const startRecording = useCallback(async () => {
     try {
@@ -119,6 +122,30 @@ function PureVoiceButton({
     setRecordingTime(0);
   }, [mediaRecorder]);
 
+  const cancelRecording = useCallback(() => {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+      mediaRecorder.stop();
+      setIsRecording(false);
+      setMediaRecorder(null);
+    }
+
+    // Clear all timers
+    if (recordingTimeoutRef.current) {
+      clearTimeout(recordingTimeoutRef.current);
+      recordingTimeoutRef.current = null;
+    }
+    if (recordingIntervalRef.current) {
+      clearInterval(recordingIntervalRef.current);
+      recordingIntervalRef.current = null;
+    }
+
+    // Clear audio chunks to prevent processing
+    setAudioChunks([]);
+    setRecordingTime(0);
+    setIsCancelZone(false);
+    toast.info('Recording cancelled');
+  }, [mediaRecorder]);
+
   const processAudioChunks = useCallback(async () => {
     if (audioChunks.length === 0) return;
 
@@ -174,6 +201,8 @@ function PureVoiceButton({
     setIsTouchDevice(true);
     setIsTouchActive(true);
     setIsLongPressing(true);
+    setTouchStartY(e.touches[0].clientY);
+    setIsCancelZone(false);
     
     // Mobile: require 500ms long press to start recording
     longPressTimeoutRef.current = setTimeout(() => {
@@ -181,6 +210,23 @@ function PureVoiceButton({
       startRecording();
     }, 500);
   }, [startRecording]);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!isRecording && !isLongPressing) return;
+    
+    const currentY = e.touches[0].clientY;
+    const deltaY = touchStartY - currentY;
+    
+    // If dragged up more than 60px, enter cancel zone
+    if (deltaY > 60) {
+      setIsCancelZone(true);
+    } else {
+      setIsCancelZone(false);
+    }
+  }, [isRecording, isLongPressing, touchStartY]);
 
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
     e.preventDefault();
@@ -195,11 +241,17 @@ function PureVoiceButton({
     setIsLongPressing(false);
     setIsTouchActive(false);
     
-    // Stop recording immediately if currently recording
+    // Cancel recording if in cancel zone, otherwise stop normally
     if (isRecording) {
-      stopRecording();
+      if (isCancelZone) {
+        cancelRecording();
+      } else {
+        stopRecording();
+      }
     }
-  }, [isRecording, stopRecording]);
+    
+    setIsCancelZone(false);
+  }, [isRecording, isCancelZone, stopRecording, cancelRecording]);
 
   const handleTouchCancel = useCallback((e: React.TouchEvent) => {
     e.preventDefault();
@@ -214,11 +266,13 @@ function PureVoiceButton({
     setIsLongPressing(false);
     setIsTouchActive(false);
     
-    // Stop recording immediately if currently recording
+    // Cancel recording on touch cancel
     if (isRecording) {
-      stopRecording();
+      cancelRecording();
     }
-  }, [isRecording, stopRecording]);
+    
+    setIsCancelZone(false);
+  }, [isRecording, cancelRecording]);
 
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -235,12 +289,19 @@ function PureVoiceButton({
       "relative transition-transform duration-200 ease-out",
       isTouchActive ? "scale-[3]" : "scale-100"
     )}>
+      {isCancelZone && (
+        <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-3 py-1 rounded-md text-sm font-medium">
+          Release to cancel
+        </div>
+      )}
       <Button
+        ref={buttonRef}
         data-testid="voice-button"
         className={cx(
           "rounded-md p-3 h-fit dark:border-zinc-700 hover:dark:bg-zinc-900 hover:bg-zinc-200",
-          isRecording ? "bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700" : "",
-          isLongPressing ? "bg-yellow-500 hover:bg-yellow-600 dark:bg-yellow-600 dark:hover:bg-yellow-700" : ""
+          isRecording && !isCancelZone ? "bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700" : "",
+          isLongPressing ? "bg-yellow-500 hover:bg-yellow-600 dark:bg-yellow-600 dark:hover:bg-yellow-700" : "",
+          isCancelZone ? "bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800" : ""
         )}
         style={{
           userSelect: 'none',
@@ -253,6 +314,7 @@ function PureVoiceButton({
         }}
         onClick={handleClick}
         onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
         onTouchCancel={handleTouchCancel}
         onContextMenu={handleContextMenu}
@@ -260,7 +322,7 @@ function PureVoiceButton({
         variant="ghost"
       >
         <Mic size={18} className={cx(
-          isRecording ? "text-white" : "",
+          isRecording || isCancelZone ? "text-white" : "",
           isLongPressing ? "text-white" : ""
         )} />
       </Button>
