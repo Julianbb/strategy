@@ -202,28 +202,10 @@ function PureVoiceButton({
       "relative transition-transform duration-200 ease-out",
       isTouchActive ? "scale-[3]" : "scale-100"
     )}>
-      {/* Larger invisible touch area to prevent flickering */}
-      <div
-        className="absolute inset-0 -m-4 z-10"
-        style={{
-          userSelect: 'none',
-          WebkitUserSelect: 'none',
-          MozUserSelect: 'none',
-          msUserSelect: 'none',
-          WebkitTouchCallout: 'none',
-          WebkitTapHighlightColor: 'transparent',
-          touchAction: 'none'
-        }}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-        onTouchCancel={handleTouchCancel}
-        onContextMenu={handleContextMenu}
-      />
-      
       <Button
         data-testid="voice-button"
         className={cx(
-          "rounded-md p-[7px] h-fit dark:border-zinc-700 hover:dark:bg-zinc-900 hover:bg-zinc-200 relative z-20",
+          "rounded-md p-3 h-fit dark:border-zinc-700 hover:dark:bg-zinc-900 hover:bg-zinc-200",
           isRecording ? "bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700" : "",
           isLongPressing ? "bg-yellow-500 hover:bg-yellow-600 dark:bg-yellow-600 dark:hover:bg-yellow-700" : ""
         )}
@@ -237,10 +219,14 @@ function PureVoiceButton({
           touchAction: 'none'
         }}
         onClick={handleClick}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        onTouchCancel={handleTouchCancel}
+        onContextMenu={handleContextMenu}
         disabled={status !== 'ready'}
         variant="ghost"
       >
-        <Mic size={14} className={cx(
+        <Mic size={18} className={cx(
           isRecording ? "text-white" : "",
           isLongPressing ? "text-white" : ""
         )} />
