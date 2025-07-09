@@ -26,6 +26,7 @@ function PureVoiceButton({
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
   const [isLongPressing, setIsLongPressing] = useState(false);
+  const [isTouchActive, setIsTouchActive] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
   const longPressTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -138,6 +139,7 @@ function PureVoiceButton({
     e.preventDefault();
     e.stopPropagation();
     setIsTouchDevice(true);
+    setIsTouchActive(true);
     setIsLongPressing(true);
     
     // Mobile: require 1 second long press to start recording
@@ -158,6 +160,7 @@ function PureVoiceButton({
     }
     
     setIsLongPressing(false);
+    setIsTouchActive(false);
     
     // Stop recording immediately if currently recording
     if (isRecording) {
@@ -176,6 +179,7 @@ function PureVoiceButton({
     }
     
     setIsLongPressing(false);
+    setIsTouchActive(false);
     
     // Stop recording immediately if currently recording
     if (isRecording) {
@@ -196,7 +200,7 @@ function PureVoiceButton({
   return (
     <div className={cx(
       "relative transition-transform duration-200 ease-out",
-      isLongPressing ? "scale-[2]" : "scale-100"
+      isTouchActive ? "scale-[3]" : "scale-100"
     )}>
       <Button
         data-testid="voice-button"
