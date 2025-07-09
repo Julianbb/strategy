@@ -171,7 +171,8 @@ function PureVoiceButton({
   }, []);
 
   const progressPercentage = (recordingTime / 60) * 100;
-  const circumference = 2 * Math.PI * 14; // radius of 14
+  const radius = isLongPressing ? 28 : 14; // 2x bigger during long press
+  const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (progressPercentage / 100) * circumference;
 
   return (
@@ -205,15 +206,18 @@ function PureVoiceButton({
         )} />
       </Button>
       
-      {isRecording && (
+      {(isRecording || isLongPressing) && (
         <svg
-          className="absolute inset-0 w-full h-full pointer-events-none"
-          viewBox="0 0 32 32"
+          className={cx(
+            "absolute pointer-events-none transition-all duration-200 ease-out",
+            isLongPressing ? "w-16 h-16 -inset-4" : "w-full h-full inset-0"
+          )}
+          viewBox={isLongPressing ? "0 0 64 64" : "0 0 32 32"}
         >
           <circle
-            cx="16"
-            cy="16"
-            r="14"
+            cx={isLongPressing ? "32" : "16"}
+            cy={isLongPressing ? "32" : "16"}
+            r={radius}
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
@@ -223,7 +227,7 @@ function PureVoiceButton({
             className="text-white opacity-80"
             style={{
               transform: 'rotate(-90deg)',
-              transformOrigin: '16px 16px',
+              transformOrigin: isLongPressing ? '32px 32px' : '16px 16px',
               transition: 'stroke-dashoffset 0.1s ease-out'
             }}
           />
