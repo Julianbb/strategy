@@ -34,6 +34,7 @@ function PureVoiceButton({
   const [isTouchDevice, setIsTouchDevice] = useState(false);
   const [isCancelZone, setIsCancelZone] = useState(false);
   const [touchStartY, setTouchStartY] = useState(0);
+  const [wasCancelled, setWasCancelled] = useState(false);
   const longPressTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const recordingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -69,6 +70,7 @@ function PureVoiceButton({
       setMediaRecorder(recorder);
       setIsRecording(true);
       setRecordingTime(0);
+      setWasCancelled(false);
 
       // Start the recording timer
       recordingIntervalRef.current = setInterval(() => {
@@ -123,6 +125,8 @@ function PureVoiceButton({
   }, [mediaRecorder]);
 
   const cancelRecording = useCallback(() => {
+    setWasCancelled(true);
+    
     if (mediaRecorder && mediaRecorder.state === 'recording') {
       mediaRecorder.stop();
       setIsRecording(false);
@@ -178,10 +182,10 @@ function PureVoiceButton({
   }, [audioChunks, setInput, recordingMimeType]);
 
   useEffect(() => {
-    if (!isRecording && audioChunks.length > 0) {
+    if (!isRecording && audioChunks.length > 0 && !wasCancelled) {
       processAudioChunks();
     }
-  }, [isRecording, audioChunks, processAudioChunks]);
+  }, [isRecording, audioChunks, processAudioChunks, wasCancelled]);
 
   const handleClick = useCallback(() => {
     // Only handle clicks on desktop (non-touch devices)
@@ -290,7 +294,7 @@ function PureVoiceButton({
       isTouchActive ? "scale-[3]" : "scale-100"
     )}>
       {isCancelZone && (
-        <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-3 py-1 rounded-md text-sm font-medium">
+        <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-2 py-1 rounded text-xs font-medium whitespace-nowrap">
           Release to cancel
         </div>
       )}
