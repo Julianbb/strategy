@@ -125,7 +125,10 @@ function PureVoiceButton({
   }, [mediaRecorder]);
 
   const cancelRecording = useCallback(() => {
+    // Set cancelled state first to prevent processing
     setWasCancelled(true);
+    // Clear audio chunks immediately to prevent processing
+    setAudioChunks([]);
     
     if (mediaRecorder && mediaRecorder.state === 'recording') {
       mediaRecorder.stop();
@@ -143,15 +146,13 @@ function PureVoiceButton({
       recordingIntervalRef.current = null;
     }
 
-    // Clear audio chunks to prevent processing
-    setAudioChunks([]);
     setRecordingTime(0);
     setIsCancelZone(false);
     toast.info('Recording cancelled');
   }, [mediaRecorder]);
 
   const processAudioChunks = useCallback(async () => {
-    if (audioChunks.length === 0) return;
+    if (audioChunks.length === 0 || wasCancelled) return;
 
     const audioBlob = new Blob(audioChunks, { type: recordingMimeType });
     
@@ -179,7 +180,7 @@ function PureVoiceButton({
     }
     
     setAudioChunks([]);
-  }, [audioChunks, setInput, recordingMimeType]);
+  }, [audioChunks, setInput, recordingMimeType, wasCancelled]);
 
   useEffect(() => {
     if (!isRecording && audioChunks.length > 0 && !wasCancelled) {
