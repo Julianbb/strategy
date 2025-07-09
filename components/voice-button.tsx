@@ -14,6 +14,7 @@ import { Mic } from 'lucide-react';
 
 import { Button } from './ui/button';
 import type { UseChatHelpers } from '@ai-sdk/react';
+import { useModelSettings } from '@/hooks/use-model-settings';
 
 function PureVoiceButton({
   status,
@@ -22,6 +23,7 @@ function PureVoiceButton({
   status: UseChatHelpers['status'];
   setInput: UseChatHelpers['setInput'];
 }) {
+  const modelSettings = useModelSettings();
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
@@ -113,6 +115,7 @@ function PureVoiceButton({
     try {
       const formData = new FormData();
       formData.append('audio', audioBlob, 'recording.wav');
+      formData.append('model', modelSettings.getSttModel());
 
       const response = await fetch('/api/voice-to-text', {
         method: 'POST',

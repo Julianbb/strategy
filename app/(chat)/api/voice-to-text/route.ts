@@ -9,6 +9,7 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
     const audioFile = formData.get('audio') as File;
+    const modelName = formData.get('model') as string || 'whisper-1';
 
     if (!audioFile) {
       return NextResponse.json(
@@ -19,7 +20,7 @@ export async function POST(request: NextRequest) {
 
     const transcription = await openai.audio.transcriptions.create({
       file: audioFile,
-      model: 'whisper-1',
+      model: modelName,
     });
 
     return NextResponse.json({ text: transcription.text });
