@@ -110,12 +110,29 @@ function PureVoiceButton({
 
     const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
     
-    // For now, just show that recording was captured
-    // In a real implementation, you would send this to a speech-to-text service
-    toast.success('Voice recording captured! (Speech-to-text not implemented yet)');
+    try {
+      const formData = new FormData();
+      formData.append('audio', audioBlob, 'recording.wav');
+
+      const response = await fetch('/api/voice-to-text', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to transcribe audio');
+      }
+
+      const { text } = await response.json();
+      setInput(text);
+      toast.success('Voice transcribed successfully!');
+    } catch (error) {
+      console.error('Error transcribing audio:', error);
+      toast.error('Failed to transcribe audio');
+    }
     
     setAudioChunks([]);
-  }, [audioChunks]);
+  }, [audioChunks, setInput]);
 
   useEffect(() => {
     if (!isRecording && audioChunks.length > 0) {
@@ -142,11 +159,11 @@ function PureVoiceButton({
     setIsTouchActive(true);
     setIsLongPressing(true);
     
-    // Mobile: require 1 second long press to start recording
+    // Mobile: require 500ms long press to start recording
     longPressTimeoutRef.current = setTimeout(() => {
       setIsLongPressing(false);
       startRecording();
-    }, 1000);
+    }, 500);
   }, [startRecording]);
 
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
