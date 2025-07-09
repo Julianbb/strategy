@@ -27,6 +27,7 @@ function PureVoiceButton({
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
+  const [recordingMimeType, setRecordingMimeType] = useState<string>('audio/webm');
   const [isLongPressing, setIsLongPressing] = useState(false);
   const [isTouchActive, setIsTouchActive] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
@@ -38,7 +39,18 @@ function PureVoiceButton({
   const startRecording = useCallback(async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
+      
+      // Try to use a supported format
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') 
+        ? 'audio/webm;codecs=opus'
+        : MediaRecorder.isTypeSupported('audio/webm')
+        ? 'audio/webm'
+        : MediaRecorder.isTypeSupported('audio/mp4')
+        ? 'audio/mp4'
+        : 'audio/webm'; // fallback
+      
+      const recorder = new MediaRecorder(stream, { mimeType });
+      setRecordingMimeType(mimeType);
       
       recorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
@@ -110,11 +122,12 @@ function PureVoiceButton({
   const processAudioChunks = useCallback(async () => {
     if (audioChunks.length === 0) return;
 
-    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+    const audioBlob = new Blob(audioChunks, { type: recordingMimeType });
     
     try {
       const formData = new FormData();
-      formData.append('audio', audioBlob, 'recording.wav');
+      const fileExtension = recordingMimeType.includes('webm') ? 'webm' : 'mp4';
+      formData.append('audio', audioBlob, `recording.${fileExtension}`);
       formData.append('model', modelSettings.getSttModel());
 
       const response = await fetch('/api/voice-to-text', {
@@ -135,7 +148,7 @@ function PureVoiceButton({
     }
     
     setAudioChunks([]);
-  }, [audioChunks, setInput]);
+  }, [audioChunks, setInput, recordingMimeType]);
 
   useEffect(() => {
     if (!isRecording && audioChunks.length > 0) {
