@@ -27,6 +27,7 @@ function PureVoiceButton({
   const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
   const [isLongPressing, setIsLongPressing] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
   const longPressTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const recordingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -122,26 +123,31 @@ function PureVoiceButton({
   }, [isRecording, audioChunks, processAudioChunks]);
 
   const handleClick = useCallback(() => {
+    // Only handle clicks on desktop (non-touch devices)
+    if (isTouchDevice) return;
+    
     // Desktop: click to toggle recording
     if (isRecording) {
       stopRecording();
     } else {
       startRecording();
     }
-  }, [isRecording, startRecording, stopRecording]);
+  }, [isRecording, startRecording, stopRecording, isTouchDevice]);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     e.preventDefault();
+    setIsTouchDevice(true);
     setIsLongPressing(true);
     
     // Mobile: require 1 second long press to start recording
     longPressTimeoutRef.current = setTimeout(() => {
+      setIsLongPressing(false);
       startRecording();
     }, 1000);
   }, [startRecording]);
 
   const handleTouchEnd = useCallback(() => {
-    // Clear the long press timeout
+    // Clear the long press timeout if still waiting
     if (longPressTimeoutRef.current) {
       clearTimeout(longPressTimeoutRef.current);
       longPressTimeoutRef.current = null;
@@ -149,7 +155,7 @@ function PureVoiceButton({
     
     setIsLongPressing(false);
     
-    // Stop recording if currently recording
+    // Stop recording immediately if currently recording
     if (isRecording) {
       stopRecording();
     }
