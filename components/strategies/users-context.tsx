@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useState ,createContext} from 'react'
 import useDialogState from '@/hooks/use-dialog-state'
 import { User } from '@/components/strategies/schema'
 
@@ -13,7 +13,7 @@ interface UsersContextType {
   setCurrentRow: React.Dispatch<React.SetStateAction<User | null>>
 }
 
-const UsersContext = React.createContext<UsersContextType | null>(null)
+const UsersContext = createContext<UsersContextType | null>(null)
 
 interface Props {
   children: React.ReactNode

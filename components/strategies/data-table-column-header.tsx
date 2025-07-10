@@ -41,28 +41,28 @@ import {
             >
               <span>{title}</span>
               {column.getIsSorted() === 'desc' ? (
-                <ArrowDownIcon className='ml-2 h-4 w-4' />
+                <ArrowDownIcon className='ml-2 size-4' />
               ) : column.getIsSorted() === 'asc' ? (
-                <ArrowUpIcon className='ml-2 h-4 w-4' />
+                <ArrowUpIcon className='ml-2 size-4' />
               ) : (
-                <CaretSortIcon className='ml-2 h-4 w-4' />
+                <CaretSortIcon className='ml-2 size-4' />
               )}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align='start'>
             <DropdownMenuItem onClick={() => column.toggleSorting(false)}>
-              <ArrowUpIcon className='text-muted-foreground/70 mr-2 h-3.5 w-3.5' />
+              <ArrowUpIcon className='text-muted-foreground/70 mr-2 size-3.5' />
               Asc
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => column.toggleSorting(true)}>
-              <ArrowDownIcon className='text-muted-foreground/70 mr-2 h-3.5 w-3.5' />
+              <ArrowDownIcon className='text-muted-foreground/70 mr-2 size-3.5' />
               Desc
             </DropdownMenuItem>
             {column.getCanHide() && (
               <>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => column.toggleVisibility(false)}>
-                  <EyeNoneIcon className='text-muted-foreground/70 mr-2 h-3.5 w-3.5' />
+                  <EyeNoneIcon className='text-muted-foreground/70 mr-2 size-3.5' />
                   Hide
                 </DropdownMenuItem>
               </>

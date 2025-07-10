@@ -340,7 +340,7 @@ function PureVoiceButton({
       
       {(isRecording || isLongPressing) && (
         <svg
-          className="absolute inset-0 w-full h-full pointer-events-none"
+          className="absolute inset-0 size-full pointer-events-none"
           viewBox="0 0 32 32"
         >
           <circle
