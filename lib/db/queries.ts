@@ -66,6 +66,17 @@ export async function createUser(email: string, password: string) {
   }
 }
 
+export async function createUserWithoutPassword(email: string) {
+  try {
+    return await db.insert(user).values({ email, password: null }).returning({
+      id: user.id,
+      email: user.email,
+    });
+  } catch (error) {
+    throw new ChatSDKError('bad_request:database', 'Failed to create user without password');
+  }
+}
+
 export async function createGuestUser() {
   const email = `guest-${Date.now()}`;
   const password = generateHashedPassword(generateUUID());

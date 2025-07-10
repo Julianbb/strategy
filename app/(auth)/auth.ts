@@ -2,7 +2,7 @@ import { compare } from 'bcrypt-ts';
 import NextAuth, { type DefaultSession } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 import Google from 'next-auth/providers/google';
-import { createGuestUser, getUser } from '@/lib/db/queries';
+import { createGuestUser, getUser, createUserWithoutPassword } from '@/lib/db/queries';
 import { authConfig } from './auth.config';
 import { DUMMY_PASSWORD } from '@/lib/constants';
 import type { DefaultJWT } from 'next-auth/jwt';
@@ -102,6 +102,8 @@ export const {
       if (account?.provider === 'google') {
         const existingUsers = await getUser(user.email!);
         if (existingUsers.length === 0) {
+          const [newUser] = await createUserWithoutPassword(user.email!);
+          user.id = newUser.id;
           return true;
         }
         user.id = existingUsers[0].id;
