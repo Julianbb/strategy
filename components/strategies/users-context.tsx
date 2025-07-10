@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState ,createContext} from 'react'
+import React, { useState ,createContext,useContext} from 'react'
 import useDialogState from '@/hooks/use-dialog-state'
 import { User } from '@/components/strategies/schema'
 
@@ -30,9 +30,9 @@ export default function UsersProvider({ children }: Props) {
   )
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
+
 export const useUsers = () => {
-  const usersContext = React.useContext(UsersContext)
+  const usersContext = useContext(UsersContext)
 
   if (!usersContext) {
     throw new Error('useUsers has to be used within <UsersContext>')

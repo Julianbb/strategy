@@ -1,7 +1,9 @@
-import React from 'react'
+import React,{HTMLAttributes} from 'react'
 import { cn } from '@/lib/utils'
 
-interface MainProps extends React.HTMLAttributes<HTMLElement> {
+
+
+interface MainProps extends HTMLAttributes<HTMLElement> {
   fixed?: boolean
   ref?: React.Ref<HTMLElement>
 }

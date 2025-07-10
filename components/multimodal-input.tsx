@@ -278,7 +278,7 @@ function PureMultimodalInput({
         }}
       />
 
-      <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 p-2 w-fit flex flex-row justify-center">
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 p-2 w-fit flex flex-row justify-center">
         <VoiceButton status={status} setInput={setInput} />
       </div>
 
