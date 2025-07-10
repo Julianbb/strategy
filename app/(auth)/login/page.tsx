@@ -8,7 +8,7 @@ import { toast } from '@/components/toast';
 
 import { LoaderIcon } from '@/components/icons';
 import { login, type LoginActionState } from '../actions';
-import { useSession } from 'next-auth/react';
+import { useSession, signIn } from 'next-auth/react';
 
 import { Button } from "@/components/ui/button"
 import {
@@ -113,7 +113,11 @@ export default function Page() {
                     'Login'
                   )}
                 </Button>
-                <Button variant="outline" className="w-full">
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => signIn('google', { callbackUrl: '/' })}
+                >
                   Login with Google
                 </Button>
               </div>

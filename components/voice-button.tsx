@@ -154,6 +154,12 @@ function PureVoiceButton({
   const processAudioChunks = useCallback(async () => {
     if (audioChunks.length === 0 || wasCancelled) return;
 
+    // Drop recordings shorter than 1 second
+    if (recordingTime < 1.0) {
+      setAudioChunks([]);
+      return;
+    }
+
     const audioBlob = new Blob(audioChunks, { type: recordingMimeType });
     
     try {
@@ -180,7 +186,7 @@ function PureVoiceButton({
     }
     
     setAudioChunks([]);
-  }, [audioChunks, setInput, recordingMimeType, wasCancelled]);
+  }, [audioChunks, setInput, recordingMimeType, wasCancelled, recordingTime]);
 
   useEffect(() => {
     if (!isRecording && audioChunks.length > 0 && !wasCancelled) {

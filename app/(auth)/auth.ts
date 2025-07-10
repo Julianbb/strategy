@@ -1,6 +1,7 @@
 import { compare } from 'bcrypt-ts';
 import NextAuth, { type DefaultSession } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
+import Google from 'next-auth/providers/google';
 import { createGuestUser, getUser } from '@/lib/db/queries';
 import { authConfig } from './auth.config';
 import { DUMMY_PASSWORD } from '@/lib/constants';
@@ -38,6 +39,10 @@ export const {
 } = NextAuth({
   ...authConfig,
   providers: [
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
     Credentials({
       credentials: {},
       async authorize({ email, password }: any) {
@@ -72,10 +77,15 @@ export const {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       if (user) {
-        token.id = user.id as string;
-        token.type = user.type;
+        if (account?.provider === 'google') {
+          token.id = user.id as string;
+          token.type = 'regular';
+        } else {
+          token.id = user.id as string;
+          token.type = user.type;
+        }
       }
 
       return token;
@@ -87,6 +97,17 @@ export const {
       }
 
       return session;
+    },
+    async signIn({ user, account }) {
+      if (account?.provider === 'google') {
+        const existingUsers = await getUser(user.email!);
+        if (existingUsers.length === 0) {
+          return true;
+        }
+        user.id = existingUsers[0].id;
+        return true;
+      }
+      return true;
     },
   },
 });
