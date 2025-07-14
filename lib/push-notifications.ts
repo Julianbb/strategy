@@ -16,6 +16,24 @@ export async function subscribeToPushNotifications(): Promise<PushSubscription |
 
     const existingSubscription = await registration.pushManager.getSubscription();
     if (existingSubscription) {
+      console.log('Found existing subscription, syncing with server...');
+      
+      // Sync existing subscription with server
+      const response = await fetch('/api/push-subscription', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(existingSubscription)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Failed to sync existing subscription:', errorData);
+        throw new Error(`Failed to sync subscription: ${errorData.error}`);
+      }
+
+      console.log('Existing subscription synced successfully');
       await registerBackgroundSync(registration);
       return existingSubscription;
     }

@@ -51,6 +51,7 @@ export async function GET(request: NextRequest) {
 
     if (shouldTrigger) {
       // Send push notification
+      console.log('📱 Triggering price alert notification...');
       await sendPriceAlertNotification(
         alertData.userId,
         coin,

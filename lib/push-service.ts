@@ -32,20 +32,32 @@ export async function sendPushNotification(
   userId: string,
   payload: PushNotificationPayload
 ): Promise<boolean> {
+  console.log('=== PUSH NOTIFICATION SERVICE ===');
+  console.log('sendPushNotification called for userId:', userId);
+  console.log('Payload:', JSON.stringify(payload));
+  
   initializeVapid();
   
   try {
+    console.log('Querying database for push subscriptions...');
     const subscriptions = await db
       .select()
       .from(pushSubscriptions)
       .where(eq(pushSubscriptions.userId, userId));
 
+    console.log('Database query result:', subscriptions.length, 'subscriptions found');
+    
     if (subscriptions.length === 0) {
-      console.log('No push subscriptions found for user:', userId);
+      console.log('❌ No push subscriptions found for user:', userId);
+      console.log('User needs to enable push notifications first');
       return false;
     }
 
-    const pushPromises = subscriptions.map(async (subscription: typeof pushSubscriptions.$inferSelect) => {
+    console.log('✅ Found', subscriptions.length, 'push subscriptions for user:', userId);
+
+    const pushPromises = subscriptions.map(async (subscription: typeof pushSubscriptions.$inferSelect, index: number) => {
+      console.log(`Processing subscription ${index + 1}/${subscriptions.length}:`, subscription.endpoint);
+      
       const pushSubscription = {
         endpoint: subscription.endpoint,
         keys: {
@@ -55,17 +67,18 @@ export async function sendPushNotification(
       };
 
       try {
+        console.log('Sending push notification to:', subscription.endpoint);
         await sendNotification(
           pushSubscription,
           JSON.stringify(payload)
         );
-        console.log('Push notification sent successfully to:', subscription.endpoint);
+        console.log('✅ Push notification sent successfully to:', subscription.endpoint);
         return true;
       } catch (error) {
-        console.error('Error sending push notification:', error);
+        console.error('❌ Error sending push notification to:', subscription.endpoint, error);
         
         if (error instanceof Error && error.message.includes('410')) {
-          console.log('Subscription expired, removing from database');
+          console.log('🗑️ Subscription expired, removing from database:', subscription.id);
           await db
             .delete(pushSubscriptions)
             .where(eq(pushSubscriptions.id, subscription.id));
@@ -80,9 +93,13 @@ export async function sendPushNotification(
       result.status === 'fulfilled' && result.value
     ).length;
 
+    console.log('Push notification results:', successCount, 'successful out of', subscriptions.length, 'total');
+    console.log('=== END PUSH NOTIFICATION SERVICE ===');
+    
     return successCount > 0;
   } catch (error) {
-    console.error('Error in sendPushNotification:', error);
+    console.error('❌ Critical error in sendPushNotification:', error);
+    console.log('=== END PUSH NOTIFICATION SERVICE (ERROR) ===');
     return false;
   }
 }
