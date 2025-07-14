@@ -30,13 +30,21 @@ export async function subscribeToPushNotifications(): Promise<PushSubscription |
       applicationServerKey: urlBase64ToUint8Array(applicationServerKey)
     });
 
-    await fetch('/api/push-subscription', {
+    const response = await fetch('/api/push-subscription', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(subscription)
     });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Failed to save push subscription:', errorData);
+      throw new Error(`Failed to save push subscription: ${errorData.error}`);
+    }
+
+    console.log('Push subscription saved successfully');
 
     await registerBackgroundSync(registration);
 

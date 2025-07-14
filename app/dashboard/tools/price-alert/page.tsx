@@ -158,13 +158,22 @@ export default function PriceAlert() {
   }, [])
 
   const handleEnableNotifications = async () => {
-    const permission = await requestNotificationPermission()
-    setNotificationPermission(permission)
-    if (permission === 'granted') {
-      await subscribeToPushNotifications()
-      toast.success('Push notifications enabled!')
-    } else {
-      toast.error('Push notifications are required for price alerts')
+    try {
+      const permission = await requestNotificationPermission()
+      setNotificationPermission(permission)
+      if (permission === 'granted') {
+        const subscription = await subscribeToPushNotifications()
+        if (subscription) {
+          toast.success('Push notifications enabled!')
+        } else {
+          toast.error('Failed to enable push notifications')
+        }
+      } else {
+        toast.error('Push notifications are required for price alerts')
+      }
+    } catch (error) {
+      console.error('Error enabling notifications:', error)
+      toast.error('Failed to enable push notifications')
     }
   }
 
