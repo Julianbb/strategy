@@ -39,21 +39,52 @@ export async function subscribeToPushNotifications(): Promise<PushSubscription |
         const newRegistration = await navigator.serviceWorker.register('/sw.js');
         await logToBackend('✅ Service worker registered manually');
         await logToBackend(`New registration state: ${newRegistration.installing ? 'installing' : ''}${newRegistration.waiting ? 'waiting' : ''}${newRegistration.active ? 'active' : ''}`);
+        
+        // Listen for service worker state changes
+        if (newRegistration.installing) {
+          await logToBackend('Service worker is installing, waiting for state change...');
+          newRegistration.installing.addEventListener('statechange', async (event) => {
+            const sw = event.target as ServiceWorker;
+            await logToBackend(`Service worker state changed to: ${sw.state}`);
+          });
+        }
+        
+        if (newRegistration.waiting) {
+          await logToBackend('Service worker is waiting, calling skipWaiting...');
+          newRegistration.waiting.postMessage({ type: 'SKIP_WAITING' });
+        }
+        
       } catch (registerError) {
         await logToBackend(`❌ Failed to register service worker: ${registerError}`);
         throw new Error(`Failed to register service worker: ${registerError}`);
       }
     }
     
-    // Add timeout to prevent hanging
+    // Add timeout to prevent hanging (increase to 30 seconds)
     const registrationPromise = navigator.serviceWorker.ready;
     const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error('Service worker registration timeout')), 15000);
+      setTimeout(() => reject(new Error('Service worker registration timeout')), 30000);
     });
     
-    await logToBackend('Waiting for service worker ready...');
-    const registration = await Promise.race([registrationPromise, timeoutPromise]);
-    await logToBackend('✅ Service worker registration obtained');
+    await logToBackend('Waiting for service worker ready (30s timeout)...');
+    
+    // Check registration state periodically
+    const checkInterval = setInterval(async () => {
+      const currentReg = await navigator.serviceWorker.getRegistration();
+      if (currentReg) {
+        await logToBackend(`Current state: ${currentReg.installing ? 'installing' : ''}${currentReg.waiting ? 'waiting' : ''}${currentReg.active ? 'active' : ''}`);
+      }
+    }, 3000);
+    
+    let registration;
+    try {
+      registration = await Promise.race([registrationPromise, timeoutPromise]);
+      clearInterval(checkInterval);
+      await logToBackend('✅ Service worker registration obtained');
+    } catch (error) {
+      clearInterval(checkInterval);
+      throw error;
+    }
     
     if (!registration.pushManager) {
       await logToBackend('❌ Push manager unavailable');
