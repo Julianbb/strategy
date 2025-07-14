@@ -36,7 +36,23 @@ export async function subscribeToPushNotifications(): Promise<PushSubscription |
     if (!currentRegistration) {
       await logToBackend('No service worker registered, attempting manual registration...');
       try {
-        const newRegistration = await navigator.serviceWorker.register('/sw.js');
+        // Try minimal service worker first, then custom, then main
+        let newRegistration;
+        try {
+          await logToBackend('Trying minimal-sw.js first...');
+          newRegistration = await navigator.serviceWorker.register('/minimal-sw.js');
+          await logToBackend('✅ Minimal service worker registered');
+        } catch (minimalError) {
+          await logToBackend(`Minimal SW failed: ${minimalError}, trying custom-sw.js...`);
+          try {
+            newRegistration = await navigator.serviceWorker.register('/custom-sw.js');
+            await logToBackend('✅ Custom service worker registered');
+          } catch (customError) {
+            await logToBackend(`Custom SW failed: ${customError}, trying main sw.js...`);
+            newRegistration = await navigator.serviceWorker.register('/sw.js');
+            await logToBackend('✅ Main service worker registered');
+          }
+        }
         await logToBackend('✅ Service worker registered manually');
         await logToBackend(`New registration state: ${newRegistration.installing ? 'installing' : ''}${newRegistration.waiting ? 'waiting' : ''}${newRegistration.active ? 'active' : ''}`);
         
