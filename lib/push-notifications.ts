@@ -32,10 +32,23 @@ export async function subscribeToPushNotifications(): Promise<PushSubscription |
       await logToBackend(`Registration state: ${currentRegistration.installing ? 'installing' : ''}${currentRegistration.waiting ? 'waiting' : ''}${currentRegistration.active ? 'active' : ''}`);
     }
     
+    // If no registration exists, try to register service worker manually
+    if (!currentRegistration) {
+      await logToBackend('No service worker registered, attempting manual registration...');
+      try {
+        const newRegistration = await navigator.serviceWorker.register('/sw.js');
+        await logToBackend('✅ Service worker registered manually');
+        await logToBackend(`New registration state: ${newRegistration.installing ? 'installing' : ''}${newRegistration.waiting ? 'waiting' : ''}${newRegistration.active ? 'active' : ''}`);
+      } catch (registerError) {
+        await logToBackend(`❌ Failed to register service worker: ${registerError}`);
+        throw new Error(`Failed to register service worker: ${registerError}`);
+      }
+    }
+    
     // Add timeout to prevent hanging
     const registrationPromise = navigator.serviceWorker.ready;
     const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error('Service worker registration timeout')), 10000);
+      setTimeout(() => reject(new Error('Service worker registration timeout')), 15000);
     });
     
     await logToBackend('Waiting for service worker ready...');
