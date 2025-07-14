@@ -337,7 +337,7 @@ export default function PriceAlert() {
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button className="flex items-center gap-2 w-full sm:w-auto">
-              <Plus className="w-4 h-4" />
+              <Plus className="size-4" />
               <span className="hidden sm:inline">Create Alert</span>
               <span className="sm:hidden">New Alert</span>
             </Button>
@@ -453,14 +453,14 @@ export default function PriceAlert() {
 
       <div className="grid gap-4">
         <div className="flex items-center gap-2">
-          <Bell className="w-4 h-4 md:w-5 md:h-5" />
+          <Bell className="size-4 md:size-5" />
           <h2 className="text-lg md:text-xl font-semibold">Active Alerts ({activeAlerts.length})</h2>
         </div>
         
         {alerts.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-8 md:py-12 px-4">
-              <Bell className="w-10 h-10 md:w-12 md:h-12 text-muted-foreground mb-4" />
+              <Bell className="w-10 h-10 md:size-12 text-muted-foreground mb-4" />
               <h3 className="text-base md:text-lg font-semibold mb-2 text-center">No price alerts yet</h3>
               <p className="text-sm md:text-base text-muted-foreground text-center mb-4 max-w-md">
                 Create your first price alert to get notified when cryptocurrencies reach your target price
@@ -487,9 +487,9 @@ export default function PriceAlert() {
                       <div className="flex items-center gap-3 sm:gap-4">
                         <div className="flex items-center gap-2">
                           {alert.condition === 'above' ? (
-                            <TrendingUp className="w-3 h-3 md:w-4 md:h-4 text-green-500" />
+                            <TrendingUp className="size-3 md:size-4 text-green-500" />
                           ) : (
-                            <TrendingDown className="w-3 h-3 md:w-4 md:h-4 text-red-500" />
+                            <TrendingDown className="size-3 md:size-4 text-red-500" />
                           )}
                           <span className="text-xs md:text-sm text-muted-foreground">
                             {alert.condition} ${parseFloat(alert.targetPrice).toFixed(2)}
@@ -518,7 +518,7 @@ export default function PriceAlert() {
                         onClick={() => openEditDialog(alert)}
                         className="p-1 h-auto"
                       >
-                        <Edit className="w-3 h-3 md:w-4 md:h-4" />
+                        <Edit className="size-3 md:size-4" />
                       </Button>
                       <Button
                         variant="outline"
@@ -526,7 +526,7 @@ export default function PriceAlert() {
                         onClick={() => handleDeleteAlert(alert.id)}
                         className="p-1 h-auto"
                       >
-                        <X className="w-3 h-3 md:w-4 md:h-4" />
+                        <X className="size-3 md:size-4" />
                       </Button>
                     </div>
                   </div>

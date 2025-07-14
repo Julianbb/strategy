@@ -1,4 +1,4 @@
-import webpush from 'web-push';
+import { setVapidDetails, sendNotification } from 'web-push';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { pushSubscriptions } from '@/lib/db/schema';
@@ -7,16 +7,18 @@ import { eq } from 'drizzle-orm';
 const client = postgres(process.env.POSTGRES_URL!);
 const db = drizzle(client);
 
-const vapidKeys = {
-  publicKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-  privateKey: process.env.VAPID_PRIVATE_KEY!,
-};
+function initializeVapid() {
+  const vapidKeys = {
+    publicKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
+    privateKey: process.env.VAPID_PRIVATE_KEY!,
+  };
 
-webpush.setVapidDetails(
-  'mailto:your-email@example.com',
-  vapidKeys.publicKey,
-  vapidKeys.privateKey
-);
+  setVapidDetails(
+    'mailto:your-email@example.com',
+    vapidKeys.publicKey,
+    vapidKeys.privateKey
+  );
+}
 
 export interface PushNotificationPayload {
   title: string;
@@ -30,6 +32,8 @@ export async function sendPushNotification(
   userId: string,
   payload: PushNotificationPayload
 ): Promise<boolean> {
+  initializeVapid();
+  
   try {
     const subscriptions = await db
       .select()
@@ -51,7 +55,7 @@ export async function sendPushNotification(
       };
 
       try {
-        await webpush.sendNotification(
+        await sendNotification(
           pushSubscription,
           JSON.stringify(payload)
         );
