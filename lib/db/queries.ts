@@ -30,6 +30,8 @@ import {
   type Trades,
   strategySnapshot,
   type StrategySnapshot,
+  priceAlerts,
+  type PriceAlert,
 } from './schema';
 
 import { generateUUID } from '../utils';
@@ -833,6 +835,130 @@ export async function getLatestOptionInstrument({
     throw new ChatSDKError(
       'bad_request:database',
       'Failed to get latest option instrument',
+    );
+  }
+}
+
+export async function createPriceAlert({
+  userId,
+  coin,
+  targetPrice,
+  currentPrice,
+  condition,
+}: {
+  userId: string;
+  coin: string;
+  targetPrice: string;
+  currentPrice: string;
+  condition: 'above' | 'below';
+}) {
+  try {
+    return await db
+      .insert(priceAlerts)
+      .values({
+        userId,
+        coin,
+        targetPrice,
+        currentPrice,
+        condition,
+        createdAt: new Date(),
+      })
+      .returning();
+  } catch (error) {
+    throw new ChatSDKError(
+      'bad_request:database',
+      'Failed to create price alert',
+    );
+  }
+}
+
+export async function getPriceAlertsByUserId({ userId }: { userId: string }) {
+  try {
+    return await db
+      .select()
+      .from(priceAlerts)
+      .where(eq(priceAlerts.userId, userId))
+      .orderBy(desc(priceAlerts.createdAt));
+  } catch (error) {
+    throw new ChatSDKError(
+      'bad_request:database',
+      'Failed to get price alerts by user id',
+    );
+  }
+}
+
+export async function getPriceAlertById({ id }: { id: string }) {
+  try {
+    const [selectedPriceAlert] = await db
+      .select()
+      .from(priceAlerts)
+      .where(eq(priceAlerts.id, id))
+      .limit(1);
+    return selectedPriceAlert;
+  } catch (error) {
+    throw new ChatSDKError(
+      'bad_request:database',
+      'Failed to get price alert by id',
+    );
+  }
+}
+
+export async function updatePriceAlert({
+  id,
+  currentPrice,
+  isActive,
+  triggeredAt,
+}: {
+  id: string;
+  currentPrice?: string;
+  isActive?: boolean;
+  triggeredAt?: Date;
+}) {
+  try {
+    const updateData: Partial<PriceAlert> = {};
+    if (currentPrice !== undefined) updateData.currentPrice = currentPrice;
+    if (isActive !== undefined) updateData.isActive = isActive;
+    if (triggeredAt !== undefined) updateData.triggeredAt = triggeredAt;
+
+    return await db
+      .update(priceAlerts)
+      .set(updateData)
+      .where(eq(priceAlerts.id, id))
+      .returning();
+  } catch (error) {
+    throw new ChatSDKError(
+      'bad_request:database',
+      'Failed to update price alert',
+    );
+  }
+}
+
+export async function deletePriceAlert({ id, userId }: { id: string; userId: string }) {
+  try {
+    const [deletedPriceAlert] = await db
+      .delete(priceAlerts)
+      .where(and(eq(priceAlerts.id, id), eq(priceAlerts.userId, userId)))
+      .returning();
+    return deletedPriceAlert;
+  } catch (error) {
+    throw new ChatSDKError(
+      'bad_request:database',
+      'Failed to delete price alert',
+    );
+  }
+}
+
+export async function getActivePriceAlerts() {
+  try {
+    return await db
+      .select()
+      .from(priceAlerts)
+      .where(eq(priceAlerts.isActive, true))
+      .orderBy(desc(priceAlerts.createdAt));
+  } catch (error) {
+    throw new ChatSDKError(
+      'bad_request:database',
+      'Failed to get active price alerts',
     );
   }
 }

@@ -24,6 +24,15 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+
 import { User } from './schema'
 import { DataTablePagination } from './data-table-pagination'
 import { DataTableToolbar } from './data-table-toolbar'
@@ -68,10 +77,15 @@ export function UsersTable({ columns, data }: DataTableProps) {
   })
 
   return (
+
+
+    
     <div className='space-y-4'>
       <DataTableToolbar table={table} />
+      
       <div className='rounded-md border'>
-        <Table>
+      
+        <Table className='bg-card rounded-xl shadow-sm'>   
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} className='group/row'>
@@ -127,8 +141,11 @@ export function UsersTable({ columns, data }: DataTableProps) {
             )}
           </TableBody>
         </Table>
+   
       </div>
+      
       <DataTablePagination table={table} />
     </div>
+    
   )
 }

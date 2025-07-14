@@ -156,3 +156,33 @@ export const strategySnapshot = pgTable('Strategy_Snapshot', {
 });
 
 export type StrategySnapshot = InferSelectModel<typeof strategySnapshot>;
+
+export const priceAlerts = pgTable('Price_Alerts', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('userId')
+    .notNull()
+    .references(() => user.id),
+  coin: varchar('coin', { length: 10 }).notNull(),
+  targetPrice: numeric('targetPrice', { precision: 20, scale: 8 }).notNull(),
+  currentPrice: numeric('currentPrice', { precision: 20, scale: 8 }).notNull(),
+  condition: varchar('condition').notNull(),
+  isActive: boolean('isActive').notNull().default(true),
+  createdAt: timestamp('createdAt').notNull(),
+  triggeredAt: timestamp('triggeredAt'),
+});
+
+export type PriceAlert = InferSelectModel<typeof priceAlerts>;
+
+export const pushSubscriptions = pgTable('Push_Subscriptions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('userId')
+    .notNull()
+    .references(() => user.id),
+  endpoint: text('endpoint').notNull(),
+  p256dh: text('p256dh').notNull(),
+  auth: text('auth').notNull(),
+  createdAt: timestamp('createdAt').notNull(),
+  updatedAt: timestamp('updatedAt').notNull(),
+});
+
+export type PushSubscription = InferSelectModel<typeof pushSubscriptions>;
