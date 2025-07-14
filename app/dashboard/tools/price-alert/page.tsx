@@ -33,6 +33,7 @@ export default function PriceAlert() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [editingAlert, setEditingAlert] = useState<PriceAlert | null>(null)
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default')
   const [formData, setFormData] = useState({
     coin: '',
     targetPrice: '',
@@ -147,6 +148,7 @@ export default function PriceAlert() {
   useEffect(() => {
     const initializePushNotifications = async () => {
       const permission = await requestNotificationPermission()
+      setNotificationPermission(permission)
       if (permission === 'granted') {
         await subscribeToPushNotifications()
       }
@@ -154,6 +156,17 @@ export default function PriceAlert() {
     
     initializePushNotifications()
   }, [])
+
+  const handleEnableNotifications = async () => {
+    const permission = await requestNotificationPermission()
+    setNotificationPermission(permission)
+    if (permission === 'granted') {
+      await subscribeToPushNotifications()
+      toast.success('Push notifications enabled!')
+    } else {
+      toast.error('Push notifications are required for price alerts')
+    }
+  }
 
   const handleCreateAlert = async () => {
     if (!formData.coin || !formData.targetPrice) {
@@ -457,10 +470,32 @@ export default function PriceAlert() {
           <h2 className="text-lg md:text-xl font-semibold">Active Alerts ({activeAlerts.length})</h2>
         </div>
         
+        {notificationPermission !== 'granted' && (
+          <Card className="border-amber-200 bg-amber-50">
+            <CardContent className="p-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <Bell className="size-4 text-amber-600" />
+                  <span className="text-sm font-medium text-amber-800">
+                    Enable push notifications to receive price alerts
+                  </span>
+                </div>
+                <Button 
+                  onClick={handleEnableNotifications}
+                  size="sm"
+                  className="w-full sm:w-auto"
+                >
+                  Enable Notifications
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+        
         {alerts.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-8 md:py-12 px-4">
-              <Bell className="w-10 h-10 md:size-12 text-muted-foreground mb-4" />
+              <Bell className="size-10 md:size-12 text-muted-foreground mb-4" />
               <h3 className="text-base md:text-lg font-semibold mb-2 text-center">No price alerts yet</h3>
               <p className="text-sm md:text-base text-muted-foreground text-center mb-4 max-w-md">
                 Create your first price alert to get notified when cryptocurrencies reach your target price
