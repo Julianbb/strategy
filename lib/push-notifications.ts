@@ -1,21 +1,60 @@
 const applicationServerKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 
 export async function subscribeToPushNotifications(): Promise<PushSubscription | null> {
+  // Log to backend via API
+  await logToBackend('subscribeToPushNotifications called');
+  await logToBackend(`Environment: ${process.env.NODE_ENV}`);
+  await logToBackend(`Service worker support: ${'serviceWorker' in navigator}`);
+  await logToBackend(`Push manager support: ${'PushManager' in window}`);
+  
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    await logToBackend('Push notifications not supported in this browser');
     console.warn('Push notifications are not supported in this browser');
     return null;
   }
 
   try {
-    const registration = await navigator.serviceWorker.ready;
+    await logToBackend('Getting service worker registration...');
+    await logToBackend('Checking if service worker is supported...');
+    
+    if (!navigator.serviceWorker) {
+      await logToBackend('❌ Service worker not supported');
+      return null;
+    }
+    
+    await logToBackend('✅ Service worker supported, getting registration...');
+    
+    // Check current registration state
+    const currentRegistration = await navigator.serviceWorker.getRegistration();
+    await logToBackend(`Current registration: ${currentRegistration ? 'exists' : 'none'}`);
+    
+    if (currentRegistration) {
+      await logToBackend(`Registration state: ${currentRegistration.installing ? 'installing' : ''}${currentRegistration.waiting ? 'waiting' : ''}${currentRegistration.active ? 'active' : ''}`);
+    }
+    
+    // Add timeout to prevent hanging
+    const registrationPromise = navigator.serviceWorker.ready;
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('Service worker registration timeout')), 10000);
+    });
+    
+    await logToBackend('Waiting for service worker ready...');
+    const registration = await Promise.race([registrationPromise, timeoutPromise]);
+    await logToBackend('✅ Service worker registration obtained');
     
     if (!registration.pushManager) {
+      await logToBackend('❌ Push manager unavailable');
       console.warn('Push manager unavailable');
       return null;
     }
 
+    await logToBackend('✅ Push manager available');
+    await logToBackend('Checking for existing subscription...');
     const existingSubscription = await registration.pushManager.getSubscription();
+    await logToBackend(`Existing subscription check result: ${existingSubscription ? 'Found' : 'Not found'}`);
+    
     if (existingSubscription) {
+      await logToBackend('Found existing subscription, syncing with server...');
       console.log('Found existing subscription, syncing with server...');
       
       // Sync existing subscription with server
@@ -29,25 +68,41 @@ export async function subscribeToPushNotifications(): Promise<PushSubscription |
 
       if (!response.ok) {
         const errorData = await response.json();
+        await logToBackend(`Failed to sync existing subscription: ${errorData.error}`);
         console.error('Failed to sync existing subscription:', errorData);
         throw new Error(`Failed to sync subscription: ${errorData.error}`);
       }
 
+      await logToBackend('Existing subscription synced successfully');
       console.log('Existing subscription synced successfully');
       await registerBackgroundSync(registration);
       return existingSubscription;
     }
 
+    await logToBackend('No existing subscription found, creating new one...');
+    
     if (!applicationServerKey) {
+      await logToBackend('❌ VAPID public key not found');
       console.error('VAPID public key not found');
       return null;
     }
 
-    const subscription = await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(applicationServerKey)
-    });
-
+    await logToBackend(`✅ VAPID public key available: ${applicationServerKey.substring(0, 20)}...`);
+    await logToBackend('Creating new push subscription...');
+    
+    let subscription;
+    try {
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(applicationServerKey)
+      });
+      await logToBackend('✅ New subscription created successfully');
+      await logToBackend('New subscription created, saving to server...');
+    } catch (subscribeError) {
+      await logToBackend(`❌ Failed to create subscription: ${subscribeError}`);
+      throw subscribeError;
+    }
+    
     const response = await fetch('/api/push-subscription', {
       method: 'POST',
       headers: {
@@ -58,16 +113,19 @@ export async function subscribeToPushNotifications(): Promise<PushSubscription |
 
     if (!response.ok) {
       const errorData = await response.json();
+      await logToBackend(`Failed to save push subscription: ${errorData.error}`);
       console.error('Failed to save push subscription:', errorData);
       throw new Error(`Failed to save push subscription: ${errorData.error}`);
     }
 
+    await logToBackend('Push subscription saved successfully');
     console.log('Push subscription saved successfully');
 
     await registerBackgroundSync(registration);
 
     return subscription;
   } catch (error) {
+    await logToBackend(`Error in subscribeToPushNotifications: ${error}`);
     console.error('Error subscribing to push notifications:', error);
     return null;
   }
@@ -116,20 +174,29 @@ export async function checkPushSubscription(): Promise<PushSubscription | null> 
 }
 
 export async function requestNotificationPermission(): Promise<NotificationPermission> {
+  await logToBackend('requestNotificationPermission called');
+  
   if (!('Notification' in window)) {
+    await logToBackend('Notifications not supported in this browser');
     console.warn('Notifications not supported');
     return 'denied';
   }
 
+  await logToBackend(`Current notification permission: ${Notification.permission}`);
+
   if (Notification.permission === 'granted') {
+    await logToBackend('Notification permission already granted');
     return 'granted';
   }
 
   if (Notification.permission !== 'denied') {
+    await logToBackend('Requesting notification permission...');
     const permission = await Notification.requestPermission();
+    await logToBackend(`Notification permission result: ${permission}`);
     return permission;
   }
 
+  await logToBackend('Notification permission denied');
   return Notification.permission;
 }
 
@@ -169,4 +236,22 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
     outputArray[i] = rawData.charCodeAt(i);
   }
   return outputArray;
+}
+
+async function logToBackend(message: string): Promise<void> {
+  try {
+    await fetch('/api/client-log', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
+        message: `[PUSH-NOTIFICATIONS] ${message}`,
+        timestamp: new Date().toISOString()
+      })
+    });
+  } catch (error) {
+    // Silently fail if logging fails
+    console.error('Failed to log to backend:', error);
+  }
 }

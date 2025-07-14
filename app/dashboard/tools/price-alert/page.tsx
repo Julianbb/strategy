@@ -159,8 +159,29 @@ export default function PriceAlert() {
 
   const handleEnableNotifications = async () => {
     try {
+      // Log to backend for debugging
+      await fetch('/api/client-log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          message: `[PRICE-ALERT] handleEnableNotifications clicked`,
+          timestamp: new Date().toISOString()
+        })
+      });
+
       const permission = await requestNotificationPermission()
       setNotificationPermission(permission)
+      
+      // Log the permission result
+      await fetch('/api/client-log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          message: `[PRICE-ALERT] Permission result: ${permission}`,
+          timestamp: new Date().toISOString()
+        })
+      });
+
       if (permission === 'granted') {
         const subscription = await subscribeToPushNotifications()
         if (subscription) {
@@ -169,10 +190,25 @@ export default function PriceAlert() {
           toast.error('Failed to enable push notifications')
         }
       } else {
-        toast.error('Push notifications are required for price alerts')
+        if (permission === 'denied') {
+          toast.error('Notifications blocked. Please enable in Settings → Safari → Notifications')
+        } else {
+          toast.error('Push notifications are required for price alerts')
+        }
       }
     } catch (error) {
       console.error('Error enabling notifications:', error)
+      
+      // Log error to backend
+      await fetch('/api/client-log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          message: `[PRICE-ALERT] Error: ${error}`,
+          timestamp: new Date().toISOString()
+        })
+      });
+      
       toast.error('Failed to enable push notifications')
     }
   }
@@ -485,16 +521,24 @@ export default function PriceAlert() {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="flex items-center gap-2">
                   <Bell className="size-4 text-amber-600" />
-                  <span className="text-sm font-medium text-amber-800">
-                    Enable push notifications to receive price alerts
-                  </span>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium text-amber-800">
+                      Enable push notifications to receive price alerts
+                    </span>
+                    {notificationPermission === 'denied' && (
+                      <span className="text-xs text-amber-700 mt-1">
+                        Go to Settings → Safari → Notifications to enable
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <Button 
                   onClick={handleEnableNotifications}
                   size="sm"
                   className="w-full sm:w-auto"
+                  disabled={notificationPermission === 'denied'}
                 >
-                  Enable Notifications
+                  {notificationPermission === 'denied' ? 'Blocked' : 'Enable Notifications'}
                 </Button>
               </div>
             </CardContent>
