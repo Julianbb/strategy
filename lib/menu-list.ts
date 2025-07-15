@@ -64,7 +64,7 @@ export function getMenuList(pathname: string): Group[] {
           icon: Bookmark
         },
         {
-          href: "/dashboard/chat",
+          href: "/dashboard/strategy-chat",
           label: "Strategy",
           icon: Tag
         }

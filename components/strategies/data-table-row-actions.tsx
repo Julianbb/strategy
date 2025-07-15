@@ -12,7 +12,7 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { useUsers } from './users-context'
+import { useUsers } from './dialog/users-context'
 import { User } from './schema'
 
 interface DataTableRowActionsProps {

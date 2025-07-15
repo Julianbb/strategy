@@ -7,8 +7,8 @@ import { UsersTable } from '@/components/strategies/users-table'
 
 import { userListSchema } from '@/components/strategies/schema'
 import { users } from '@/components/strategies/user'
-import UsersProvider from '@/components/strategies/users-context'
-import { UsersDialogs } from '@/components/strategies/users-dialogs'
+import UsersProvider from '@/components/strategies/dialog/users-context'
+import { UsersDialogs } from '@/components/strategies/dialog/users-dialogs'
 
 export default function Users() {
   // Parse user list
