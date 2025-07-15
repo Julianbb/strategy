@@ -1,4 +1,4 @@
-const { CronJob } = require('cron');
+import { cronManager } from './cron-manager';
 
 const PRICE_ALERT_API_URL =
   process.env.NODE_ENV === 'production'
@@ -32,39 +32,29 @@ async function checkPriceAlerts() {
   }
 }
 
-// 每 30 秒运行一次
-const priceAlertJob = new CronJob(
-  '*/30 * * * * *',
-  checkPriceAlerts,
-  null,
-  false,
-  'UTC'
-);
-
-// 每 1 分钟运行一次（生产环境）
-const priceAlertJobProduction = new CronJob(
-  '0 * * * * *',
-  checkPriceAlerts,
-  null,
-  false,
-  'UTC'
-);
-
 function startPriceAlertMonitor(testMode = false) {
+  const jobName = 'price-alert-monitor';
+  const schedule = testMode ? '*/30 * * * * *' : '0 * * * * *';
+  
+  cronManager.addJob({
+    name: jobName,
+    schedule,
+    handler: checkPriceAlerts,
+  });
+  
+  cronManager.startJob(jobName);
+  
   if (testMode) {
     console.log('Starting price alert monitor in TEST mode (every 30 seconds)');
-    priceAlertJob.start();
-    return priceAlertJob;
   } else {
     console.log('Starting price alert monitor (every 1 minute)');
-    priceAlertJobProduction.start();
-    return priceAlertJobProduction;
   }
+  
+  return cronManager;
 }
 
 function stopPriceAlertMonitor() {
-  priceAlertJob.stop();
-  priceAlertJobProduction.stop();
+  cronManager.stopJob('price-alert-monitor');
   console.log('Price alert monitor stopped');
 }
 
@@ -77,16 +67,4 @@ module.exports = {
 if (require.main === module) {
   const isTestMode = process.argv.includes('--test');
   startPriceAlertMonitor(isTestMode);
-
-  process.on('SIGINT', () => {
-    console.log('Received SIGINT, stopping price alert monitor...');
-    stopPriceAlertMonitor();
-    process.exit(0);
-  });
-
-  process.on('SIGTERM', () => {
-    console.log('Received SIGTERM, stopping price alert monitor...');
-    stopPriceAlertMonitor();
-    process.exit(0);
-  });
 }

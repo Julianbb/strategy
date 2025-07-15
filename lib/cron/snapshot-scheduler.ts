@@ -1,4 +1,4 @@
-const { CronJob } = require('cron');
+import { cronManager } from './cron-manager';
 
 const SNAPSHOT_API_URL =
   process.env.NODE_ENV === 'production'
@@ -31,39 +31,29 @@ async function triggerSnapshot() {
   }
 }
 
-// 每 10 分钟运行一次
-const snapshotJob = new CronJob(
-  '*/10 * * * *',
-  triggerSnapshot,
-  null,
-  false,
-  'UTC'
-);
-
-// 每 30 秒运行一次（测试用）
-const testJob = new CronJob(
-  '*/30 * * * * *',
-  triggerSnapshot,
-  null,
-  false,
-  'UTC'
-);
-
 function startSnapshotScheduler(testMode = false) {
+  const jobName = 'snapshot-scheduler';
+  const schedule = testMode ? '*/30 * * * * *' : '*/10 * * * *';
+  
+  cronManager.addJob({
+    name: jobName,
+    schedule,
+    handler: triggerSnapshot,
+  });
+  
+  cronManager.startJob(jobName);
+  
   if (testMode) {
     console.log('Starting snapshot scheduler in TEST mode (every 30 seconds)');
-    testJob.start();
-    return testJob;
   } else {
     console.log('Starting snapshot scheduler (every 10 minutes)');
-    snapshotJob.start();
-    return snapshotJob;
   }
+  
+  return cronManager;
 }
 
 function stopSnapshotScheduler() {
-  snapshotJob.stop();
-  testJob.stop();
+  cronManager.stopJob('snapshot-scheduler');
   console.log('Snapshot scheduler stopped');
 }
 
@@ -76,16 +66,4 @@ module.exports = {
 if (require.main === module) {
   const isTestMode = process.argv.includes('--test');
   startSnapshotScheduler(isTestMode);
-
-  process.on('SIGINT', () => {
-    console.log('Received SIGINT, stopping scheduler...');
-    stopSnapshotScheduler();
-    process.exit(0);
-  });
-
-  process.on('SIGTERM', () => {
-    console.log('Received SIGTERM, stopping scheduler...');
-    stopSnapshotScheduler();
-    process.exit(0);
-  });
 }
