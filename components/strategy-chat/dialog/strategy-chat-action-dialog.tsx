@@ -208,8 +208,6 @@ Please follow these rules:
           setOpen(null)
           form.reset()
           
-          // Navigate to the chat
-          router.push(`/dashboard/chat/${strategyChatId}`)
         } else {
           const errorData = await strategyChatResponse.json().catch(() => ({}))
           toast.error(errorData.message || 'Failed to create strategy')

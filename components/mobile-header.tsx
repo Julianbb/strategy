@@ -27,7 +27,7 @@ export function MobileHeader({ activeView, onViewChange }: MobileHeaderProps) {
         {/* Back Button */}
         <button
           className="p-2 absolute left-4 size-10 flex items-center justify-center rounded-md hover:bg-gray-100"
-          onClick={() => router.push("/dashboard/chat")}
+          onClick={() => router.push("/dashboard/strategy-chat")}
         >
           <ChevronLeft className="size-6" />
         </button>
