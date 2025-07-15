@@ -3,7 +3,7 @@ const { CronJob } = require('cron');
 interface CronJobConfig {
   name: string;
   schedule: string;
-  handler: () => Promise<void>;
+  handler: () => Promise<void> | void;
   timezone?: string;
 }
 
@@ -18,7 +18,13 @@ class CronManager {
 
     const job = new CronJob(
       config.schedule,
-      config.handler,
+      async () => {
+        try {
+          await config.handler();
+        } catch (error) {
+          console.error(`Error in cron job ${config.name}:`, error);
+        }
+      },
       null,
       false,
       config.timezone || 'UTC'

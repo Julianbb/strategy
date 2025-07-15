@@ -8,12 +8,10 @@ const PRICE_ALERT_API_URL =
 async function checkPriceAlerts() {
   try {
     console.log(`[${new Date().toISOString()}] Checking price alerts...`);
-
     const response = await fetch(`${PRICE_ALERT_API_URL}/api/price-alerts/monitor`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        // 'Authorization': `Bearer ${process.env.CRON_SECRET}`,
       },
     });
 

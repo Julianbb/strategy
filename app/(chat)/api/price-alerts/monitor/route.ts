@@ -5,6 +5,8 @@ import { fetchSpotPrice } from '@/lib/3party/okxapi';
 export async function POST(request: NextRequest) {
   try {
     console.log(`[${new Date().toISOString()}] Starting price alert monitoring...`);
+    console.log(`[${new Date().toISOString()}] Request URL: ${request.url}`);
+    console.log(`[${new Date().toISOString()}] Request method: ${request.method}`);
 
     // Get all active price alerts from all users
     const activeAlerts = await getAllActivePriceAlerts();
