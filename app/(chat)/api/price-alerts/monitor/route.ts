@@ -34,19 +34,22 @@ export async function POST(request: NextRequest) {
         if (shouldTrigger) {
           console.log(`[${new Date().toISOString()}] Alert triggered for ${alert.coin}: ${currentPrice} ${alert.condition} ${targetPrice}`);
           
-          // Send push notification
+          // Send push notification directly using the push service
           try {
-            await fetch('/api/send-push-notification', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                coin: alert.coin,
-                currentPrice,
-                targetPrice,
-                condition: alert.condition,
-                userId: alert.userId
-              })
-            });
+            const { sendPriceAlertNotification } = await import('@/lib/push-service');
+            const notificationSent = await sendPriceAlertNotification(
+              alert.userId,
+              alert.coin,
+              currentPrice,
+              targetPrice,
+              alert.condition
+            );
+            
+            if (notificationSent) {
+              console.log(`✅ Push notification sent successfully for ${alert.coin} alert`);
+            } else {
+              console.log(`❌ Failed to send push notification for ${alert.coin} alert`);
+            }
           } catch (error) {
             console.error('Failed to send push notification:', error);
           }
