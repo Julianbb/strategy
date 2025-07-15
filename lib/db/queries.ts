@@ -159,6 +159,41 @@ export async function updateStrategyChatStatus({
   }
 }
 
+export async function updateStrategyChat({
+  id,
+  strategyName,
+  baseCurrency,
+  initialCapital_USD,
+  initialCapital_Currency,
+}: {
+  id: string;
+  strategyName?: string;
+  baseCurrency?: string;
+  initialCapital_USD?: string;
+  initialCapital_Currency?: string;
+}) {
+  try {
+    const updateData: any = {};
+    
+    if (strategyName !== undefined) updateData.strategyName = strategyName;
+    if (baseCurrency !== undefined) updateData.baseCurrency = baseCurrency;
+    if (initialCapital_USD !== undefined) updateData.initialCapital_USD = initialCapital_USD;
+    if (initialCapital_Currency !== undefined) updateData.initialCapital_Currency = initialCapital_Currency;
+    
+    const [updatedChat] = await db
+      .update(strategyChat)
+      .set(updateData)
+      .where(eq(strategyChat.id, id))
+      .returning();
+    return updatedChat;
+  } catch (error) {
+    throw new ChatSDKError(
+      'bad_request:database',
+      'Failed to update strategy chat',
+    );
+  }
+}
+
 export async function deleteStrategyChatById({ id }: { id: string }) {
   try {
     await db.delete(vote).where(eq(vote.chatId, id));
