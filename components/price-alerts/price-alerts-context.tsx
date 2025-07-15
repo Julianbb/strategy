@@ -59,13 +59,7 @@ export function PriceAlertsProvider({ children }: { children: ReactNode }) {
     fetchAlerts();
   }, []);
 
-  // Auto-refresh alerts every 60 seconds
-  useEffect(() => {
-    if (alerts.length === 0) return;
 
-    const interval = setInterval(fetchAlerts, 60000);
-    return () => clearInterval(interval);
-  }, [alerts.length]);
 
   const value = {
     alerts,

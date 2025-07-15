@@ -4,16 +4,11 @@ import { fetchSpotPrice } from '@/lib/3party/okxapi';
 
 export async function POST(request: NextRequest) {
   try {
-    console.log(`[${new Date().toISOString()}] Starting price alert monitoring...`);
-    console.log(`[${new Date().toISOString()}] Request URL: ${request.url}`);
-    console.log(`[${new Date().toISOString()}] Request method: ${request.method}`);
-
     // Get all active price alerts from all users
     const activeAlerts = await getAllActivePriceAlerts();
     let checkedAlerts = 0;
     let triggeredAlerts = 0;
 
-    console.log(`[${new Date().toISOString()}] Found ${activeAlerts.length} active alerts to check`);
 
     for (const alert of activeAlerts) {
       try {
@@ -32,8 +27,7 @@ export async function POST(request: NextRequest) {
           (alert.condition === 'below' && currentPrice <= targetPrice);
 
         if (shouldTrigger) {
-          console.log(`[${new Date().toISOString()}] Alert triggered for ${alert.coin}: ${currentPrice} ${alert.condition} ${targetPrice}`);
-          
+
           // Send push notification directly using the push service
           try {
             const { sendPriceAlertNotification } = await import('@/lib/push-service');
@@ -79,8 +73,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    console.log(`[${new Date().toISOString()}] Price alert monitoring completed`);
-
+ 
     return NextResponse.json({
       status: 'success',
       checkedAlerts,
