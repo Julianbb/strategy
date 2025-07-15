@@ -5,7 +5,8 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
-import { mutate } from 'swr'
+import useSWR, { mutate } from 'swr'
+
 
 import {
   Dialog,
@@ -36,7 +37,6 @@ import {
 import { useStrategyChat } from './strategy-chat-context'
 import { baseCurrencies } from '../data'
 import { fetcher, generateUUID } from '@/lib/utils'
-import useSWR from 'swr'
 import { useRouter } from 'next/navigation'
 
 const strategyFormSchema = z.object({

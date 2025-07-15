@@ -60,7 +60,7 @@ export function StrategyChatDeleteDialog() {
           <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
           <AlertDialogDescription>
             This action cannot be undone. This will permanently delete the strategy
-            "{currentRow?.strategyName}" and all associated data including trades,
+            &quot;{currentRow?.strategyName}&quot; and all associated data including trades,
             messages, and performance history.
           </AlertDialogDescription>
         </AlertDialogHeader>

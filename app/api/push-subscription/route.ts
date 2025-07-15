@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
       .limit(1);
 
     if (existingSubscription.length > 0) {
-      console.log('Push subscription POST: Updating existing subscription');
+      
       await db
         .update(pushSubscriptions)
         .set({

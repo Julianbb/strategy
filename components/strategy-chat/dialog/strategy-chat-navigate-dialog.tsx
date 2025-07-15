@@ -37,7 +37,7 @@ export function StrategyChatNavigateDialog() {
         <AlertDialogHeader>
           <AlertDialogTitle>Open Strategy Chat</AlertDialogTitle>
           <AlertDialogDescription>
-            Do you want to open the chat for strategy "{currentRow?.strategyName}"?
+            Do you want to open the chat for strategy &quot;{currentRow?.strategyName}&quot;?
             This will take you to the strategy chat page where you can interact with the AI assistant.
           </AlertDialogDescription>
         </AlertDialogHeader>
