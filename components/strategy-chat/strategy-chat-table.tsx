@@ -76,7 +76,7 @@ export function StrategyChatTable({ columns, data }: DataTableProps) {
   })
 
   return (
-    <div className='space-y-4'>
+    <div className='space-y-4 mt-4 md:mt-8'>
       <StrategyChatTableToolbar table={table} />
       
       <div className='rounded-md border'>

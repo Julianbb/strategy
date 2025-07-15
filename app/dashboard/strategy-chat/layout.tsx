@@ -9,7 +9,7 @@ export default function ChatLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const isIdRoute = pathname.includes('/chat/') && pathname.split('/').length > 3;
+  const isIdRoute = pathname.includes('/strategy-chat/') && pathname.split('/').length > 3;
 
   // On mobile, if it's an [id] route, render without layout
   if (isIdRoute) {

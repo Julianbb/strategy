@@ -279,7 +279,7 @@ Please follow these rules:
                           </SelectItem>
                         ))
                       ) : (
-                        <SelectItem value="" disabled>
+                        <SelectItem value="loading" disabled>
                           {strategyTypesError ? 'Error loading types' : 'Loading...'}
                         </SelectItem>
                       )}
