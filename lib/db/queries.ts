@@ -908,17 +908,26 @@ export async function updatePriceAlert({
   currentPrice,
   isActive,
   triggeredAt,
+  coin,
+  targetPrice,
+  condition,
 }: {
   id: string;
   currentPrice?: string;
   isActive?: boolean;
   triggeredAt?: Date;
+  coin?: string;
+  targetPrice?: string;
+  condition?: 'above' | 'below';
 }) {
   try {
     const updateData: Partial<PriceAlert> = {};
     if (currentPrice !== undefined) updateData.currentPrice = currentPrice;
     if (isActive !== undefined) updateData.isActive = isActive;
     if (triggeredAt !== undefined) updateData.triggeredAt = triggeredAt;
+    if (coin !== undefined) updateData.coin = coin;
+    if (targetPrice !== undefined) updateData.targetPrice = targetPrice;
+    if (condition !== undefined) updateData.condition = condition;
 
     return await db
       .update(priceAlerts)

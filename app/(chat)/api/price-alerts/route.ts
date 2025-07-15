@@ -153,7 +153,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { id, currentPrice, isActive, triggeredAt } = body;
+    const { id, currentPrice, isActive, triggeredAt, coin, targetPrice, condition } = body;
 
     if (!id || typeof id !== 'string') {
       return NextResponse.json(
@@ -182,6 +182,9 @@ export async function PUT(request: NextRequest) {
       currentPrice?: string;
       isActive?: boolean;
       triggeredAt?: Date;
+      coin?: string;
+      targetPrice?: string;
+      condition?: 'above' | 'below';
     } = {};
 
     if (currentPrice !== undefined) {
@@ -206,6 +209,36 @@ export async function PUT(request: NextRequest) {
 
     if (triggeredAt !== undefined) {
       updateData.triggeredAt = new Date(triggeredAt);
+    }
+
+    if (coin !== undefined) {
+      if (typeof coin !== 'string' || coin.trim() === '') {
+        return NextResponse.json(
+          { error: 'Coin must be a non-empty string' },
+          { status: 400 }
+        );
+      }
+      updateData.coin = coin.trim().toUpperCase();
+    }
+
+    if (targetPrice !== undefined) {
+      if (typeof targetPrice !== 'number' || targetPrice <= 0) {
+        return NextResponse.json(
+          { error: 'Target price must be a positive number' },
+          { status: 400 }
+        );
+      }
+      updateData.targetPrice = targetPrice.toString();
+    }
+
+    if (condition !== undefined) {
+      if (!['above', 'below'].includes(condition)) {
+        return NextResponse.json(
+          { error: 'Condition must be either "above" or "below"' },
+          { status: 400 }
+        );
+      }
+      updateData.condition = condition;
     }
 
     const [updatedPriceAlert] = await updatePriceAlert({
