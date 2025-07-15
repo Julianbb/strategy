@@ -65,85 +65,30 @@ export default function PriceAlert() {
     fetchAlerts()
   }, [])
 
+  // Note: Price monitoring is now handled by server-side cron job
+  // Client will refresh alerts periodically to show updates
   useEffect(() => {
     if (alerts.length === 0) return
 
     const interval = setInterval(async () => {
-      const updatedAlerts = await Promise.all(
-        alerts.map(async (alert) => {
-          if (!alert.isActive) return alert
-
-          const currentPrice = await fetchSpotPrice(alert.coin)
-          if (currentPrice === null) return alert
-
-          const targetPrice = parseFloat(alert.targetPrice)
-          const shouldTrigger = 
-            (alert.condition === 'above' && currentPrice >= targetPrice) ||
-            (alert.condition === 'below' && currentPrice <= targetPrice)
-
-          if (shouldTrigger) {
-            // Send push notification via server
-            try {
-              await fetch('/api/send-push-notification', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  coin: alert.coin,
-                  currentPrice,
-                  targetPrice,
-                  condition: alert.condition
-                })
-              })
-            } catch (error) {
-              console.error('Failed to send push notification:', error)
-            }
-            
-            toast.success(`Price Alert Triggered!`, {
-              description: `${alert.coin} is now ${alert.condition} $${targetPrice}`
-            })
-
-            // Update alert in database
-            try {
-              await fetch('/api/price-alerts', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  id: alert.id,
-                  currentPrice: currentPrice,
-                  isActive: false,
-                  triggeredAt: new Date().toISOString()
-                })
-              })
-            } catch (error) {
-              console.error('Failed to update price alert:', error)
-            }
-
-            return { ...alert, isActive: false, currentPrice: currentPrice.toString(), triggeredAt: new Date() }
-          }
-
-          // Update current price in database
-          try {
-            await fetch('/api/price-alerts', {
-              method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                id: alert.id,
-                currentPrice: currentPrice
-              })
-            })
-          } catch (error) {
-            console.error('Failed to update current price:', error)
-          }
-
-          return { ...alert, currentPrice: currentPrice.toString() }
-        })
-      )
-
-      setAlerts(updatedAlerts)
-    }, 30000) // Check every 30 seconds
+      // Just refresh the alerts from the server to show any updates
+      try {
+        const response = await fetch('/api/price-alerts')
+        if (response.ok) {
+          const data = await response.json()
+          setAlerts(data.map((alert: any) => ({
+            ...alert,
+            createdAt: new Date(alert.createdAt),
+            triggeredAt: alert.triggeredAt ? new Date(alert.triggeredAt) : undefined
+          })))
+        }
+      } catch (error) {
+        console.error('Failed to refresh price alerts:', error)
+      }
+    }, 60000) // Refresh every 60 seconds
 
     return () => clearInterval(interval)
-  }, [alerts])
+  }, [alerts.length])
 
   useEffect(() => {
     const initializePushNotifications = async () => {

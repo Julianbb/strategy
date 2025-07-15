@@ -942,6 +942,21 @@ export async function updatePriceAlert({
   }
 }
 
+export async function getAllActivePriceAlerts() {
+  try {
+    return await db
+      .select()
+      .from(priceAlerts)
+      .where(eq(priceAlerts.isActive, true))
+      .orderBy(desc(priceAlerts.createdAt));
+  } catch (error) {
+    throw new ChatSDKError(
+      'bad_request:database',
+      'Failed to get all active price alerts',
+    );
+  }
+}
+
 export async function deletePriceAlert({ id, userId }: { id: string; userId: string }) {
   try {
     const [deletedPriceAlert] = await db
