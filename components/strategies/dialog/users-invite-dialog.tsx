@@ -5,7 +5,7 @@ import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { IconMailPlus, IconSend } from '@tabler/icons-react'
-import { showSubmittedData } from './show-submitted-data'
+import { showSubmittedData } from '../show-submitted-data'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -27,7 +27,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { SelectDropdown } from '@/components/select-dropdown'
-import { userTypes } from './data'
+import { userTypes } from '../data'
 
 const formSchema = z.object({
   email: z
