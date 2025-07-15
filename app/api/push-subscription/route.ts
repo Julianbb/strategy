@@ -12,14 +12,12 @@ export async function POST(request: NextRequest) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
-      console.log('Push subscription POST: No session or user ID');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    console.log('Push subscription POST: User ID:', session.user.id);
-    const subscription = await request.json();
-    console.log('Push subscription POST: Subscription data:', subscription);
     
+    const subscription = await request.json();
+
     const existingSubscription = await db
       .select()
       .from(pushSubscriptions)
@@ -38,7 +36,7 @@ export async function POST(request: NextRequest) {
         })
         .where(eq(pushSubscriptions.userId, session.user.id));
     } else {
-      console.log('Push subscription POST: Creating new subscription');
+      
       await db
         .insert(pushSubscriptions)
         .values({
@@ -51,7 +49,7 @@ export async function POST(request: NextRequest) {
         });
     }
 
-    console.log('Push subscription POST: Successfully saved subscription');
+    
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error saving push subscription:', error);

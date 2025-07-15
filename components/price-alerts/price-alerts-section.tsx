@@ -34,26 +34,8 @@ export function PriceAlertsSection() {
 
   const handleEnableNotifications = async () => {
     try {
-      await fetch('/api/client-log', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          message: `[PRICE-ALERT] handleEnableNotifications clicked`,
-          timestamp: new Date().toISOString()
-        })
-      });
-
       const permission = await requestNotificationPermission();
       setNotificationPermission(permission);
-      
-      await fetch('/api/client-log', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          message: `[PRICE-ALERT] Permission result: ${permission}`,
-          timestamp: new Date().toISOString()
-        })
-      });
 
       if (permission === 'granted') {
         const subscription = await subscribeToPushNotifications();
@@ -71,16 +53,6 @@ export function PriceAlertsSection() {
       }
     } catch (error) {
       console.error('Error enabling notifications:', error);
-      
-      await fetch('/api/client-log', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          message: `[PRICE-ALERT] Error: ${error}`,
-          timestamp: new Date().toISOString()
-        })
-      });
-      
       toast.error('Failed to enable push notifications');
     }
   };
