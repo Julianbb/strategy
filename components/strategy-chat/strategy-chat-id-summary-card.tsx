@@ -6,6 +6,7 @@ import { HelpCircle } from "lucide-react"
 
 import {StrategyChat as StrategyChatType, Trades} from "@/lib/db/schema"
 import { calculateStrategyMetrics } from "@/lib/calculation/strategy_summary"
+import { calculateDaysSinceStarted } from "@/lib/utils"
 
 import {
   Tooltip,
@@ -53,13 +54,7 @@ export function StrategyCard({ strategyChat, tradesInCurrentStrategy }: Strategy
     tradesInCurrentStrategy
   );
 
-  const daysSinceStarted = Math.floor((() => {
-    const startTime = new Date(strategyChat.startedAt).getTime();
-    const endTime = (strategyChat.status === 'completed' || strategyChat.status === 'stopped') && strategyChat.endedAt
-      ? new Date(strategyChat.endedAt).getTime()
-      : new Date().getTime();
-    return (endTime - startTime) / (1000 * 60 * 60 * 24);
-  })());
+  const daysSinceStarted = calculateDaysSinceStarted(strategyChat);
 
   const metrics: StrategyMetric[] = [
     {

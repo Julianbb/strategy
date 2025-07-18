@@ -110,6 +110,7 @@ export const strategyChat = pgTable(
     baseCurrency: varchar('baseCurrency', { length: 10 }).notNull().default('USD'),
     initialCapital_USD: numeric('initialCapital_USD', { precision: 20, scale: 8 }),
     initialCapital_Currency: numeric('initialCapital_Currency', { precision: 20, scale: 8 }),
+    profit_loss: numeric('profit_loss', { precision: 20, scale: 8 }).notNull().default('0'),
     status: varchar('status', { enum: ['active', 'paused', 'stopped', 'completed'] }).notNull().default('active'),
     totalTrades: numeric('totalTrades').notNull().default('0'),
     startedAt: timestamp('startedAt').notNull(),

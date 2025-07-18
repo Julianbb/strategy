@@ -1,0 +1,1 @@
+ALTER TABLE "Strategy_Chat" ADD COLUMN "profit_loss" numeric(20, 8) DEFAULT '0' NOT NULL;

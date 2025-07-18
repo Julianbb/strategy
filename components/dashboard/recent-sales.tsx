@@ -1,83 +1,52 @@
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+import { StrategyChat } from '@/lib/db/schema'
+import { calculateDaysSinceStarted } from '@/lib/utils'
 
-export function RecentSales() {
+interface RecentSalesProps {
+  strategies: StrategyChat[]
+}
+
+export function RecentSales({ strategies }: RecentSalesProps) {
+
+  const getStatusVariant = (status: string) => {
+    switch (status) {
+      case 'active':
+        return 'default'
+      case 'paused':
+        return 'secondary'
+      case 'stopped':
+        return 'destructive'
+      case 'completed':
+        return 'outline'
+      default:
+        return 'default'
+    }
+  }
+
   return (
     <div className='space-y-8'>
-      <div className='flex items-center gap-4'>
-        <Avatar className='size-9'>
-          <AvatarImage src='/avatars/01.png' alt='Avatar' />
-          <AvatarFallback>OM</AvatarFallback>
-        </Avatar>
-        <div className='flex flex-1 flex-wrap items-center justify-between'>
-          <div className='space-y-1'>
-            <p className='text-sm leading-none font-medium'>Olivia Martin</p>
-            <p className='text-muted-foreground text-sm'>
-              olivia.martin@email.com
-            </p>
+      {strategies.map((strategy) => {
+        const duration = calculateDaysSinceStarted(strategy)
+        
+        return (
+          <div key={strategy.id} className='flex items-center gap-4'>
+            <Badge variant={getStatusVariant(strategy.status)} className='capitalize'>
+              {strategy.status}
+            </Badge>
+            <div className='flex flex-1 flex-wrap items-center justify-between'>
+              <div className='space-y-1'>
+                <p className='text-sm leading-none font-medium'>{strategy.strategyName}</p>
+                <p className='text-muted-foreground text-sm'>
+                  {duration} {duration === 1 ? 'day' : 'days'}
+                </p>
+              </div>
+              <div className='font-medium'>
+                {strategy.profit_loss ? `$${Number(strategy.profit_loss).toLocaleString()}` : 'N/A'}
+              </div>
+            </div>
           </div>
-          <div className='font-medium'>+$1,999.00</div>
-        </div>
-      </div>
-      <div className='flex items-center gap-4'>
-        <Avatar className='flex size-9 items-center justify-center space-y-0 border'>
-          <AvatarImage src='/avatars/02.png' alt='Avatar' />
-          <AvatarFallback>JL</AvatarFallback>
-        </Avatar>
-        <div className='flex flex-1 flex-wrap items-center justify-between'>
-          <div className='space-y-1'>
-            <p className='text-sm leading-none font-medium'>Jackson Lee</p>
-            <p className='text-muted-foreground text-sm'>
-              jackson.lee@email.com
-            </p>
-          </div>
-          <div className='font-medium'>+$39.00</div>
-        </div>
-      </div>
-      <div className='flex items-center gap-4'>
-        <Avatar className='size-9'>
-          <AvatarImage src='/avatars/03.png' alt='Avatar' />
-          <AvatarFallback>IN</AvatarFallback>
-        </Avatar>
-        <div className='flex flex-1 flex-wrap items-center justify-between'>
-          <div className='space-y-1'>
-            <p className='text-sm leading-none font-medium'>Isabella Nguyen</p>
-            <p className='text-muted-foreground text-sm'>
-              isabella.nguyen@email.com
-            </p>
-          </div>
-          <div className='font-medium'>+$299.00</div>
-        </div>
-      </div>
-
-      <div className='flex items-center gap-4'>
-        <Avatar className='size-9'>
-          <AvatarImage src='/avatars/04.png' alt='Avatar' />
-          <AvatarFallback>WK</AvatarFallback>
-        </Avatar>
-        <div className='flex flex-1 flex-wrap items-center justify-between'>
-          <div className='space-y-1'>
-            <p className='text-sm leading-none font-medium'>William Kim</p>
-            <p className='text-muted-foreground text-sm'>will@email.com</p>
-          </div>
-          <div className='font-medium'>+$99.00</div>
-        </div>
-      </div>
-
-      <div className='flex items-center gap-4'>
-        <Avatar className='size-9'>
-          <AvatarImage src='/avatars/05.png' alt='Avatar' />
-          <AvatarFallback>SD</AvatarFallback>
-        </Avatar>
-        <div className='flex flex-1 flex-wrap items-center justify-between'>
-          <div className='space-y-1'>
-            <p className='text-sm leading-none font-medium'>Sofia Davis</p>
-            <p className='text-muted-foreground text-sm'>
-              sofia.davis@email.com
-            </p>
-          </div>
-          <div className='font-medium'>+$39.00</div>
-        </div>
-      </div>
+        )
+      })}
     </div>
   )
 }

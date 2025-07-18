@@ -1,61 +1,23 @@
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from 'recharts'
+'use client'
 
-const data = [
-  {
-    name: 'Jan',
-    total: Math.floor(Math.random() * 5000) + 1000,
-  },
-  {
-    name: 'Feb',
-    total: Math.floor(Math.random() * 5000) + 1000,
-  },
-  {
-    name: 'Mar',
-    total: Math.floor(Math.random() * 5000) + 1000,
-  },
-  {
-    name: 'Apr',
-    total: Math.floor(Math.random() * 5000) + 1000,
-  },
-  {
-    name: 'May',
-    total: Math.floor(Math.random() * 5000) + 1000,
-  },
-  {
-    name: 'Jun',
-    total: Math.floor(Math.random() * 5000) + 1000,
-  },
-  {
-    name: 'Jul',
-    total: Math.floor(Math.random() * 5000) + 1000,
-  },
-  {
-    name: 'Aug',
-    total: Math.floor(Math.random() * 5000) + 1000,
-  },
-  {
-    name: 'Sep',
-    total: Math.floor(Math.random() * 5000) + 1000,
-  },
-  {
-    name: 'Oct',
-    total: Math.floor(Math.random() * 5000) + 1000,
-  },
-  {
-    name: 'Nov',
-    total: Math.floor(Math.random() * 5000) + 1000,
-  },
-  {
-    name: 'Dec',
-    total: Math.floor(Math.random() * 5000) + 1000,
-  },
-]
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts'
 
-export function Overview() {
+interface OverviewProps {
+  data: Array<{
+    name: string
+    total: number
+    fill?: string
+  }>
+  onBarClick?: (data: any) => void
+}
+
+export function Overview({ data, onBarClick }: OverviewProps) {
+
   return (
-    <ResponsiveContainer width='100%' height={350}>
-      <BarChart data={data}>
-        <XAxis
+    <div style={{ outline: 'none' }} className="focus:outline-none [&_*]:focus:outline-none [&_*]:outline-none" tabIndex={-1}>
+      <ResponsiveContainer width='100%' height={350}>
+        <BarChart data={data} onClick={onBarClick}>
+          <XAxis
           dataKey='name'
           stroke='#888888'
           fontSize={12}
@@ -69,13 +31,23 @@ export function Overview() {
           axisLine={false}
           tickFormatter={(value) => `$${value}`}
         />
+        <Tooltip
+          formatter={(value) => [`$${value}`, 'Total']}
+          labelFormatter={(label) => `Month: ${label}`}
+          contentStyle={{
+            backgroundColor: 'hsl(var(--card))',
+            border: '1px solid hsl(var(--border))',
+            borderRadius: '8px',
+            color: 'hsl(var(--card-foreground))'
+          }}
+        />
         <Bar
           dataKey='total'
-          fill='currentColor'
           radius={[4, 4, 0, 0]}
-          className='fill-primary'
+          className='cursor-pointer'
         />
-      </BarChart>
-    </ResponsiveContainer>
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
   )
 }

@@ -104,3 +104,14 @@ export const convertInstrumentFlexible = (instrument: string) => {
     return `${formattedSymbol}-${shortYear}${month}${day}-${strike}-${type}`;
   });
 };
+
+
+
+
+export function calculateDaysSinceStarted(strategyChat: { startedAt: Date; endedAt?: Date | null; status: string }) {
+  const startTime = new Date(strategyChat.startedAt).getTime();
+  const endTime = (strategyChat.status === 'completed' || strategyChat.status === 'stopped') && strategyChat.endedAt
+    ? new Date(strategyChat.endedAt).getTime()
+    : new Date().getTime();
+  return Math.floor((endTime - startTime) / (1000 * 60 * 60 * 24));
+}
