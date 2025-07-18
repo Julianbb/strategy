@@ -71,7 +71,7 @@ export function usePriceData(strategyChat: StrategyChatType): PriceData {
 
   // 获取价格数据
   useEffect(() => {
-    if (!isMounted || !strategyChat.baseCurrency || !optionInstrument) {
+    if (!isMounted || !strategyChat.baseCurrency) {
       return;
     }
 
@@ -82,19 +82,27 @@ export function usePriceData(strategyChat: StrategyChatType): PriceData {
       try {
         setError(null);
 
-       
-        if (!optionInstrument) return;
-        const { spotPrice, optionPrice } = await fetchPrices(
-          strategyChat.baseCurrency, 
-          optionInstrument
-        );
-        
-        if (!isEffectMounted) return;
-        
-    
-        
-        setCurrencyPrice(prev => spotPrice !== null ? spotPrice : prev);
-        setOptionsPrice(prev => optionPrice !== null ? optionPrice : prev);
+        if (optionInstrument) {
+          // Strategy has options - fetch both spot and option prices
+          const { spotPrice, optionPrice } = await fetchPrices(
+            strategyChat.baseCurrency, 
+            optionInstrument
+          );
+          
+          if (!isEffectMounted) return;
+          
+          setCurrencyPrice(prev => spotPrice !== null ? spotPrice : prev);
+          setOptionsPrice(prev => optionPrice !== null ? optionPrice : prev);
+        } else {
+          // Strategy only has base currency - fetch spot price only
+          const { fetchSpotPrice } = await import('@/lib/3party/okxapi');
+          const spotPrice = await fetchSpotPrice(strategyChat.baseCurrency);
+          
+          if (!isEffectMounted) return;
+          
+          setCurrencyPrice(prev => spotPrice !== null ? spotPrice : prev);
+          setOptionsPrice(null);
+        }
         
       } catch (err) {
         console.error('Fetch error:', err);
