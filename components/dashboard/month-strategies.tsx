@@ -2,11 +2,11 @@ import { Badge } from '@/components/ui/badge'
 import { StrategyChat } from '@/lib/db/schema'
 import { calculateDaysSinceStarted } from '@/lib/utils'
 
-interface RecentSalesProps {
+interface MonthStrategiesProps {
   strategies: StrategyChat[]
 }
 
-export function RecentSales({ strategies }: RecentSalesProps) {
+export function MonthStrategies({ strategies }: MonthStrategiesProps) {
 
   const getStatusVariant = (status: string) => {
     switch (status) {

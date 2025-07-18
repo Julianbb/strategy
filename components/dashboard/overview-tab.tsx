@@ -28,7 +28,7 @@ const constructChartData = (strategies: StrategyChat[]) => {
   
   return monthlyData;
 };
-import { RecentSales } from '@/components/dashboard/recent-sales'
+import { MonthStrategies } from '@/components/dashboard/month-strategies'
 import { DashboardCard } from '@/components/dashboard/dashboard-card'
 import { StrategyChat } from '@/lib/db/schema'
 import { useState } from 'react'
@@ -168,7 +168,7 @@ export function OverviewTab({ strategies = [] }: OverviewTabProps) {
           </CardHeader>
           <CardContent>
             {displayedStrategies.length > 0 ? (
-              <RecentSales strategies={displayedStrategies} />
+              <MonthStrategies strategies={displayedStrategies} />
             ) : (
               <div className="flex items-center justify-center py-8 text-muted-foreground">
                 <p>No strategies found for this month</p>
