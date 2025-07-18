@@ -7,7 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import LongText from '@/components/long-text'
 import { statusColorMap } from './data'
 import { StrategyChat } from './schema'
-import { DataTableColumnHeader } from '@/components/strategies/data-table-column-header'
+import { DataTableColumnHeader } from '@/components/strategy-chat/strategy-chat-data-table-column-header'
 import { StrategyChatRowActions } from './strategy-chat-row-actions'
 
 export const columns: ColumnDef<StrategyChat>[] = [

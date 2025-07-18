@@ -13,7 +13,7 @@ import { PreviewMessage, ThinkingMessage } from './message';
 import { MultimodalInput } from './multimodal-input';
 import { fetcher, fetchWithErrorHandlers, generateUUID } from '@/lib/utils';
 import { unstable_serialize } from 'swr/infinite';
-import { getChatHistoryPaginationKey } from './sidebar-history';
+
 import { toast } from './toast';
 import { useSearchParams } from 'next/navigation';
 
@@ -174,7 +174,7 @@ function FloatingChatContent({
       message: body.messages.at(-1),
     }),
     onFinish: () => {
-      mutate(unstable_serialize(getChatHistoryPaginationKey));
+      
     },
     onError: (error) => {
       if (error instanceof ChatSDKError) {
