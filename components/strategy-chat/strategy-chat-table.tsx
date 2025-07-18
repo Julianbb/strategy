@@ -26,7 +26,7 @@ import {
 } from '@/components/ui/table'
 
 import { StrategyChat } from './schema'
-import { DataTablePagination } from '@/components/strategies/data-table-pagination'
+import { DataTablePagination } from '@/components/strategy-chat/strategy-chat-data-table-pagination'
 import { StrategyChatTableToolbar } from './strategy-chat-table-toolbar'
 import { useStrategyChat } from './dialog/strategy-chat-context'
 
