@@ -9,12 +9,12 @@ import type { Session } from 'next-auth';
 import type { Vote } from '@/lib/db/schema';
 import { MessageCircle, X } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { PreviewMessage, ThinkingMessage } from './message';
-import { MultimodalInput } from './multimodal-input';
+import { PreviewMessage, ThinkingMessage } from '@/components/message';
+import { MultimodalInput } from '@/components/multimodal-input';
 import { fetcher, fetchWithErrorHandlers, generateUUID } from '@/lib/utils';
 import { unstable_serialize } from 'swr/infinite';
 
-import { toast } from './toast';
+import { toast } from '@/components/toast';
 import { useSearchParams } from 'next/navigation';
 
 import { useAutoResume } from '@/hooks/use-auto-resume';

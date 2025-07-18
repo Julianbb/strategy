@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { StrategyCard } from '@/components/strategy-chat/strategy-chat-id-summary-card';
 import { ChartAreaInteractive } from '@/components/strategy-chat/strategy-chat-id-linechart';
 import { DataTable } from '@/components/strategy-chat/strategy-chat-id-trades-sheets';
-import { FloatingChat } from '@/components/floating-chat';
+import { FloatingChat } from '@/components/strategy-chat/strategy-chat-floating-chat';
 import { MobileChat } from '@/components/strategy-chat/strategy-chat-id-mobile-chat';
 import { MobileHeader, type MobileView } from '@/components/strategy-chat/strategy-chat-id-mobile-header';
 import type { UIMessage } from 'ai';
