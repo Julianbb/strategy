@@ -27,7 +27,7 @@ const formatDateTime = (date: Date): string => {
 
 
 
-export default function TradeCard({ trade, baseCurrency }: { trade: TradesType, baseCurrency: string }) {
+export default function TradeItems({ trade, baseCurrency }: { trade: TradesType, baseCurrency: string }) {
     const currencyType = trade.productType === 'option' ? 'currency' : 'usd'
     const currency = trade.productType === 'option' ? baseCurrency : undefined
     const price = trade.productType === 'option' ? trade.priceInCurrency : trade.priceInUSD

@@ -2,7 +2,7 @@ import { cookies } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 
 import { auth } from '@/app/(auth)/auth';
-import { MobileChatLayout } from '@/components/mobile-chat-layout';
+import { MobileChatLayout } from '@/components/strategy-chat/strategy-chat-id-main';
 import { getStrategyChatById, getMessagesByChatId,getTradesByStrategyChat } from '@/lib/db/queries';
 
 import { DEFAULT_CHAT_MODEL } from '@/lib/ai/models';

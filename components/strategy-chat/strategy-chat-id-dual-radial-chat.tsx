@@ -1,6 +1,6 @@
 "use client"
 
-import { ChartRadialShape } from "./chart-radial-shape"
+import { ChartRadialShape } from "@/components/radial-chart"
 
 interface DualChartRadialProps {
   total_1: number

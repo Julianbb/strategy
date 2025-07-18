@@ -1,12 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { StrategyCard } from '@/components/strategy-summary-card';
-import { ChartAreaInteractive } from '@/components/strategy-line-chart';
-import { DataTable } from '@/components/strategy-trades-sheets';
+import { StrategyCard } from '@/components/strategy-chat/strategy-chat-id-summary-card';
+import { ChartAreaInteractive } from '@/components/strategy-chat/strategy-chat-id-linechart';
+import { DataTable } from '@/components/strategy-chat/strategy-chat-id-trades-sheets';
 import { FloatingChat } from '@/components/floating-chat';
-import { MobileChat } from '@/components/mobile-chat';
-import { MobileHeader, type MobileView } from '@/components/mobile-header';
+import { MobileChat } from '@/components/strategy-chat/strategy-chat-id-mobile-chat';
+import { MobileHeader, type MobileView } from '@/components/strategy-chat/strategy-chat-id-mobile-header';
 import type { UIMessage } from 'ai';
 import type { Session } from 'next-auth';
 

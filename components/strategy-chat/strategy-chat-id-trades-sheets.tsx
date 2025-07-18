@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select"
 import { IconChevronLeft, IconChevronRight, IconChevronsLeft, IconChevronsRight } from "@tabler/icons-react"
 
-import TradeCard from "./trade-card"
+import TradeItems from "@/components/strategy-chat/strategy-chat-id-trades-items"
 import { type Trades as TradesType } from "@/lib/db/schema"
 
 const formatCurrency = (value: string | null, currencyType: 'currency' | 'usd', baseCurrency?: string): string => {
@@ -137,7 +137,7 @@ export function DataTable({
           {visibleData.map((trade, idx) => (
             <div key={idx}>
               <div className="px-4 py-2">
-                <TradeCard trade={trade} baseCurrency={baseCurrency} />
+                <TradeItems trade={trade} baseCurrency={baseCurrency} />
               </div>
               {idx !== visibleData.length - 1 && <div className="mx-4 h-px bg-border" />}
             </div>

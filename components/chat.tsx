@@ -14,7 +14,7 @@ import { useScrollToBottom } from '@/hooks/use-scroll-to-bottom';
 
 
 import { unstable_serialize } from 'swr/infinite';
-import { getChatHistoryPaginationKey } from './sidebar-history';
+
 import { toast } from './toast';
 import type { Session } from 'next-auth';
 import { useSearchParams } from 'next/navigation';
@@ -65,7 +65,7 @@ export function Chat({
       selectedChatModel: initialChatModel,
     }),
     onFinish: () => {
-      mutate(unstable_serialize(getChatHistoryPaginationKey));
+     
     },
     onError: (error) => {
       if (error instanceof ChatSDKError) {
