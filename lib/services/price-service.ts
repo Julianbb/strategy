@@ -1,5 +1,6 @@
 import {convertInstrumentFlexible} from "@/lib/utils"
 import { fetchPrices, fetchSpotPrice } from "@/lib/3party/okxapi"
+import { getLatestOptionInstrument } from "@/lib/db/queries"
 
 export interface PriceData {
   currencyPrice: number | null;
@@ -11,16 +12,11 @@ export interface PriceData {
 export class PriceService {
   async getOptionInstrument(strategyChatId: string): Promise<string | null> {
     try {
-      const response = await fetch(`/api/strategy-chat/${strategyChatId}/option-instrument`);
+      // Use direct database query instead of HTTP request to work in server context (cron jobs)
+      const instrument = await getLatestOptionInstrument({ strategyChatId });
       
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      
-      if (data.instrument) {
-        return convertInstrumentFlexible(data.instrument);
+      if (instrument) {
+        return convertInstrumentFlexible(instrument);
       }
       
       return null;
