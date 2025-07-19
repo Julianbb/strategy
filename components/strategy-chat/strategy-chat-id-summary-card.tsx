@@ -40,9 +40,11 @@ export function StrategyCard({ strategyChat, tradesInCurrentStrategy }: Strategy
   const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
-    async function fetchMetrics() {
+    async function fetchMetrics(isInitial = false) {
       try {
-        setIsLoading(true);
+        if (isInitial) {
+          setIsLoading(true);
+        }
         const metrics = await calculateStrategyMetrics(
           strategyChat, 
           tradesInCurrentStrategy
@@ -51,16 +53,18 @@ export function StrategyCard({ strategyChat, tradesInCurrentStrategy }: Strategy
       } catch (error) {
         console.error('Failed to calculate strategy metrics:', error);
       } finally {
-        setIsLoading(false);
+        if (isInitial) {
+          setIsLoading(false);
+        }
       }
     }
     
-    // Initial fetch
-    fetchMetrics();
+    // Initial fetch with loading state
+    fetchMetrics(true);
     
-    // Set up interval to refresh every 10 seconds
+    // Set up interval to refresh every 10 seconds (without loading state)
     const interval = setInterval(() => {
-      fetchMetrics();
+      fetchMetrics(false);
     }, 10000);
     
     // Cleanup interval on unmount
