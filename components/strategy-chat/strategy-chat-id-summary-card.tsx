@@ -1,12 +1,13 @@
-"use client"
+'use client'
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {DualChartRadial} from "@/components/strategy-chat/strategy-chat-id-dual-radial-chat"
 import { HelpCircle } from "lucide-react"
+import { useEffect, useState } from "react"
 
 import {StrategyChat as StrategyChatType, Trades} from "@/lib/db/schema"
-import { calculateStrategyMetrics } from "@/lib/calculation/strategy_summary"
-import { calculateDaysSinceStarted } from "@/lib/utils"
+import { calculateStrategyMetrics } from "@/lib/services/strategy-metrics-service"
+import { CalculateStrategyMetricsType } from "@/lib/services/strategy-metrics"
 
 import {
   Tooltip,
@@ -16,7 +17,6 @@ import {
 } from "@/components/ui/tooltip"
 
 
-import {usePriceData} from "@/hooks/use-getprice"
 
 interface StrategyMetric {
   title: string
@@ -36,30 +36,46 @@ interface StrategyCardProps {
 
 
 export function StrategyCard({ strategyChat, tradesInCurrentStrategy }: StrategyCardProps) {
+  const [calculatedMetrics, setCalculatedMetrics] = useState<CalculateStrategyMetricsType | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   
-  
-  const { 
-    currencyPrice, 
-    optionsPrice, 
-    isLoaded, 
-    optionInstrument, 
-    error,
-  } = usePriceData({id:strategyChat.id, baseCurrency:strategyChat.baseCurrency});
+  useEffect(() => {
+    async function fetchMetrics() {
+      try {
+        setIsLoading(true);
+        const metrics = await calculateStrategyMetrics(
+          strategyChat, 
+          tradesInCurrentStrategy
+        );
+        setCalculatedMetrics(metrics);
+      } catch (error) {
+        console.error('Failed to calculate strategy metrics:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    
+    // Initial fetch
+    fetchMetrics();
+    
+    // Set up interval to refresh every 10 seconds
+    const interval = setInterval(() => {
+      fetchMetrics();
+    }, 10000);
+    
+    // Cleanup interval on unmount
+    return () => clearInterval(interval);
+  }, [strategyChat, tradesInCurrentStrategy]);
 
 
-  const calculatedMetrics = calculateStrategyMetrics(
-    strategyChat, 
-    isLoaded ? currencyPrice : null, 
-    isLoaded ? optionsPrice : null,
-    tradesInCurrentStrategy
-  );
-
-  const daysSinceStarted = calculateDaysSinceStarted(strategyChat);
+  if (isLoading || !calculatedMetrics) {
+    return <div>Loading strategy metrics...</div>;
+  }
 
   const metrics: StrategyMetric[] = [
     {
       title: "Allocation",
-      value: isLoaded ? `$${calculatedMetrics.allocationInUSD.toLocaleString(undefined, { maximumFractionDigits: 0 })}` : "$0",
+      value: `$${calculatedMetrics.allocationInUSD.toLocaleString(undefined, { maximumFractionDigits: 0 })}`,
       isToolTipNeed: true,
       tipMessage: "Total capital allocated to this strategy (updated with live price)",
       currency: strategyChat.initialCapital_Currency ? `${Number(strategyChat.initialCapital_Currency).toLocaleString(undefined, { maximumFractionDigits: 6 })} ${strategyChat.baseCurrency}` : undefined,
@@ -67,27 +83,27 @@ export function StrategyCard({ strategyChat, tradesInCurrentStrategy }: Strategy
     },
     {
       title: "Total Fee",
-      value: isLoaded ? `$${calculatedMetrics.totalFeeInUSD.toLocaleString(undefined, { maximumFractionDigits: 0 })}` : "$0",
+      value: `$${calculatedMetrics.totalFeeInUSD.toLocaleString(undefined, { maximumFractionDigits: 0 })}`,
       isToolTipNeed: true,
       tipMessage: "Total cost including fees and initial investment (updated with live price)",
-      currency: isLoaded ? `${calculatedMetrics.totalFee_Currency.toLocaleString(undefined, { maximumFractionDigits: 6 })} ${strategyChat.baseCurrency}` : `0 ${strategyChat.baseCurrency}`,
-      usd: isLoaded ? `$${calculatedMetrics.totalFee_USD.toLocaleString(undefined, { maximumFractionDigits: 0 })}` : "$0"
+      currency: `${calculatedMetrics.totalFee_Currency.toLocaleString(undefined, { maximumFractionDigits: 6 })} ${strategyChat.baseCurrency}`,
+      usd: `$${calculatedMetrics.totalFee_USD.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
     },
     {
       title: "Current Value",
-      value: isLoaded ? `$${calculatedMetrics.currentValueInUSD.toLocaleString(undefined, { maximumFractionDigits: 0 })}` : "$0",
+      value: `$${calculatedMetrics.currentValueInUSD.toLocaleString(undefined, { maximumFractionDigits: 0 })}`,
       isToolTipNeed: true,
       tipMessage: "Current market value of the strategy"
     },
     {
       title: "P&L",
-      value: isLoaded ? `$${calculatedMetrics.profitLossInUSD.toLocaleString(undefined, { maximumFractionDigits: 0 })}` : "$0",
+      value: `$${calculatedMetrics.profitLossInUSD.toLocaleString(undefined, { maximumFractionDigits: 0 })}`,
       isToolTipNeed: true,
       tipMessage: "Profit and Loss from current position"
     },
     {
       title: "APR",
-      value: isLoaded ? `${calculatedMetrics.apr.toFixed(1)}%` : "0%",
+      value: `${calculatedMetrics.apr.toFixed(1)}%`,
       isToolTipNeed: true,
       tipMessage: "Annual Percentage Rate - annualized return based on time elapsed"
     }
@@ -105,7 +121,7 @@ export function StrategyCard({ strategyChat, tradesInCurrentStrategy }: Strategy
               <CardTitle className="text-lg md:text-xl flex items-center gap-2">
                 Strategy Summary
                 <span className="text-sm font-normal text-muted-foreground">
-                  ({daysSinceStarted} {daysSinceStarted === 1 ? 'day' : 'days'})
+                  ({calculatedMetrics.daysSinceStarted} {calculatedMetrics.daysSinceStarted === 1 ? 'day' : 'days'})
                 </span>
               </CardTitle>
             </CardHeader>

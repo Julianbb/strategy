@@ -1,32 +1,60 @@
 import {Trades} from '@/lib/db/schema'
+import { CalculateStrategyMetricsType, StrategyMetricsCalculator } from './strategy-metrics'
+import { priceService } from './price-service'
 
-export interface CalculateStrategyMetricsType{
-  allocationInUSD: number;
-  totalFeeInUSD: number;
-  totalFee_Currency:number;
-  totalFee_USD:number;
-  currentValueInUSD: number;
-  profitLossInUSD: number;
-  apr: number;
-  positionSizeOptions: number;
-  positionSizePerpetual: number;
-}
+export class OptionPerpetualStrategyCalculator implements StrategyMetricsCalculator {
+  async calculate(
+    strategyChat: any,
+    tradesInCurrentStrategy?: Trades[]
+  ): Promise<CalculateStrategyMetricsType> {
+    // Fetch prices if not provided
+    let finalCurrencyPrice = null;
+    let finalOptionsPrice = null;
+    
+    try {
+      const optionInstrument = await priceService.getOptionInstrument(strategyChat.id);
+      const priceData = await priceService.fetchPriceData(strategyChat.baseCurrency, optionInstrument);
+      
+      finalCurrencyPrice =  priceData.currencyPrice;
+      finalOptionsPrice =  priceData.optionsPrice;
+    } catch (error) {
+      console.warn('Failed to fetch prices:', error);
+    }
+  
 
-export function calculateStrategyMetrics(
-  strategyChat: any,
-  currencyPrice: number | null,
-  optionsPrice?: number | null,
-  tradesInCurrentStrategy?: Trades[]
-): CalculateStrategyMetricsType {
-  const allocation = (() => {
+    const allocation = this.calculateAllocation(strategyChat, finalCurrencyPrice);
+    const { totalFee, totalFee_Currency, totalFee_USD } = this.calculateFees(tradesInCurrentStrategy, finalCurrencyPrice);
+    const currentValue = this.calculateCurrentValue(tradesInCurrentStrategy, finalCurrencyPrice, finalOptionsPrice, allocation);
+    const profitLoss = currentValue - allocation;
+    const apr = this.calculateAPR(strategyChat, allocation, profitLoss);
+    const positionSizeOptions = this.calculatePositionSizeOptions(tradesInCurrentStrategy);
+    const positionSizePerpetual = this.calculatePositionSizePerpetual(tradesInCurrentStrategy);
+
+    const daysSinceStarted = this.calculateDaysSinceStarted(strategyChat);
+
+    return {
+      allocationInUSD: allocation,
+      totalFeeInUSD: totalFee,
+      totalFee_Currency: totalFee_Currency,
+      totalFee_USD: totalFee_USD,
+      currentValueInUSD: currentValue,
+      profitLossInUSD: profitLoss,
+      apr,
+      positionSizeOptions,
+      positionSizePerpetual,
+      daysSinceStarted,
+    };
+  }
+
+  private calculateAllocation(strategyChat: any, currencyPrice: number | null): number {
     const currencyValue = (currencyPrice && strategyChat.initialCapital_Currency) 
       ? Number(strategyChat.initialCapital_Currency) * currencyPrice 
       : 0;
     const usdValue = strategyChat.initialCapital_USD ? Number(strategyChat.initialCapital_USD) : 0;
     return currencyValue + usdValue;
-  })();
+  }
 
-  const { totalFee, totalFee_Currency, totalFee_USD } = (() => {
+  private calculateFees(tradesInCurrentStrategy?: Trades[], currencyPrice?: number | null) {
     if (!tradesInCurrentStrategy || tradesInCurrentStrategy.length === 0) {
       return { totalFee: 0, totalFee_Currency: 0, totalFee_USD: 0 };
     }
@@ -50,14 +78,18 @@ export function calculateStrategyMetrics(
       totalFee_Currency: feeInCurrency,
       totalFee_USD: feeInUSD
     };
-  })();
+  }
 
-  const currentValue = (() => {
+  private calculateCurrentValue(
+    tradesInCurrentStrategy?: Trades[],
+    currencyPrice?: number | null,
+    optionsPrice?: number | null,
+    allocation?: number
+  ): number {
     if (!tradesInCurrentStrategy || tradesInCurrentStrategy.length === 0) {
-      return allocation;
+      return allocation || 0;
     }
 
-    // Aggregate positions by productType and direction
     const positions: Record<string, { totalAmount: number; totalCost: number; avgPrice: number }> = {};
     
     for (const trade of tradesInCurrentStrategy) {
@@ -81,7 +113,6 @@ export function calculateStrategyMetrics(
 
     let totalPnL = 0;
     
-    // Calculate PnL for each position type
     for (const [key, position] of Object.entries(positions)) {
       const [productType] = key.split('-');
       
@@ -102,12 +133,10 @@ export function calculateStrategyMetrics(
         totalPnL += currentValue - costBasis;
       }
     }
-    return allocation + totalPnL;
-  })();
+    return (allocation || 0) + totalPnL;
+  }
 
-  const profitLoss = currentValue - allocation;
-
-  const apr = (() => {
+  private calculateAPR(strategyChat: any, allocation: number, profitLoss: number): number {
     if (!allocation || !strategyChat.startedAt) {
       return 0;
     }
@@ -115,27 +144,19 @@ export function calculateStrategyMetrics(
     const startDate = new Date(strategyChat.startedAt);
     const endDate = strategyChat.endedAt ? new Date(strategyChat.endedAt) : new Date();
     
-    
     const daysDiff = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24);
     const yearsDiff = daysDiff / 365.25;
     
-    
-    if ( allocation <= 0) {
+    if (allocation <= 0) {
       return 0;
     }
-    if (allocation <= 0) {
-        return 0;
-      }
       
     const safeYearsDiff = Math.max(yearsDiff, 1e-8);
-    
-      
-    
     const totalReturn = profitLoss / allocation;
     return (totalReturn / safeYearsDiff) * 100;
-  })();
+  }
 
-  const positionSizeOptions = (() => {
+  private calculatePositionSizeOptions(tradesInCurrentStrategy?: Trades[]): number {
     if (!tradesInCurrentStrategy || tradesInCurrentStrategy.length === 0) {
       return 0;
     }
@@ -149,9 +170,9 @@ export function calculateStrategyMetrics(
     return optionTrades
       .filter(trade => trade.side === firstOptionSide)
       .reduce((total, trade) => total + Number(trade.amount), 0);
-  })();
+  }
 
-  const positionSizePerpetual = (() => {
+  private calculatePositionSizePerpetual(tradesInCurrentStrategy?: Trades[]): number {
     if (!tradesInCurrentStrategy || tradesInCurrentStrategy.length === 0) {
       return 0;
     }
@@ -162,17 +183,13 @@ export function calculateStrategyMetrics(
         const amount = Number(trade.amount);
         return total + (trade.side === 'buy' ? amount : -amount);
       }, 0);
-  })();
+  }
 
-  return {
-    allocationInUSD: allocation,
-    totalFeeInUSD: totalFee,
-    totalFee_Currency: totalFee_Currency,
-    totalFee_USD: totalFee_USD,
-    currentValueInUSD: currentValue,
-    profitLossInUSD: profitLoss,
-    apr,
-    positionSizeOptions,
-    positionSizePerpetual,
-  };
+  private calculateDaysSinceStarted(strategyChat: any): number {
+    const startTime = new Date(strategyChat.startedAt).getTime();
+    const endTime = (strategyChat.status === 'completed' || strategyChat.status === 'stopped') && strategyChat.endedAt
+      ? new Date(strategyChat.endedAt).getTime()
+      : new Date().getTime();
+    return Math.floor((endTime - startTime) / (1000 * 60 * 60 * 24));
+  }
 }

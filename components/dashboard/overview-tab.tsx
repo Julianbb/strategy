@@ -64,46 +64,8 @@ export function OverviewTab({ strategies = [] }: OverviewTabProps) {
   return (
     <div className='space-y-4'>
       <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
-        <DashboardCard
-          title="Total Value"
-          value="$45,231.89"
-          description="+20.1% from last month"
-          icon={
-            <svg
-              xmlns='http://www.w3.org/2000/svg'
-              viewBox='0 0 24 24'
-              fill='none'
-              stroke='currentColor'
-              strokeLinecap='round'
-              strokeLinejoin='round'
-              strokeWidth='2'
-              className='text-muted-foreground size-4'
-            >
-              <path d='M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6' />
-            </svg>
-          }
-        />
-        <DashboardCard
-          title="P&L"
-          value={`${totalProfitLoss >= 0 ? '+' : ''}$${totalProfitLoss.toLocaleString()}`}
-          description="profit and loss of total strategies"
-          icon={
-            <svg
-              xmlns='http://www.w3.org/2000/svg'
-              viewBox='0 0 24 24'
-              fill='none'
-              stroke='currentColor'
-              strokeLinecap='round'
-              strokeLinejoin='round'
-              strokeWidth='2'
-              className='text-muted-foreground size-4'
-            >
-              <path d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2' />
-              <circle cx='9' cy='7' r='4' />
-              <path d='M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75' />
-            </svg>
-          }
-        />
+        
+        
         <DashboardCard
           title="Strategies"
           value={strategies.length.toString()}
@@ -143,6 +105,47 @@ export function OverviewTab({ strategies = [] }: OverviewTabProps) {
             </svg>
           }
         />
+         <DashboardCard
+          title="P&L"
+          value={`${totalProfitLoss >= 0 ? '+' : ''}$${totalProfitLoss.toLocaleString()}`}
+          description="profit and loss of total strategies"
+          icon={
+            <svg
+              xmlns='http://www.w3.org/2000/svg'
+              viewBox='0 0 24 24'
+              fill='none'
+              stroke='currentColor'
+              strokeLinecap='round'
+              strokeLinejoin='round'
+              strokeWidth='2'
+              className='text-muted-foreground size-4'
+            >
+              <path d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2' />
+              <circle cx='9' cy='7' r='4' />
+              <path d='M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75' />
+            </svg>
+          }
+        />
+        <DashboardCard
+          title="APR"
+          value="45.34%"
+          description="Year-to-date annualized return"
+          icon={
+            <svg
+              xmlns='http://www.w3.org/2000/svg'
+              viewBox='0 0 24 24'
+              fill='none'
+              stroke='currentColor'
+              strokeLinecap='round'
+              strokeLinejoin='round'
+              strokeWidth='2'
+              className='text-muted-foreground size-4'
+            >
+              <path d='M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6' />
+            </svg>
+          }
+        />
+       
       </div>
       <div className='grid grid-cols-1 gap-4 lg:grid-cols-7'>
         <Card className='col-span-1 lg:col-span-4'>
