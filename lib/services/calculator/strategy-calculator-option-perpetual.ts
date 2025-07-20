@@ -1,6 +1,6 @@
 import {Trades} from '@/lib/db/schema'
 import { CalculateStrategyMetricsType, StrategyMetricsCalculator } from './strategy-metrics'
-import { priceService } from './price-service'
+import { priceService } from '../price-fetcher/index.server'
 
 export class OptionPerpetualStrategyCalculator implements StrategyMetricsCalculator {
   async calculate(
@@ -15,8 +15,8 @@ export class OptionPerpetualStrategyCalculator implements StrategyMetricsCalcula
       const optionInstrument = await priceService.getOptionInstrument(strategyChat.id);
       const priceData = await priceService.fetchPriceData(strategyChat.baseCurrency, optionInstrument);
       
-      finalCurrencyPrice =  priceData.currencyPrice;
-      finalOptionsPrice =  priceData.optionsPrice;
+      finalCurrencyPrice = priceData.currencyPrice;
+      finalOptionsPrice = priceData.optionsPrice;
     } catch (error) {
       console.warn('Failed to fetch prices:', error);
     }

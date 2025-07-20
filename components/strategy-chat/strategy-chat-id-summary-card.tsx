@@ -6,8 +6,8 @@ import { HelpCircle } from "lucide-react"
 import { useEffect, useState } from "react"
 
 import {StrategyChat as StrategyChatType, Trades} from "@/lib/db/schema"
-import { calculateStrategyMetrics } from "@/lib/services/strategy-metrics-service"
-import { CalculateStrategyMetricsType } from "@/lib/services/strategy-metrics"
+import { calculateStrategyMetrics } from "@/lib/services/calculator/strategy-metrics-service.client"
+import { CalculateStrategyMetricsType } from "@/lib/services/calculator/strategy-metrics"
 
 import {
   Tooltip,

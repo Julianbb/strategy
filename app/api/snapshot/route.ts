@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { calculateStrategyMetrics } from '@/lib/services/strategy-metrics-service';
+import { calculateStrategyMetrics } from '@/lib/services/calculator/strategy-metrics-service';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { strategyChat, trades, strategySnapshot } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
-import { getStrategySnapshots } from '@/lib/db/queries';
+import { getStrategySnapshots, getLatestOptionInstrument } from '@/lib/db/queries';
 
 const client = postgres(process.env.POSTGRES_URL!);
 const db = drizzle(client);

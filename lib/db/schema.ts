@@ -11,6 +11,7 @@ import {
   boolean,
   numeric,
 } from 'drizzle-orm/pg-core';
+import { platform } from 'os';
 
 export const user = pgTable('User', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
@@ -141,6 +142,7 @@ export const trades = pgTable(
     amount: numeric('amount', { precision: 20, scale: 8 }).notNull(),
     feeInCurrency: numeric('feeCurrency', { precision: 20, scale: 8 }),
     feeInUSD: numeric('feeInUSD', { precision: 20, scale: 8 }),
+    //TODO: add platform: varchar('platform', { length: 10 }).notNull(),
     executedAt: timestamp('executedAt').notNull(),
     createdAt: timestamp('createdAt').notNull(),
   }

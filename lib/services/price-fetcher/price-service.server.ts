@@ -1,6 +1,6 @@
 import {convertInstrumentFlexible} from "@/lib/utils"
 import { fetchPrices, fetchSpotPrice } from "@/lib/3party/okxapi"
-import {getLatestOptionInstrument} from "@/lib/db/queries"
+import { getLatestOptionInstrument } from "@/lib/db/queries"
 
 export interface PriceData {
   currencyPrice: number | null;
@@ -9,36 +9,16 @@ export interface PriceData {
   error: string | null;
 }
 
-export class PriceService {
+export class PriceServiceServer {
   async getOptionInstrument(strategyChatId: string): Promise<string | null> {
     try {
-      // Check if we're running on server side (cron jobs) or client side
-      if (typeof window === 'undefined') {
-        // Server-side: use direct database query
-        
-        const instrument = await getLatestOptionInstrument({ strategyChatId });
-        
-        if (instrument) {
-          return convertInstrumentFlexible(instrument);
-        }
-        
-        return null;
-      } else {
-        // Client-side: use API route
-        const response = await fetch(`/api/strategy-chat/${strategyChatId}/option-instrument`);
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        if (data.instrument) {
-          return convertInstrumentFlexible(data.instrument);
-        }
-        
-        return null;
+      const instrument = await getLatestOptionInstrument({ strategyChatId });
+      
+      if (instrument) {
+        return convertInstrumentFlexible(instrument);
       }
+      
+      return null;
     } catch (err) {
       console.error('Error fetching option instrument:', err);
       throw err;
@@ -78,4 +58,4 @@ export class PriceService {
   }
 }
 
-export const priceService = new PriceService();
+export const priceServiceServer = new PriceServiceServer();
