@@ -1,0 +1,1 @@
+ALTER TABLE "Trades" ADD COLUMN "platform" varchar(20) NOT NULL;

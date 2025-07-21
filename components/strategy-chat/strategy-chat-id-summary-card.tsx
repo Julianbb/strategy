@@ -164,7 +164,7 @@ export function StrategyCard({ strategyChat, tradesInCurrentStrategy }: Strategy
         </div>
 
         {/* Chart - Hidden on mobile, shown on larger screens */}
-        <div className="hidden lg:block lg:flex-[1] lg:max-w-md h-full">
+        {/* <div className="hidden lg:block lg:flex-[1] lg:max-w-md h-full">
           <div className="h-full overflow-hidden">
             <DualChartRadial
               total_1={calculatedMetrics.positionSizeOptions ? Number(calculatedMetrics.positionSizeOptions) : 0}
@@ -177,12 +177,12 @@ export function StrategyCard({ strategyChat, tradesInCurrentStrategy }: Strategy
               description_2="Current perpetual position size"
             />
           </div>
-        </div>
+        </div> */}
       </div>
 
 
       {/* Chart - Mobile version, stacked below on small screens */}
-      <div className="lg:hidden mt-6">
+      {/* <div className="lg:hidden mt-6">
         <DualChartRadial
           total_1={calculatedMetrics.positionSizeOptions ? Number(calculatedMetrics.positionSizeOptions) : 0}
           current_1={calculatedMetrics.positionSizeOptions ? Number(calculatedMetrics.positionSizeOptions) : 0}
@@ -193,7 +193,7 @@ export function StrategyCard({ strategyChat, tradesInCurrentStrategy }: Strategy
           title_2="Perpetual"
           description_2="Current perpetual position size"
         />
-      </div>
+      </div> */}
     </div>
 
   )

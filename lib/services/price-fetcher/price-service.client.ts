@@ -1,10 +1,13 @@
 import {convertInstrumentFlexible} from "@/lib/utils"
+import { PlatformType } from "./platforms"
 
 export interface PriceData {
   currencyPrice: number | null;
   optionsPrice: number | null;
   optionInstrument: string | null;
   error: string | null;
+  platform?: string;
+  timestamp?: number;
 }
 
 export class PriceServiceClient {
@@ -29,11 +32,12 @@ export class PriceServiceClient {
     }
   }
 
-  async fetchPriceData(baseCurrency: string, optionInstrument?: string | null): Promise<PriceData> {
+  async fetchPriceData(baseCurrency: string, optionInstrument?: string | null, preferredPlatform?: PlatformType): Promise<PriceData> {
     try {
       const params = new URLSearchParams({
         baseCurrency,
-        ...(optionInstrument && { optionInstrument })
+        ...(optionInstrument && { optionInstrument }),
+        ...(preferredPlatform && { preferredPlatform })
       });
       
       const response = await fetch(`/api/prices?${params}`);
@@ -48,7 +52,9 @@ export class PriceServiceClient {
         currencyPrice: data.currencyPrice,
         optionsPrice: data.optionsPrice,
         optionInstrument: data.optionInstrument,
-        error: data.error
+        error: data.error,
+        platform: data.platform,
+        timestamp: data.timestamp
       };
     } catch (err) {
       console.error('Fetch error:', err);
@@ -56,8 +62,54 @@ export class PriceServiceClient {
         currencyPrice: null,
         optionsPrice: null,
         optionInstrument: optionInstrument || null,
-        error: err instanceof Error ? err.message : 'Failed to fetch prices'
+        error: err instanceof Error ? err.message : 'Failed to fetch prices',
+        timestamp: Date.now()
       };
+    }
+  }
+
+  async getAvailablePlatforms(): Promise<string[]> {
+    try {
+      const response = await fetch('/api/platforms');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (err) {
+      console.error('Error fetching available platforms:', err);
+      return [];
+    }
+  }
+
+  async getHealthyPlatforms(): Promise<string[]> {
+    try {
+      const response = await fetch('/api/platforms/healthy');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (err) {
+      console.error('Error fetching healthy platforms:', err);
+      return [];
+    }
+  }
+
+  async setPrimaryPlatform(platformType: PlatformType): Promise<void> {
+    try {
+      const response = await fetch('/api/platforms/primary', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ platform: platformType }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+    } catch (err) {
+      console.error('Error setting primary platform:', err);
+      throw err;
     }
   }
 }

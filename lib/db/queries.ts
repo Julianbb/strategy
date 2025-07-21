@@ -604,6 +604,7 @@ export async function createTrade({
   amount,
   feeInCurrency,
   feeInUSD,
+  platform,
   executedAt,
 }: {
   strategyChatId: string;
@@ -618,6 +619,7 @@ export async function createTrade({
   amount: string;
   feeInCurrency?: string;
   feeInUSD?: string;
+  platform: string;
   executedAt: Date;
 }) {
   try {
@@ -636,6 +638,7 @@ export async function createTrade({
         amount,
         feeInCurrency: feeInCurrency || null,
         feeInUSD: feeInUSD || null,
+        platform,
         executedAt,
         createdAt: new Date(),
       })
@@ -740,6 +743,7 @@ export async function updateTradeById({
   costInUSD,
   feeInCurrency,
   feeInUSD,
+  platform,
   executedAt,
 }: {
   id: string;
@@ -756,6 +760,7 @@ export async function updateTradeById({
   costInUSD?: string;
   feeInCurrency?: string;
   feeInUSD?: string;
+  platform?: string;
   executedAt?: Date;
 }) {
   try {
@@ -770,6 +775,7 @@ export async function updateTradeById({
     if (amount !== undefined) updateData.amount = amount;
     if (feeInCurrency !== undefined) updateData.feeInCurrency = feeInCurrency;
     if (feeInUSD !== undefined) updateData.feeInUSD = feeInUSD;
+    if (platform !== undefined) updateData.platform = platform;
     if (executedAt !== undefined) updateData.executedAt = executedAt;
 
     const [updatedTrade] = await db

@@ -29,6 +29,13 @@
       "when": 1752834419863,
       "tag": "0003_black_warlock",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1753079168315,
+      "tag": "0004_bumpy_firelord",
+      "breakpoints": true
     }
   ]
 }

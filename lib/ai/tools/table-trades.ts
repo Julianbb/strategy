@@ -23,6 +23,7 @@ export const createTradeWithSession = ({ session, strategyChatId }: CreateTradeP
       amount: z.string().describe('The amount/quantity of the asset traded'),
       feeInCurrency: z.string().optional().describe('The trading fee in the base currency'),
       feeInUSD: z.string().optional().describe('The trading fee converted to USD'),
+      platform: z.string().describe('The trading platform where this trade was executed'),
       executedAt: z.string().describe('The date when the trade was executed, if year not given, please use year 2025'),
     }),
     execute: async ({ 
@@ -36,6 +37,7 @@ export const createTradeWithSession = ({ session, strategyChatId }: CreateTradeP
       amount,
       feeInCurrency,
       feeInUSD,
+      platform,
       executedAt 
     }) => {
       try {
@@ -55,6 +57,7 @@ export const createTradeWithSession = ({ session, strategyChatId }: CreateTradeP
           amount,
           feeInCurrency,
           feeInUSD,
+          platform,
           executedAt: executedDate,
         });
 
@@ -132,6 +135,7 @@ export const updateTradeWithSession = ({ session }: UpdateTradeProps) =>
       amount: z.string().optional().describe('The updated amount/quantity'),
       feeInCurrency: z.string().optional().describe('The updated trading fee in the base currency'),
       feeInUSD: z.string().optional().describe('The updated trading fee converted to USD'),
+      platform: z.string().optional().describe('The updated trading platform'),
       executedAt: z.string().optional().describe('The updated execution timestamp (ISO format)'),
     }),
     execute: async ({ 
@@ -146,6 +150,7 @@ export const updateTradeWithSession = ({ session }: UpdateTradeProps) =>
       amount,
       feeInCurrency,
       feeInUSD,
+      platform,
       executedAt 
     }) => {
       try {
@@ -162,6 +167,7 @@ export const updateTradeWithSession = ({ session }: UpdateTradeProps) =>
           amount,
           feeInCurrency,
           feeInUSD,
+          platform,
           executedAt: executedAt ? new Date(executedAt) : undefined,
         });
 
