@@ -43,8 +43,8 @@ export function StrategyTypeBadges() {
       {strategyTypes.map((strategyType) => (
         <Badge
           key={strategyType.id}
-          variant="secondary"
-          className="cursor-pointer hover:bg-secondary/80 px-2 py-1 h-6 text-xs"
+          variant="default"
+          className="cursor-pointer hover:bg-primary/80 px-2 py-1 h-6 text-xs"
           onClick={() => handleBadgeClick(strategyType)}
         >
           {strategyType.name}

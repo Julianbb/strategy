@@ -122,18 +122,17 @@ export function StrategyTypeActionDialog({
             />
           </div>
           
-          <DialogFooter className={isEditing ? "justify-between" : ""}>
-            {isEditing && onDelete && (
-              <Button 
-                type="button" 
-                variant="destructive" 
-                onClick={onDelete}
-                className="mr-auto"
-              >
-                Delete
-              </Button>
-            )}
-            <div className="flex gap-2">
+          <DialogFooter>
+            <div className="flex gap-2 w-full">
+              {isEditing && onDelete && (
+                <Button 
+                  type="button" 
+                  variant="destructive" 
+                  onClick={onDelete}
+                >
+                  Delete
+                </Button>
+              )}
               <Button type="button" variant="outline" onClick={handleCancel}>
                 Cancel
               </Button>
