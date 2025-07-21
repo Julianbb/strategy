@@ -4,11 +4,6 @@ export * from './platform-manager';
 export * from './okx-adapter';
 export * from './binance-adapter';
 
-// Platform instances
-export { OKXAdapter } from './okx-adapter';
-export { BinanceAdapter } from './binance-adapter';
-export { platformManager } from './platform-manager';
-
 // Convenience factory functions
 import { OKXAdapter } from './okx-adapter';
 import { BinanceAdapter } from './binance-adapter';
