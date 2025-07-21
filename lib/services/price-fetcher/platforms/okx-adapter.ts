@@ -33,6 +33,17 @@ interface OKXMarkPriceResponse {
   }>;
 }
 
+interface OKXFundingRateResponse {
+  code: string;
+  msg: string;
+  data: Array<{
+    instId: string;
+    fundingRate: string;
+    nextFundingTime: string;
+    ts: string;
+  }>;
+}
+
 export class OKXAdapter extends BasePlatformAdapter {
   readonly name = 'OKX';
   readonly features: PlatformFeatures = {
@@ -142,7 +153,7 @@ export class OKXAdapter extends BasePlatformAdapter {
   async getFundingRate(instrumentId: string): Promise<number | null> {
     try {
       const url = `${this.baseUrl}/public/funding-rate?instId=${instrumentId}`;
-      const data = await this.makeRequest(url);
+      const data = await this.makeRequest<OKXFundingRateResponse>(url);
       
       if (data?.data?.[0]?.fundingRate) {
         return parseFloat(data.data[0].fundingRate);
