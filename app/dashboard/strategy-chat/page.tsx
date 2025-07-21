@@ -4,6 +4,7 @@ import { Main } from '@/components/settings/main'
 import { columns } from '@/components/strategy-chat/strategy-chat-columns'
 import { StrategyChatPrimaryButtons } from '@/components/strategy-chat/strategy-chat-primary-buttons'
 import { StrategyChatTable } from '@/components/strategy-chat/strategy-chat-table'
+import { StrategyTypeBadges } from '@/components/strategy-chat/strategy-type-badges'
 import { strategyChatListSchema } from '@/components/strategy-chat/schema'
 import { fetcher } from '@/lib/utils'
 import useSWR from 'swr'
@@ -26,6 +27,7 @@ export default function StrategyChatPage() {
             </div>
             <StrategyChatPrimaryButtons />
           </div>
+          <StrategyTypeBadges />
           <div className='-mx-4 flex-1 overflow-auto px-4 py-1 lg:flex-row lg:space-y-0 lg:space-x-12'>
             <div className='flex items-center justify-center h-32'>
               <div className='text-muted-foreground'>Loading strategies...</div>
@@ -50,6 +52,7 @@ export default function StrategyChatPage() {
             </div>
             <StrategyChatPrimaryButtons />
           </div>
+          <StrategyTypeBadges />
           <div className='-mx-4 flex-1 overflow-auto px-4 py-1 lg:flex-row lg:space-y-0 lg:space-x-12'>
             <div className='flex items-center justify-center h-32'>
               <div className='text-destructive'>Error loading strategies</div>
@@ -76,6 +79,7 @@ export default function StrategyChatPage() {
           </div>
           <StrategyChatPrimaryButtons />
         </div>
+        <StrategyTypeBadges />
         <div className='-mx-4 flex-1 overflow-auto px-4 py-1 lg:flex-row lg:space-y-0 lg:space-x-12'>
           <StrategyChatTable data={strategyChatList} columns={columns} />
         </div>

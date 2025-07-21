@@ -1,15 +1,27 @@
 'use client'
 
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useState, useEffect } from 'react'
 import { StrategyChat } from '../schema'
 
-type DialogType = 'create' | 'edit' | 'delete' | 'navigate' | null
+interface StrategyType {
+  id: string
+  name: string
+  description?: string
+  createdAt: string
+}
+
+type DialogType = 'create' | 'edit' | 'delete' | 'navigate' | 'strategy-type-create' | 'strategy-type-edit' | 'strategy-type-delete' | null
 
 interface StrategyChatContextType {
   open: DialogType
   setOpen: (open: DialogType) => void
   currentRow: StrategyChat | null
   setCurrentRow: (row: StrategyChat | null) => void
+  strategyTypes: StrategyType[]
+  strategyTypesLoading: boolean
+  currentStrategyType?: StrategyType
+  setCurrentStrategyType: (row?: StrategyType) => void
+  fetchStrategyTypes: () => Promise<void>
 }
 
 const StrategyChatContext = createContext<StrategyChatContextType | undefined>(undefined)
@@ -29,6 +41,27 @@ interface StrategyChatProviderProps {
 export default function StrategyChatProvider({ children }: StrategyChatProviderProps) {
   const [open, setOpen] = useState<DialogType>(null)
   const [currentRow, setCurrentRow] = useState<StrategyChat | null>(null)
+  const [strategyTypes, setStrategyTypes] = useState<StrategyType[]>([])
+  const [strategyTypesLoading, setStrategyTypesLoading] = useState(true)
+  const [currentStrategyType, setCurrentStrategyType] = useState<StrategyType | undefined>()
+
+  const fetchStrategyTypes = async () => {
+    try {
+      const response = await fetch('/api/strategy-types')
+      if (response.ok) {
+        const data = await response.json()
+        setStrategyTypes(data)
+      }
+    } catch (error) {
+      console.error('Error fetching strategy types:', error)
+    } finally {
+      setStrategyTypesLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchStrategyTypes()
+  }, [])
 
   return (
     <StrategyChatContext.Provider
@@ -37,6 +70,11 @@ export default function StrategyChatProvider({ children }: StrategyChatProviderP
         setOpen,
         currentRow,
         setCurrentRow,
+        strategyTypes,
+        strategyTypesLoading,
+        currentStrategyType,
+        setCurrentStrategyType,
+        fetchStrategyTypes,
       }}
     >
       {children}
