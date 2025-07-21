@@ -86,25 +86,7 @@ export function OverviewTab({ strategies = [] }: OverviewTabProps) {
             </svg>
           }
         />
-        <DashboardCard
-          title="Active Now"
-          value={activeStrategiesCount.toString()}
-          description="Currently active strategies"
-          icon={
-            <svg
-              xmlns='http://www.w3.org/2000/svg'
-              viewBox='0 0 24 24'
-              fill='none'
-              stroke='currentColor'
-              strokeLinecap='round'
-              strokeLinejoin='round'
-              strokeWidth='2'
-              className='text-muted-foreground size-4'
-            >
-              <path d='M22 12h-4l-3 9L9 3l-3 9H2' />
-            </svg>
-          }
-        />
+        
          <DashboardCard
           title="P&L"
           value={`${totalProfitLoss >= 0 ? '+' : ''}$${totalProfitLoss.toLocaleString()}`}
@@ -142,6 +124,26 @@ export function OverviewTab({ strategies = [] }: OverviewTabProps) {
               className='text-muted-foreground size-4'
             >
               <path d='M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6' />
+            </svg>
+          }
+        />
+
+        <DashboardCard
+          title="Leverage Ratio"
+          value={activeStrategiesCount.toString()}
+          description="Currently active strategies"
+          icon={
+            <svg
+              xmlns='http://www.w3.org/2000/svg'
+              viewBox='0 0 24 24'
+              fill='none'
+              stroke='currentColor'
+              strokeLinecap='round'
+              strokeLinejoin='round'
+              strokeWidth='2'
+              className='text-muted-foreground size-4'
+            >
+              <path d='M22 12h-4l-3 9L9 3l-3 9H2' />
             </svg>
           }
         />

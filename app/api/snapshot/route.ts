@@ -51,16 +51,13 @@ export async function GET(request: NextRequest) {
 
 export async function POST() {
   try {
-    console.log('Starting strategy snapshot creation...');
-    
+
     // Get only active strategies to avoid unnecessary snapshots
     const activeStrategies = await db
       .select()
       .from(strategyChat)
       .where(eq(strategyChat.status, 'active'));
       
-    console.log(`Found ${activeStrategies.length} active strategies`);
-
     const results = [];
     
     for (const strategy of activeStrategies) {
