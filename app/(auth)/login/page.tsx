@@ -116,7 +116,10 @@ export default function Page() {
                 <Button 
                   variant="outline" 
                   className="w-full"
-                  onClick={() => signIn('google', { callbackUrl: '/' })}
+                  onClick={() => signIn('google', { 
+                    callbackUrl: '/',
+                    prompt: 'select_account'
+                  })}
                 >
                   Login with Google
                 </Button>
