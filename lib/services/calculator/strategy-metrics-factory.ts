@@ -10,6 +10,7 @@ export class StrategyMetricsFactory implements StrategyMetricsCalculatorFactory 
     this.calculators.set('ce85531b-0ba3-457d-af67-085fb91ef84b', new OptionPerpetualStrategyCalculator());
     this.calculators.set('2755bf2c-9ff7-4390-a1ff-004db8e1de2c', new OptionPerpetualStrategyCalculator());
     this.calculators.set('08a003df-1efd-420c-abab-473947af6400', new OptionPerpetualStrategyCalculator());
+    this.calculators.set('08be40dd-4413-43e4-9ea3-8935f0847280', new OptionPerpetualStrategyCalculator());
     this.calculators.set('8683a2b1-af60-4f67-8aaf-8935e6692a26', new FundingRateStrategyCalculator());
   }
 
