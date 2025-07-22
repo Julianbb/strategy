@@ -17,7 +17,7 @@ const constructChartData = (strategies: StrategyChat[]) => {
   
   strategies.forEach(strategy => {
     const createdMonth = new Date(strategy.startedAt).getMonth();
-    const profitAndLoss = strategy.profit_loss ? Number(strategy.profit_loss) : 0;
+    const profitAndLoss = strategy.last_profit_loss ? Number(strategy.last_profit_loss) : 0;
     monthlyData[createdMonth].total += profitAndLoss;
   });
   
@@ -54,7 +54,7 @@ export function OverviewTab({ strategies = [] }: OverviewTabProps) {
   
   // Calculate total P&L from all strategies
   const totalProfitLoss = strategies.reduce((sum, strategy) => {
-    const profitLoss = strategy.profit_loss ? Number(strategy.profit_loss) : 0;
+    const profitLoss = strategy.last_profit_loss ? Number(strategy.last_profit_loss) : 0;
     return sum + profitLoss;
   }, 0);
   

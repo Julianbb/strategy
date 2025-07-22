@@ -24,6 +24,7 @@ export interface IPlatformAdapter {
   
   fetchSpotPrice(baseCurrency: string, quoteCurrency?: string): Promise<number | null>;
   fetchOptionPrice?(instrumentId: string): Promise<number | null>;
+  fetchMultipleOptionPrices?(instrumentIds: string[]): Promise<Record<string, number | null>>;
   fetchPrices(baseCurrency: string, optionInstrument?: string): Promise<PlatformPriceData>;
   
   // Additional platform-specific methods

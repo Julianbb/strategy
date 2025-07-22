@@ -1,50 +1,56 @@
 import {Trades} from '@/lib/db/schema'
 import { CalculateStrategyMetricsType, StrategyMetricsCalculator } from './strategy-metrics'
 import { priceService } from '../price-fetcher/index.server'
+import { PlatformType } from '../price-fetcher/platforms/types'
+import { OptionPortfolioCalculator, OptionTrade, SimplePerpetualCalculator, PerpetualTrade } from './tools'
 
 export class OptionPerpetualStrategyCalculator implements StrategyMetricsCalculator {
   async calculate(
     strategyChat: any,
     tradesInCurrentStrategy?: Trades[]
   ): Promise<CalculateStrategyMetricsType> {
+
     // Fetch prices if not provided
     let finalCurrencyPrice = null;
-    let finalOptionsPrice = null;
-    
-    try {
-      const optionInstrument = await priceService.getOptionInstrument(strategyChat.id);
-      const priceData = await priceService.fetchPriceData(strategyChat.baseCurrency, optionInstrument);
-      
-      finalCurrencyPrice = priceData.currencyPrice;
-      finalOptionsPrice = priceData.optionsPrice;
-    } catch (error) {
-      console.warn('Failed to fetch prices:', error);
+    // If strategy is completed or stopped, use last known price from strategyChat
+    if (strategyChat.status === 'completed' || strategyChat.status === 'stopped') {
+      finalCurrencyPrice = strategyChat.lastBaseCurrencyPrice;
     }
-  
+    else{
+      // const optionInstrument = await priceService.getOptionInstrument(strategyChat.id);
+      const priceData = await priceService.fetchPriceData(PlatformType.OKX, strategyChat.baseCurrency);
+      finalCurrencyPrice = priceData.currencyPrice;
+    }
 
     const allocation = this.calculateAllocation(strategyChat, finalCurrencyPrice);
-    const { totalFee, totalFee_Currency, totalFee_USD } = this.calculateFees(tradesInCurrentStrategy, finalCurrencyPrice);
-    const currentValue = this.calculateCurrentValue(tradesInCurrentStrategy, finalCurrencyPrice, finalOptionsPrice, allocation);
-    const profitLoss = currentValue - allocation;
-    const apr = this.calculateAPR(strategyChat, allocation, profitLoss);
-    const positionSizeOptions = this.calculatePositionSizeOptions(tradesInCurrentStrategy);
-    const positionSizePerpetual = this.calculatePositionSizePerpetual(tradesInCurrentStrategy);
-
     const daysSinceStarted = this.calculateDaysSinceStarted(strategyChat);
+    
+    // Use new calculation tools for P&L and fees
+    const { totalPL, totalFees } = await this.calculateValueWithTools(
+      tradesInCurrentStrategy, 
+      finalCurrencyPrice || 0
+    );
+    
+    const profitLoss = totalPL - totalFees;
+    const apr = this.calculateAPR(strategyChat, allocation, profitLoss, finalCurrencyPrice || 0);
+      
 
     return {
       allocationInUSD: allocation,
-      totalFeeInUSD: totalFee,
-      totalFee_Currency: totalFee_Currency,
-      totalFee_USD: totalFee_USD,
-      currentValueInUSD: currentValue,
+      totalFeeInUSD: totalFees,
+      currentValueInUSD: profitLoss + allocation, // Add initial allocation
       profitLossInUSD: profitLoss,
       apr,
-      positionSizeOptions,
-      positionSizePerpetual,
       daysSinceStarted,
     };
   }
+
+
+    
+ 
+
+   
+  
 
   private calculateAllocation(strategyChat: any, currencyPrice: number | null): number {
     const currencyValue = (currencyPrice && strategyChat.initialCapital_Currency) 
@@ -54,89 +60,9 @@ export class OptionPerpetualStrategyCalculator implements StrategyMetricsCalcula
     return currencyValue + usdValue;
   }
 
-  private calculateFees(tradesInCurrentStrategy?: Trades[], currencyPrice?: number | null) {
-    if (!tradesInCurrentStrategy || tradesInCurrentStrategy.length === 0) {
-      return { totalFee: 0, totalFee_Currency: 0, totalFee_USD: 0 };
-    }
-    
-    let feeInCurrency = 0;
-    let feeInUSD = 0;
-    
-    for (const trade of tradesInCurrentStrategy) {
-      if (trade.feeInCurrency) {
-        feeInCurrency += Number(trade.feeInCurrency);
-      }
-      if (trade.feeInUSD) {
-        feeInUSD += Number(trade.feeInUSD);
-      }
-    }
-    
-    const totalFeeInUSD = feeInUSD + (currencyPrice ? feeInCurrency * currencyPrice : 0);
-    
-    return {
-      totalFee: totalFeeInUSD,
-      totalFee_Currency: feeInCurrency,
-      totalFee_USD: feeInUSD
-    };
-  }
 
-  private calculateCurrentValue(
-    tradesInCurrentStrategy?: Trades[],
-    currencyPrice?: number | null,
-    optionsPrice?: number | null,
-    allocation?: number
-  ): number {
-    if (!tradesInCurrentStrategy || tradesInCurrentStrategy.length === 0) {
-      return allocation || 0;
-    }
-
-    const positions: Record<string, { totalAmount: number; totalCost: number; avgPrice: number }> = {};
-    
-    for (const trade of tradesInCurrentStrategy) {
-      const key = `${trade.productType}-${trade.side}`;
-      
-      if (!positions[key]) {
-        positions[key] = { totalAmount: 0, totalCost: 0, avgPrice: 0 };
-      }
-      
-      const amount = Number(trade.amount);
-      const price = trade.priceInUSD ? Number(trade.priceInUSD) : 
-                   (trade.priceInCurrency && currencyPrice ? Number(trade.priceInCurrency) * currencyPrice : 0);
-      
-      positions[key].totalAmount += trade.side === 'buy' ? amount : -amount;
-      positions[key].totalCost += trade.side === 'buy' ? (price * amount) : -(price * amount);
-      
-      if (positions[key].totalAmount !== 0) {
-        positions[key].avgPrice = Math.abs(positions[key].totalCost / positions[key].totalAmount);
-      }
-    }
-
-    let totalPnL = 0;
-    
-    for (const [key, position] of Object.entries(positions)) {
-      const [productType] = key.split('-');
-      
-      if (position.totalAmount === 0) continue;
-      
-      let currentPrice = 0;
-      if (productType === 'option' && optionsPrice && currencyPrice) {
-        currentPrice = optionsPrice * currencyPrice;
-      } else if (productType === 'perpetual' && currencyPrice) {
-        currentPrice = currencyPrice;
-      } else if (productType === 'spot' && currencyPrice) {
-        currentPrice = currencyPrice;
-      }
-      
-      if (currentPrice > 0) {
-        const currentValue = position.totalAmount * currentPrice;
-        const costBasis = position.totalAmount * position.avgPrice;
-        totalPnL += currentValue - costBasis;
-      }
-    }
-    return (allocation || 0) + totalPnL;
-  }
-
-  private calculateAPR(strategyChat: any, allocation: number, profitLoss: number): number {
+  // 剔除ETH价格波动的影响，突出策略本身的表现
+  private calculateAPR(strategyChat: any, allocation: number, profitLoss: number, currentPrice: number): number {
     if (!allocation || !strategyChat.startedAt) {
       return 0;
     }
@@ -147,43 +73,32 @@ export class OptionPerpetualStrategyCalculator implements StrategyMetricsCalcula
     const daysDiff = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24);
     const yearsDiff = daysDiff / 365.25;
     
-    if (allocation <= 0) {
+    if (allocation <= 0 || daysDiff <= 0) {
       return 0;
     }
       
     const safeYearsDiff = Math.max(yearsDiff, 1e-8);
+    
+    // 计算总APR
     const totalReturn = profitLoss / allocation;
-    return (totalReturn / safeYearsDiff) * 100;
+    const totalAPR = (totalReturn / safeYearsDiff) * 100;
+    
+    // 计算基准收益率（ETH价格波动）
+    const initialPrice = strategyChat.initialBaseCurrencyPrice;
+    const finalPrice = currentPrice;
+    
+    if (initialPrice && finalPrice && initialPrice > 0) {
+      const priceRatio = finalPrice / initialPrice;
+      const benchmarkReturn = Math.pow(priceRatio, 365 / daysDiff) - 1;
+      const benchmarkAPR = benchmarkReturn * 100;
+      
+      // 最终策略APR = 总APR - 基准收益率
+      return totalAPR - benchmarkAPR;
+    }
+    
+    return totalAPR;
   }
 
-  private calculatePositionSizeOptions(tradesInCurrentStrategy?: Trades[]): number {
-    if (!tradesInCurrentStrategy || tradesInCurrentStrategy.length === 0) {
-      return 0;
-    }
-    
-    const optionTrades = tradesInCurrentStrategy.filter(trade => trade.productType === 'option');
-    if (optionTrades.length === 0) {
-      return 0;
-    }
-    
-    const firstOptionSide = optionTrades[0].side;
-    return optionTrades
-      .filter(trade => trade.side === firstOptionSide)
-      .reduce((total, trade) => total + Number(trade.amount), 0);
-  }
-
-  private calculatePositionSizePerpetual(tradesInCurrentStrategy?: Trades[]): number {
-    if (!tradesInCurrentStrategy || tradesInCurrentStrategy.length === 0) {
-      return 0;
-    }
-    
-    return tradesInCurrentStrategy
-      .filter(trade => trade.productType === 'perpetual')
-      .reduce((total, trade) => {
-        const amount = Number(trade.amount);
-        return total + (trade.side === 'buy' ? amount : -amount);
-      }, 0);
-  }
 
   private calculateDaysSinceStarted(strategyChat: any): number {
     const startTime = new Date(strategyChat.startedAt).getTime();
@@ -191,5 +106,75 @@ export class OptionPerpetualStrategyCalculator implements StrategyMetricsCalcula
       ? new Date(strategyChat.endedAt).getTime()
       : new Date().getTime();
     return Math.floor((endTime - startTime) / (1000 * 60 * 60 * 24));
+  }
+
+  // 使用新的计算工具计算价值和手续费
+  private async calculateValueWithTools(
+    tradesInCurrentStrategy?: Trades[],
+    currentPrice: number = 0
+  ): Promise<{ totalPL: number; totalFees: number }> {
+    if (!tradesInCurrentStrategy || tradesInCurrentStrategy.length === 0 || currentPrice <= 0) {
+      return { totalPL: 0, totalFees: 0 };
+    }
+
+    let totalPnL = 0;
+    let totalFees = 0;
+
+    // 分离期权和永续合约交易
+    const optionTrades: OptionTrade[] = [];
+    const perpetualTrades: PerpetualTrade[] = [];
+
+    for (const trade of tradesInCurrentStrategy) {
+      if (trade.productType === 'option' && trade.optionType) {
+        // 转换为期权交易格式 - 注意：需要从产品名称或其他字段获取执行价和到期日
+        // 这里假设product字段包含期权信息，实际使用时需要根据具体格式调整
+        const [, strikeStr, expiryStr] = trade.product.match(/(\d+)-(.+)/) || ['', '0', '2024-12-31'];
+        
+        optionTrades.push({
+          type: trade.optionType as 'call' | 'put',
+          direction: trade.side as 'buy' | 'sell',
+          quantity: Number(trade.amount),
+          strike: Number(strikeStr || 3000), // 默认执行价
+          expiry: expiryStr || '2024-12-31', // 默认到期日
+          premium: trade.priceInCurrency ? Number(trade.priceInCurrency) : 0,
+          tradeDate: trade.createdAt?.toISOString(),
+          fee: trade.feeInCurrency ? Number(trade.feeInCurrency) : 0
+        });
+      } else if (trade.productType === 'perpetual' || trade.productType === 'spot') {
+        // 转换为永续合约交易格式
+        perpetualTrades.push({
+          direction: trade.side === 'buy' ? 'long' : 'short',
+          size: Number(trade.amount),
+          entryPrice: trade.priceInUSD ? Number(trade.priceInUSD) : 
+                     (trade.priceInCurrency ? Number(trade.priceInCurrency) * currentPrice : 0),
+          fee: trade.feeInUSD ? Number(trade.feeInUSD) : 
+               (trade.feeInCurrency ? Number(trade.feeInCurrency) * currentPrice : 0),
+          tradeDate: trade.createdAt?.toISOString()
+        });
+      }
+    }
+
+    // 计算期权P&L
+    if (optionTrades.length > 0) {
+      // 从strategyChat获取基础货币，默认为ETH
+      const baseCurrency = tradesInCurrentStrategy?.[0]?.product?.split('-')?.[0] || 'ETH';
+      const optionCalculator = new OptionPortfolioCalculator(currentPrice, baseCurrency);
+      const optionSummary = await optionCalculator.calculatePortfolioValue(optionTrades);
+      totalPnL += optionSummary.totalPnlUsdt; // P&L未扣除手续费
+      totalFees += optionSummary.totalFeesUsdt;
+    }
+
+    // 计算永续合约P&L
+    if (perpetualTrades.length > 0) {
+      const perpetualCalculator = new SimplePerpetualCalculator(currentPrice);
+      const perpetualSummary = perpetualCalculator.calculatePortfolioValue(perpetualTrades);
+      totalPnL += perpetualSummary.totalUnrealizedPnl; // P&L未扣除手续费
+      totalFees += perpetualSummary.totalFees;
+    }
+
+    return {
+      totalPL: totalPnL, // 返回的是净P&L，不包括初始投资
+      totalFees
+    };
   }
 }

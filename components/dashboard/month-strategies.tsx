@@ -79,7 +79,7 @@ export function MonthStrategies({ strategies }: MonthStrategiesProps) {
               </p>
             </div>
             <div className='font-medium text-xs md:text-sm text-right shrink-0'>
-              {strategy.profit_loss ? `$${Number(strategy.profit_loss).toLocaleString()}` : 'N/A'}
+              {strategy.last_profit_loss ? `$${Number(strategy.last_profit_loss).toLocaleString()}` : 'N/A'}
             </div>
           </div>
         )

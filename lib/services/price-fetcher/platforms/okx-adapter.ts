@@ -94,6 +94,42 @@ export class OKXAdapter extends BasePlatformAdapter {
     }
   }
 
+  async fetchMultipleOptionPrices(instrumentIds: string[]): Promise<Record<string, number | null>> {
+    try {
+      // OKX API supports comma-separated instrument IDs
+      const instIdParam = instrumentIds.join(',');
+      const url = `${this.baseUrl}/public/mark-price?instType=OPTION&instId=${instIdParam}`;
+      
+      const data = await this.makeRequest<OKXMarkPriceResponse>(url);
+      
+      const result: Record<string, number | null> = {};
+      
+      // Initialize all instruments with null
+      instrumentIds.forEach(id => {
+        result[id] = null;
+      });
+      
+      // Fill in the prices we received
+      if (data?.data) {
+        data.data.forEach(item => {
+          if (item.instId && item.markPx) {
+            result[item.instId] = parseFloat(item.markPx);
+          }
+        });
+      }
+      
+      return result;
+    } catch (error) {
+      console.error('Error fetching multiple option prices:', error);
+      // Return null for all instruments on error
+      const result: Record<string, number | null> = {};
+      instrumentIds.forEach(id => {
+        result[id] = null;
+      });
+      return result;
+    }
+  }
+
   async fetchPrices(baseCurrency: string, optionInstrument?: string): Promise<PlatformPriceData> {
     try {
       const promises: Promise<number | null>[] = [this.fetchSpotPrice(baseCurrency)];

@@ -10,6 +10,13 @@ export interface PriceData {
   timestamp?: number;
 }
 
+export interface MultipleOptionsPriceData {
+  prices: Record<string, number | null>; // instrumentId -> price
+  error: string | null;
+  platform?: string;
+  timestamp?: number;
+}
+
 export class PriceServiceClient {
   async getOptionInstrument(strategyChatId: string): Promise<string | null> {
     try {
@@ -110,6 +117,40 @@ export class PriceServiceClient {
     } catch (err) {
       console.error('Error setting primary platform:', err);
       throw err;
+    }
+  }
+
+  async fetchMultipleOptionsPrices(
+    instrumentIds: string[], 
+    preferredPlatform?: PlatformType
+  ): Promise<MultipleOptionsPriceData> {
+    try {
+      const params = new URLSearchParams({
+        instrumentIds: instrumentIds.join(','),
+        ...(preferredPlatform && { preferredPlatform })
+      });
+      
+      const response = await fetch(`/api/prices/options/multiple?${params}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      return {
+        prices: data.prices,
+        error: data.error,
+        platform: data.platform,
+        timestamp: data.timestamp
+      };
+    } catch (err) {
+      console.error('Fetch multiple options error:', err);
+      return {
+        prices: instrumentIds.reduce((acc, id) => ({ ...acc, [id]: null }), {}),
+        error: err instanceof Error ? err.message : 'Failed to fetch option prices',
+        timestamp: Date.now()
+      };
     }
   }
 }

@@ -3,13 +3,9 @@ import {Trades} from '@/lib/db/schema'
 export interface CalculateStrategyMetricsType{
   allocationInUSD: number;
   totalFeeInUSD: number;
-  totalFee_Currency:number;
-  totalFee_USD:number;
   currentValueInUSD: number;
   profitLossInUSD: number;
   apr: number;
-  positionSizeOptions: number;
-  positionSizePerpetual: number;
   daysSinceStarted: number;
 }
 

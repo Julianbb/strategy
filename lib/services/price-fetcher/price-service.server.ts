@@ -11,6 +11,13 @@ export interface PriceData {
   timestamp?: number;
 }
 
+export interface MultipleOptionsPriceData {
+  prices: Record<string, number | null>; // instrumentId -> price
+  error: string | null;
+  platform?: string;
+  timestamp?: number;
+}
+
 export class PriceServiceServer {
   constructor() {
     // Initialize platforms on service creation
@@ -32,10 +39,16 @@ export class PriceServiceServer {
     }
   }
 
+
+
+  
+
+
+
   async fetchPriceData(
+    preferredPlatform: PlatformType,
     baseCurrency: string, 
-    optionInstrument?: string | null,
-    preferredPlatform?: PlatformType
+    optionInstrument?: string | null
   ): Promise<PriceData> {
     try {
       // Get platform with fallback mechanism
@@ -91,6 +104,70 @@ export class PriceServiceServer {
 
   async setPrimaryPlatform(platformType: PlatformType): Promise<void> {
     platformManager.setPrimaryPlatform(platformType);
+  }
+
+  async fetchMultipleOptionsPrices(
+    instrumentIds: string[], 
+    preferredPlatform: PlatformType = PlatformType.OKX
+  ): Promise<MultipleOptionsPriceData> {
+    try {
+      // Get platform with fallback mechanism
+      const platform = await platformManager.getPlatformWithFallback(preferredPlatform);
+      
+      if (!platform) {
+        return {
+          prices: instrumentIds.reduce((acc, id) => ({ ...acc, [id]: null }), {}),
+          error: 'No healthy platforms available',
+          timestamp: Date.now()
+        };
+      }
+
+      // Check if platform supports options
+      if (!platform.features.supportsOptionPrices) {
+        return {
+          prices: instrumentIds.reduce((acc, id) => ({ ...acc, [id]: null }), {}),
+          error: `Platform ${platform.name} does not support options`,
+          timestamp: Date.now()
+        };
+      }
+
+      // Check if platform supports batch option price fetching
+      if (!platform.fetchMultipleOptionPrices) {
+        // Fallback to individual requests
+        const prices: Record<string, number | null> = {};
+        const promises = instrumentIds.map(async (id) => {
+          const price = platform.fetchOptionPrice ? await platform.fetchOptionPrice(id) : null;
+          prices[id] = price;
+        });
+        
+        await Promise.all(promises);
+        
+        return {
+          prices,
+          error: null,
+          platform: platform.name,
+          timestamp: Date.now()
+        };
+      }
+
+      // Use batch method if available
+      const prices = await platform.fetchMultipleOptionPrices(instrumentIds);
+      
+      return {
+        prices,
+        error: null,
+        platform: platform.name,
+        timestamp: Date.now()
+      };
+      
+    } catch (err) {
+      console.error('Fetch multiple options error:', err);
+      return {
+        prices: instrumentIds.reduce((acc, id) => ({ ...acc, [id]: null }), {}),
+        error: err instanceof Error ? err.message : 'Failed to fetch option prices',
+        timestamp: Date.now()
+      };
+    }
   }
 }
 

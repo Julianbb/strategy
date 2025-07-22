@@ -36,6 +36,13 @@
       "when": 1753079168315,
       "tag": "0004_bumpy_firelord",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1753109540194,
+      "tag": "0005_last_thunderball",
+      "breakpoints": true
     }
   ]
 }

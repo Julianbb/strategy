@@ -90,8 +90,7 @@ export function StrategyCard({ strategyChat, tradesInCurrentStrategy }: Strategy
       value: `$${calculatedMetrics.totalFeeInUSD.toLocaleString(undefined, { maximumFractionDigits: 0 })}`,
       isToolTipNeed: true,
       tipMessage: "Total cost including fees and initial investment (updated with live price)",
-      currency: `${calculatedMetrics.totalFee_Currency.toLocaleString(undefined, { maximumFractionDigits: 6 })} ${strategyChat.baseCurrency}`,
-      usd: `$${calculatedMetrics.totalFee_USD.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
+      
     },
     {
       title: "Current Value",

@@ -33,8 +33,8 @@ export async function calculateStrategyMetrics(
       currentValueInUSD: 0,
       profitLossInUSD: 0,
       apr: 0,
-      positionSizeOptions: 0,
-      positionSizePerpetual: 0,
+      // positionSizeOptions: 0,
+      // positionSizePerpetual: 0,
       daysSinceStarted: 0,
     };
   }
