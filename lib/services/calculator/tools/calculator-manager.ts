@@ -1,5 +1,6 @@
 import { OptionPortfolioCalculator, type OptionTrade, type PortfolioSummary } from './options';
 import { SimplePerpetualCalculator, type PerpetualTrade, type PerpetualPortfolioSummary } from './perpetual';
+import { PlatformType } from '../../price-fetcher/platforms/types';
 
 // 统一的计算器类型
 export type CalculatorType = 'options' | 'perpetual';
@@ -13,7 +14,9 @@ export type UnifiedPortfolioSummary = PortfolioSummary | PerpetualPortfolioSumma
 // 计算器配置
 export interface CalculatorConfig {
   spotPrice: number;
+  baseCurrency?: string;
   currentDate?: Date;
+  preferredPlatform?: PlatformType;
 }
 
 // 计算器管理器接口
@@ -32,13 +35,22 @@ export class CalculatorManager implements ICalculatorManager {
   private perpetualCalculator: SimplePerpetualCalculator;
   private currentPrice: number;
   private currentDate: Date;
+  private baseCurrency: string;
+  private preferredPlatform: PlatformType;
 
   constructor(config: CalculatorConfig) {
     this.currentPrice = config.spotPrice;
     this.currentDate = config.currentDate || new Date();
+    this.baseCurrency = config.baseCurrency || 'ETH';
+    this.preferredPlatform = config.preferredPlatform || PlatformType.OKX;
     
     // 初始化计算器
-    this.optionsCalculator = new OptionPortfolioCalculator(this.currentPrice, this.currentDate);
+    this.optionsCalculator = new OptionPortfolioCalculator(
+      this.currentPrice, 
+      this.baseCurrency, 
+      this.currentDate,
+      this.preferredPlatform
+    );
     this.perpetualCalculator = new SimplePerpetualCalculator(this.currentPrice);
   }
 
@@ -79,9 +91,7 @@ export class CalculatorManager implements ICalculatorManager {
   updatePrice(newPrice: number): void {
     this.currentPrice = newPrice;
     this.perpetualCalculator.updatePrice(newPrice);
-    
-    // 期权计算器需要重新创建实例来更新价格
-    this.optionsCalculator = new OptionPortfolioCalculator(newPrice, this.currentDate);
+    this.optionsCalculator.updateSpotPrice(newPrice);
   }
 
   /**
@@ -112,6 +122,59 @@ export class CalculatorManager implements ICalculatorManager {
   updatePriceAndDate(newPrice: number, newDate: Date): void {
     this.updatePrice(newPrice);
     this.updateDate(newDate);
+  }
+
+  /**
+   * 更新基础货币
+   */
+  updateBaseCurrency(newBaseCurrency: string): void {
+    this.baseCurrency = newBaseCurrency;
+    this.optionsCalculator.updateBaseCurrency(newBaseCurrency);
+  }
+
+  /**
+   * 更新首选平台
+   */
+  updatePreferredPlatform(newPlatform: PlatformType): void {
+    this.preferredPlatform = newPlatform;
+    this.optionsCalculator.updatePreferredPlatform(newPlatform);
+  }
+
+  /**
+   * 根据交易类型自动分组计算
+   */
+  async calculateMixedPortfolio(trades: UnifiedTrade[]): Promise<{
+    optionSummary?: PortfolioSummary;
+    perpetualSummary?: PerpetualPortfolioSummary;
+    totalPnL: number;
+    totalFees: number;
+  }> {
+    const optionTrades = trades.filter(isOptionTrade);
+    const perpetualTrades = trades.filter(isPerpetualTrade);
+
+    let optionSummary: PortfolioSummary | undefined;
+    let perpetualSummary: PerpetualPortfolioSummary | undefined;
+
+    // 计算期权部分
+    if (optionTrades.length > 0) {
+      optionSummary = await this.optionsCalculator.calculatePortfolioValue(optionTrades);
+    }
+
+    // 计算永续合约部分
+    if (perpetualTrades.length > 0) {
+      perpetualSummary = this.perpetualCalculator.calculatePortfolioValue(perpetualTrades);
+    }
+
+    // 合并总计
+    const totalPnL = (optionSummary?.totalPnlUsdt || 0) + (perpetualSummary?.totalUnrealizedPnl || 0);
+    const totalFees = (optionSummary?.totalFeesUsdt || 0) + (perpetualSummary?.totalFees || 0);
+
+    return {
+      optionSummary,
+      perpetualSummary,
+      totalPnL,
+      totalFees
+    };
   }
 }
 

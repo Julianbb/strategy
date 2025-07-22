@@ -1,7 +1,12 @@
 import {Trades} from '@/lib/db/schema'
 import { CalculateStrategyMetricsType, StrategyMetricsCalculator } from './strategy-metrics'
 import { priceService } from '@/lib/services/price-fetcher/index.server'
-import { OptionPortfolioCalculator, OptionTrade, SimplePerpetualCalculator, PerpetualTrade } from './tools'
+import { 
+  createCalculatorManager, 
+  type UnifiedTrade, 
+  type OptionTrade, 
+  type PerpetualTrade 
+} from './tools'
 import { PlatformType } from '@/lib/services/price-fetcher/platforms/types'
 
 export class OptionPerpetualStrategyCalculator implements StrategyMetricsCalculator {
@@ -28,7 +33,8 @@ export class OptionPerpetualStrategyCalculator implements StrategyMetricsCalcula
     // Use new calculation tools for P&L and fees
     const { totalPL, totalFees } = await this.calculateValueWithTools(
       tradesInCurrentStrategy, 
-      finalCurrencyPrice || 0
+      finalCurrencyPrice || 0,
+      strategyChat
     );
     
     const profitLoss = totalPL - totalFees;
@@ -108,41 +114,50 @@ export class OptionPerpetualStrategyCalculator implements StrategyMetricsCalcula
     return Math.floor((endTime - startTime) / (1000 * 60 * 60 * 24));
   }
 
-  // 使用新的计算工具计算价值和手续费
+  // 使用计算器管理器计算价值和手续费
   private async calculateValueWithTools(
     tradesInCurrentStrategy?: Trades[],
-    currentPrice: number = 0
+    currentPrice: number = 0,
+    strategyChat?: any
   ): Promise<{ totalPL: number; totalFees: number }> {
     if (!tradesInCurrentStrategy || tradesInCurrentStrategy.length === 0 || currentPrice <= 0) {
       return { totalPL: 0, totalFees: 0 };
     }
 
-    let totalPnL = 0;
-    let totalFees = 0;
+    // 从strategyChat或交易数据获取基础货币
+    const baseCurrency = strategyChat?.baseCurrency || 
+                        tradesInCurrentStrategy[0]?.product?.split('-')?.[0] || 
+                        'ETH';
 
-    // 分离期权和永续合约交易
-    const optionTrades: OptionTrade[] = [];
-    const perpetualTrades: PerpetualTrade[] = [];
+    // 创建计算器管理器
+    const calculatorManager = createCalculatorManager({
+      spotPrice: currentPrice,
+      baseCurrency,
+      currentDate: new Date(),
+      preferredPlatform: PlatformType.OKX
+    });
+
+    // 转换交易数据为统一格式
+    const unifiedTrades: UnifiedTrade[] = [];
 
     for (const trade of tradesInCurrentStrategy) {
       if (trade.productType === 'option' && trade.optionType) {
-        // 转换为期权交易格式 - 注意：需要从产品名称或其他字段获取执行价和到期日
-        // 这里假设product字段包含期权信息，实际使用时需要根据具体格式调整
+        // 转换为期权交易格式
         const [, strikeStr, expiryStr] = trade.product.match(/(\d+)-(.+)/) || ['', '0', '2024-12-31'];
         
-        optionTrades.push({
+        unifiedTrades.push({
           type: trade.optionType as 'call' | 'put',
           direction: trade.side as 'buy' | 'sell',
           quantity: Number(trade.amount),
-          strike: Number(strikeStr || 3000), // 默认执行价
-          expiry: expiryStr || '2024-12-31', // 默认到期日
+          strike: Number(strikeStr || 3000),
+          expiry: expiryStr || '2024-12-31',
           premium: trade.priceInCurrency ? Number(trade.priceInCurrency) : 0,
           tradeDate: trade.createdAt?.toISOString(),
           fee: trade.feeInCurrency ? Number(trade.feeInCurrency) : 0
-        });
+        } as OptionTrade);
       } else if (trade.productType === 'perpetual' || trade.productType === 'spot') {
         // 转换为永续合约交易格式
-        perpetualTrades.push({
+        unifiedTrades.push({
           direction: trade.side === 'buy' ? 'long' : 'short',
           size: Number(trade.amount),
           entryPrice: trade.priceInUSD ? Number(trade.priceInUSD) : 
@@ -150,31 +165,16 @@ export class OptionPerpetualStrategyCalculator implements StrategyMetricsCalcula
           fee: trade.feeInUSD ? Number(trade.feeInUSD) : 
                (trade.feeInCurrency ? Number(trade.feeInCurrency) * currentPrice : 0),
           tradeDate: trade.createdAt?.toISOString()
-        });
+        } as PerpetualTrade);
       }
     }
 
-    // 计算期权P&L
-    if (optionTrades.length > 0) {
-      // 从strategyChat获取基础货币，默认为ETH
-      const baseCurrency = tradesInCurrentStrategy?.[0]?.product?.split('-')?.[0] || 'ETH';
-      const optionCalculator = new OptionPortfolioCalculator(currentPrice, baseCurrency);
-      const optionSummary = await optionCalculator.calculatePortfolioValue(optionTrades);
-      totalPnL += optionSummary.totalPnlUsdt; // P&L未扣除手续费
-      totalFees += optionSummary.totalFeesUsdt;
-    }
-
-    // 计算永续合约P&L
-    if (perpetualTrades.length > 0) {
-      const perpetualCalculator = new SimplePerpetualCalculator(currentPrice);
-      const perpetualSummary = perpetualCalculator.calculatePortfolioValue(perpetualTrades);
-      totalPnL += perpetualSummary.totalUnrealizedPnl; // P&L未扣除手续费
-      totalFees += perpetualSummary.totalFees;
-    }
+    // 使用计算器管理器批量计算
+    const result = await calculatorManager.calculateMixedPortfolio(unifiedTrades);
 
     return {
-      totalPL: totalPnL, // 返回的是净P&L，不包括初始投资
-      totalFees
+      totalPL: result.totalPnL,
+      totalFees: result.totalFees
     };
   }
 }
