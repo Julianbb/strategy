@@ -1,8 +1,8 @@
 import {Trades} from '@/lib/db/schema'
 import { CalculateStrategyMetricsType, StrategyMetricsCalculator } from './strategy-metrics'
-import { priceService } from '../price-fetcher/index.server'
-import { PlatformType } from '../price-fetcher/platforms/types'
+import { priceService } from '@/lib/services/price-fetcher/index.server'
 import { OptionPortfolioCalculator, OptionTrade, SimplePerpetualCalculator, PerpetualTrade } from './tools'
+import { PlatformType } from '@/lib/services/price-fetcher/platforms/types'
 
 export class OptionPerpetualStrategyCalculator implements StrategyMetricsCalculator {
   async calculate(

@@ -1,5 +1,5 @@
-import { priceService } from '../../price-fetcher/index.server'
-import { PlatformType } from '../../price-fetcher/platforms/types'
+import { priceService } from '@/lib/services/price-fetcher/index.server'
+import { PlatformType } from '@/lib/services/price-fetcher/platforms/types'
 interface OptionTrade {
     id?: string;                    // 交易ID（可选）
     type: 'call' | 'put';          // 期权类型

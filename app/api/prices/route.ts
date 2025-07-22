@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { priceService } from '@/lib/services/price-fetcher/index.server'
+import { PlatformType } from '@/lib/services/price-fetcher/platforms/types'
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,6 +16,7 @@ export async function GET(request: NextRequest) {
     }
 
     const priceData = await priceService.fetchPriceData(
+      PlatformType.OKX,
       baseCurrency,
       optionInstrument
     );
