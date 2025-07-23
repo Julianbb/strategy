@@ -120,6 +120,30 @@ export class PriceServiceClient {
     }
   }
 
+  async fetchOptionExercisePrice(
+    instrumentId: string,
+    preferredPlatform?: PlatformType
+  ): Promise<number | null> {
+    try {
+      const params = new URLSearchParams({
+        instrumentId,
+        ...(preferredPlatform && { preferredPlatform })
+      });
+      
+      const response = await fetch(`/api/prices/options/exercise?${params}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      return data.exercisePrice;
+    } catch (err) {
+      console.error('Error fetching option exercise price:', err);
+      return null;
+    }
+  }
+
   async fetchMultipleOptionsPrices(
     instrumentIds: string[], 
     preferredPlatform?: PlatformType

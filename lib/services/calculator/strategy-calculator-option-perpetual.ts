@@ -29,13 +29,16 @@ export class OptionPerpetualStrategyCalculator implements StrategyMetricsCalcula
 
     const allocation = this.calculateAllocation(strategyChat, finalCurrencyPrice);
     const daysSinceStarted = this.calculateDaysSinceStarted(strategyChat);
-    
+
     // Use new calculation tools for P&L and fees
     const { totalPL, totalFees } = await this.calculateValueWithTools(
       tradesInCurrentStrategy, 
       finalCurrencyPrice || 0,
       strategyChat
     );
+    console.log(totalPL)
+    console.log(totalFees)
+
     
     const profitLoss = totalPL - totalFees;
     const apr = this.calculateAPR(strategyChat, allocation, profitLoss, finalCurrencyPrice || 0);
@@ -107,10 +110,12 @@ export class OptionPerpetualStrategyCalculator implements StrategyMetricsCalcula
 
 
   private calculateDaysSinceStarted(strategyChat: any): number {
+    
     const startTime = new Date(strategyChat.startedAt).getTime();
     const endTime = (strategyChat.status === 'completed' || strategyChat.status === 'stopped') && strategyChat.endedAt
       ? new Date(strategyChat.endedAt).getTime()
       : new Date().getTime();
+
     return Math.floor((endTime - startTime) / (1000 * 60 * 60 * 24));
   }
 
@@ -120,10 +125,12 @@ export class OptionPerpetualStrategyCalculator implements StrategyMetricsCalcula
     currentPrice: number = 0,
     strategyChat?: any
   ): Promise<{ totalPL: number; totalFees: number }> {
+
+
     if (!tradesInCurrentStrategy || tradesInCurrentStrategy.length === 0 || currentPrice <= 0) {
       return { totalPL: 0, totalFees: 0 };
     }
-
+ 
     // 从strategyChat或交易数据获取基础货币
     const baseCurrency = strategyChat?.baseCurrency || 
                         tradesInCurrentStrategy[0]?.product?.split('-')?.[0] || 
@@ -143,16 +150,19 @@ export class OptionPerpetualStrategyCalculator implements StrategyMetricsCalcula
     for (const trade of tradesInCurrentStrategy) {
       if (trade.productType === 'option' && trade.optionType) {
         // 转换为期权交易格式
-        const [, strikeStr, expiryStr] = trade.product.match(/(\d+)-(.+)/) || ['', '0', '2024-12-31'];
+        // Parse ETHUSD-20250722-3600-P format
+        const parts = trade.product.split('-');
+        const expiryStr = parts[1] || '20241231'; // YYYYMMDD format
+        const strikeStr = parts[2] || '3000';
         
         unifiedTrades.push({
           type: trade.optionType as 'call' | 'put',
           direction: trade.side as 'buy' | 'sell',
           quantity: Number(trade.amount),
           strike: Number(strikeStr || 3000),
-          expiry: expiryStr || '2024-12-31',
+          expiry: expiryStr ? `${expiryStr.slice(0,4)}-${expiryStr.slice(4,6)}-${expiryStr.slice(6,8)}` : '2024-12-31',
           premium: trade.priceInCurrency ? Number(trade.priceInCurrency) : 0,
-          tradeDate: trade.createdAt?.toISOString(),
+          tradeDate: trade.createdAt ? new Date(trade.createdAt).toISOString() : new Date().toISOString(),
           fee: trade.feeInCurrency ? Number(trade.feeInCurrency) : 0
         } as OptionTrade);
       } else if (trade.productType === 'perpetual' || trade.productType === 'spot') {
@@ -164,10 +174,11 @@ export class OptionPerpetualStrategyCalculator implements StrategyMetricsCalcula
                      (trade.priceInCurrency ? Number(trade.priceInCurrency) * currentPrice : 0),
           fee: trade.feeInUSD ? Number(trade.feeInUSD) : 
                (trade.feeInCurrency ? Number(trade.feeInCurrency) * currentPrice : 0),
-          tradeDate: trade.createdAt?.toISOString()
+          tradeDate: trade.createdAt ? new Date(trade.createdAt).toISOString() : new Date().toISOString()
         } as PerpetualTrade);
       }
     }
+    console.log(unifiedTrades)
 
     // 使用计算器管理器批量计算
     const result = await calculatorManager.calculateMixedPortfolio(unifiedTrades);

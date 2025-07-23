@@ -1,7 +1,7 @@
 'use client'
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import {DualChartRadial} from "@/components/strategy-chat/strategy-chat-id-dual-radial-chat"
+
 import { HelpCircle } from "lucide-react"
 import { useEffect, useState } from "react"
 

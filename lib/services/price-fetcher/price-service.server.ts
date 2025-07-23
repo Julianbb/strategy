@@ -106,6 +106,32 @@ export class PriceServiceServer {
     platformManager.setPrimaryPlatform(platformType);
   }
 
+  async fetchOptionExercisePrice(
+    instrumentId: string,
+    preferredPlatform: PlatformType = PlatformType.OKX
+  ): Promise<number | null> {
+    try {
+      const platform = await platformManager.getPlatformWithFallback(preferredPlatform);
+      
+      if (!platform) {
+        console.error('No healthy platforms available for exercise price fetch');
+        return null;
+      }
+
+      // Check if platform supports the method (currently only OKX)
+      if (platform.name === 'OKX' && 'getOptionExercisePrice' in platform) {
+        const okxPlatform = platform as any;
+        return await okxPlatform.getOptionExercisePrice(instrumentId);
+      }
+      
+      console.warn(`Platform ${platform.name} does not support exercise price history`);
+      return null;
+    } catch (err) {
+      console.error('Error fetching option exercise price:', err);
+      return null;
+    }
+  }
+
   async fetchMultipleOptionsPrices(
     instrumentIds: string[], 
     preferredPlatform: PlatformType = PlatformType.OKX

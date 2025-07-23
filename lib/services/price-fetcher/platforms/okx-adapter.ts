@@ -44,6 +44,19 @@ interface OKXFundingRateResponse {
   }>;
 }
 
+interface OKXDeliveryExerciseResponse {
+  code: string;
+  msg: string;
+  data: Array<{
+    ts: string;
+    details: Array<{
+      type: 'delivery' | 'exercised';
+      insId: string;
+      px: string;
+    }>;
+  }>;
+}
+
 export class OKXAdapter extends BasePlatformAdapter {
   readonly name = 'OKX';
   readonly features: PlatformFeatures = {
@@ -212,6 +225,69 @@ export class OKXAdapter extends BasePlatformAdapter {
       return data;
     } catch (error) {
       return this.handleError(error, 'getOptionChain');
+    }
+  }
+
+  /**
+   * 获取期权历史执行价格
+   * @param underlying 标的资产，如 "ETH-USD"
+   * @param limit 限制返回数据条数，默认100
+   */
+  async getDeliveryExerciseHistory(underlying: string, limit: number = 100): Promise<{ instrumentId: string; exercisePrice: number; timestamp: string }[] | null> {
+    try {
+      const url = `${this.baseUrl}/public/delivery-exercise-history?instType=OPTION&uly=${underlying}&limit=${limit}`;
+      
+      const data = await this.makeRequest<OKXDeliveryExerciseResponse>(url);
+      
+      if (data?.data) {
+        const result: { instrumentId: string; exercisePrice: number; timestamp: string }[] = [];
+        
+        data.data.forEach(item => {
+          item.details.forEach(detail => {
+            if (detail.type === 'exercised' && detail.px && detail.insId) {
+              result.push({
+                instrumentId: detail.insId,
+                exercisePrice: parseFloat(detail.px),
+                timestamp: item.ts
+              });
+            }
+          });
+        });
+        
+        return result;
+      }
+      
+      return null;
+    } catch (error) {
+      return this.handleError(error, 'getDeliveryExerciseHistory');
+    }
+  }
+
+  /**
+   * 获取特定期权合约的历史执行价格
+   * @param instrumentId 期权合约ID，如 "ETH-USD-20250722-3600-P"
+   */
+  async getOptionExercisePrice(instrumentId: string): Promise<number | null> {
+    try {
+      // 从合约ID中提取标的资产
+      const parts = instrumentId.split('-');
+      if (parts.length < 2) {
+        console.error('Invalid instrument ID format:', instrumentId);
+        return null;
+      }
+      
+      const underlying = `${parts[0]}-${parts[1]}`;
+      const history = await this.getDeliveryExerciseHistory(underlying);
+      
+      if (history) {
+        // 查找匹配的合约执行价格
+        const exerciseData = history.find(item => item.instrumentId === instrumentId);
+        return exerciseData ? exerciseData.exercisePrice : null;
+      }
+      
+      return null;
+    } catch (error) {
+      return this.handleError(error, 'getOptionExercisePrice');
     }
   }
 }

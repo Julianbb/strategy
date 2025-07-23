@@ -68,18 +68,19 @@ interface OptionTrade {
     }
   
     /**
-     * 计算已到期期权的内在价值
+     * 计算已到期期权的内在价值（返回币本位）
      */
     private calculateIntrinsicValue(
       type: 'call' | 'put',
       strike: number,
       spotPrice: number
     ): number {
-      if (type === 'call') {
-        return Math.max(spotPrice - strike, 0);
-      } else {
-        return Math.max(strike - spotPrice, 0);
-      }
+      const intrinsicValueUsdt = type === 'call' 
+        ? Math.max(spotPrice - strike, 0)
+        : Math.max(strike - spotPrice, 0);
+      
+      // 转换为币本位：USDT价值除以现货价格
+      return intrinsicValueUsdt / spotPrice;
     }
   
     /**
@@ -116,12 +117,21 @@ interface OptionTrade {
       let currentPrice: number;
       
       if (isExpired) {
-        // 已到期：使用内在价值
-        currentPrice = this.calculateIntrinsicValue(
-          trade.type,
-          trade.strike,
-          this.spotPrice
-        );
+        // 已到期：尝试获取真实执行价格，否则使用内在价值
+        const instrumentId = this.buildOptionInstrumentId(trade.type, trade.strike, trade.expiry);
+        const exercisePrice = await priceService.fetchOptionExercisePrice(instrumentId, this.preferredPlatform);
+        
+        if (exercisePrice !== null && exercisePrice > 0) {
+          currentPrice = exercisePrice; // OKX返回的执行价格已经是币本位
+        } else {
+          // 回退到内在价值计算
+          currentPrice = this.calculateIntrinsicValue(
+            trade.type,
+            trade.strike,
+            this.spotPrice
+          );
+        }
+        
       } else {
         // 未到期：从批量数据中获取价格
         const instrumentId = this.buildOptionInstrumentId(trade.type, trade.strike, trade.expiry);
@@ -144,13 +154,15 @@ interface OptionTrade {
       // 建仓成本（币本位）
       // 买入期权：成本为负（支出权利金）
       // 卖出期权：成本为正（收入权利金）
-      const costBasis = trade.premium * trade.quantity * (-directionMultiplier);
+      const costBasis = trade.premium * trade.quantity * directionMultiplier;
       
       // 损益（币本位，扣除手续费之前）
       const pnl = currentValue - costBasis;
       
       // 损益（USDT，扣除手续费之前）
       const pnlUsdt = pnl * this.spotPrice;
+      
+      console.log(`currentPrice: ${currentPrice}, currentValue: ${currentValue}, costBasis: ${costBasis}, pnl: ${pnl}, pnlUsdt: ${pnlUsdt}`);
 
       return {
         currentPrice,
@@ -182,6 +194,7 @@ interface OptionTrade {
       if (instrumentIds.length > 0) {
         const multiPriceData = await priceService.fetchMultipleOptionsPrices(instrumentIds, this.preferredPlatform);
         pricesData = multiPriceData.prices;
+       
       }
       
       // 计算所有期权价值

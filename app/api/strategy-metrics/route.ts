@@ -5,6 +5,7 @@ export async function POST(request: NextRequest) {
   try {
     const { strategyChat, tradesInCurrentStrategy } = await request.json();
 
+
     if (!strategyChat) {
       return NextResponse.json(
         { error: 'strategyChat is required' },
@@ -21,13 +22,9 @@ export async function POST(request: NextRequest) {
       { 
         allocationInUSD: 0,
         totalFeeInUSD: 0,
-        totalFee_Currency: 0,
-        totalFee_USD: 0,
         currentValueInUSD: 0,
         profitLossInUSD: 0,
         apr: 0,
-        positionSizeOptions: 0,
-        positionSizePerpetual: 0,
         daysSinceStarted: 0,
         error: error instanceof Error ? error.message : 'Failed to calculate metrics'
       },
