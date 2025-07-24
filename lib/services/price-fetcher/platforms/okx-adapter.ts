@@ -44,18 +44,21 @@ interface OKXFundingRateResponse {
   }>;
 }
 
-interface OKXDeliveryExerciseResponse {
+export interface OKXDeliveryExerciseResponse {
   code: string;
   msg: string;
   data: Array<{
     ts: string;
     details: Array<{
-      type: 'delivery' | 'exercised';
+      type: 'delivery' | 'exercised' | 'expired_otm';
       insId: string;
       px: string;
     }>;
   }>;
 }
+
+export type OKXDeliveryItem = OKXDeliveryExerciseResponse['data'][0];
+export type OKXDeliveryDetail = OKXDeliveryItem['details'][0];
 
 export class OKXAdapter extends BasePlatformAdapter {
   readonly name = 'OKX';
@@ -107,41 +110,6 @@ export class OKXAdapter extends BasePlatformAdapter {
     }
   }
 
-  async fetchMultipleOptionPrices(instrumentIds: string[]): Promise<Record<string, number | null>> {
-    try {
-      // OKX API supports comma-separated instrument IDs
-      const instIdParam = instrumentIds.join(',');
-      const url = `${this.baseUrl}/public/mark-price?instType=OPTION&instId=${instIdParam}`;
-      
-      const data = await this.makeRequest<OKXMarkPriceResponse>(url);
-      
-      const result: Record<string, number | null> = {};
-      
-      // Initialize all instruments with null
-      instrumentIds.forEach(id => {
-        result[id] = null;
-      });
-      
-      // Fill in the prices we received
-      if (data?.data) {
-        data.data.forEach(item => {
-          if (item.instId && item.markPx) {
-            result[item.instId] = parseFloat(item.markPx);
-          }
-        });
-      }
-      
-      return result;
-    } catch (error) {
-      console.error('Error fetching multiple option prices:', error);
-      // Return null for all instruments on error
-      const result: Record<string, number | null> = {};
-      instrumentIds.forEach(id => {
-        result[id] = null;
-      });
-      return result;
-    }
-  }
 
   async fetchPrices(baseCurrency: string, optionInstrument?: string): Promise<PlatformPriceData> {
     try {
@@ -231,63 +199,39 @@ export class OKXAdapter extends BasePlatformAdapter {
   /**
    * 获取期权历史执行价格
    * @param underlying 标的资产，如 "ETH-USD"
-   * @param limit 限制返回数据条数，默认100
+   * @param limit 限制返回数据条数，默认10
    */
-  async getDeliveryExerciseHistory(underlying: string, limit: number = 100): Promise<{ instrumentId: string; exercisePrice: number; timestamp: string }[] | null> {
+  async getDeliveryExerciseHistory(underlying: string, limit: number = 10): Promise<OKXDeliveryExerciseResponse | null> {
     try {
       const url = `${this.baseUrl}/public/delivery-exercise-history?instType=OPTION&uly=${underlying}&limit=${limit}`;
       
       const data = await this.makeRequest<OKXDeliveryExerciseResponse>(url);
       
-      if (data?.data) {
-        const result: { instrumentId: string; exercisePrice: number; timestamp: string }[] = [];
-        
-        data.data.forEach(item => {
-          item.details.forEach(detail => {
-            if (detail.type === 'exercised' && detail.px && detail.insId) {
-              result.push({
-                instrumentId: detail.insId,
-                exercisePrice: parseFloat(detail.px),
-                timestamp: item.ts
-              });
-            }
-          });
-        });
-        
-        return result;
-      }
-      
-      return null;
+      return data;
     } catch (error) {
       return this.handleError(error, 'getDeliveryExerciseHistory');
     }
   }
 
   /**
-   * 获取特定期权合约的历史执行价格
-   * @param instrumentId 期权合约ID，如 "ETH-USD-20250722-3600-P"
+   * 构建OKX期权合约ID
    */
-  async getOptionExercisePrice(instrumentId: string): Promise<number | null> {
-    try {
-      // 从合约ID中提取标的资产
-      const parts = instrumentId.split('-');
-      if (parts.length < 2) {
-        console.error('Invalid instrument ID format:', instrumentId);
-        return null;
-      }
-      
-      const underlying = `${parts[0]}-${parts[1]}`;
-      const history = await this.getDeliveryExerciseHistory(underlying);
-      
-      if (history) {
-        // 查找匹配的合约执行价格
-        const exerciseData = history.find(item => item.instrumentId === instrumentId);
-        return exerciseData ? exerciseData.exercisePrice : null;
-      }
-      
-      return null;
-    } catch (error) {
-      return this.handleError(error, 'getOptionExercisePrice');
-    }
+  buildOptionInstrumentId(baseCurrency: string, type: 'call' | 'put', strike: number, expiry: string): string {
+    const underlying = `${baseCurrency}-USD`;
+    const expiryFormatted = this.formatExpiryForOKX(expiry);
+    const optionType = type === 'call' ? 'C' : 'P';
+    return `${underlying}-${expiryFormatted}-${strike}-${optionType}`;
   }
+
+  /**
+   * 将日期格式转换为OKX期权合约格式 (YYMMDD)
+   */
+  private formatExpiryForOKX(expiry: string): string {
+    const date = new Date(expiry);
+    const year = String(date.getFullYear()).slice(-2); // 取年份的后两位
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}${month}${day}`;
+  }
+
 }

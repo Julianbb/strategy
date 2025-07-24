@@ -36,8 +36,6 @@ export class OptionPerpetualStrategyCalculator implements StrategyMetricsCalcula
       finalCurrencyPrice || 0,
       strategyChat
     );
-    console.log(totalPL)
-    console.log(totalFees)
 
     
     const profitLoss = totalPL - totalFees;
@@ -156,6 +154,8 @@ export class OptionPerpetualStrategyCalculator implements StrategyMetricsCalcula
         const strikeStr = parts[2] || '3000';
         
         unifiedTrades.push({
+          id:trade.id,
+          baseCurrency:strategyChat.baseCurrency,
           type: trade.optionType as 'call' | 'put',
           direction: trade.side as 'buy' | 'sell',
           quantity: Number(trade.amount),
@@ -168,6 +168,8 @@ export class OptionPerpetualStrategyCalculator implements StrategyMetricsCalcula
       } else if (trade.productType === 'perpetual' || trade.productType === 'spot') {
         // 转换为永续合约交易格式
         unifiedTrades.push({
+          id:trade.id,
+          baseCurrency:strategyChat.baseCurrency,
           direction: trade.side === 'buy' ? 'long' : 'short',
           size: Number(trade.amount),
           entryPrice: trade.priceInUSD ? Number(trade.priceInUSD) : 
@@ -178,7 +180,6 @@ export class OptionPerpetualStrategyCalculator implements StrategyMetricsCalcula
         } as PerpetualTrade);
       }
     }
-    console.log(unifiedTrades)
 
     // 使用计算器管理器批量计算
     const result = await calculatorManager.calculateMixedPortfolio(unifiedTrades);

@@ -1,7 +1,9 @@
 import { priceService } from '@/lib/services/price-fetcher/index.server'
 import { PlatformType } from '@/lib/services/price-fetcher/platforms/types'
+import { platformManager } from '@/lib/services/price-fetcher/platforms/platform-manager'
 interface OptionTrade {
     id?: string;                    // 交易ID（可选）
+    baseCurrency?:string;
     type: 'call' | 'put';          // 期权类型
     direction: 'buy' | 'sell';     // 买卖方向
     quantity: number;              // 数量
@@ -84,66 +86,37 @@ interface OptionTrade {
     }
   
     /**
-     * 构建期权合约ID
-    */
-    private buildOptionInstrumentId(type: 'call' | 'put', strike: number, expiry: string): string {
-      const underlying = `${this.baseCurrency}-USD`;
-      const expiryFormatted = this.formatExpiryForOKX(expiry);
-      const optionType = type.toUpperCase();
-      return `${underlying}-${expiryFormatted}-${strike}-${optionType}`;
-    }
-
-    /**
-     * 将日期格式转换为期权合约格式 (YYYYMMDD)
+     * 构建期权合约ID（通过平台适配器）
      */
-    private formatExpiryForOKX(expiry: string): string {
-      const date = new Date(expiry);
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      return `${year}${month}${day}`;
+    private buildOptionInstrumentId(type: 'call' | 'put', strike: number, expiry: string): string {
+      const platform = platformManager.getPlatform(this.preferredPlatform);
+      if (platform && 'buildOptionInstrumentId' in platform && typeof platform.buildOptionInstrumentId === 'function') {
+        return (platform as any).buildOptionInstrumentId(this.baseCurrency, type, strike, expiry);
+      }
+      
+      // 如果平台不支持或方法不存在，抛出错误
+      throw new Error(`Platform ${this.preferredPlatform} does not support option instrument ID generation`);
     }
   
     /**
      * 计算单个期权交易的价值（使用批量获取的价格数据）
      */
-    private async calculateOptionValueWithBatchPrices(
+    private  calculateOptionValueWithBatchPrices(
       trade: OptionTrade, 
       batchPrices: Record<string, number | null>
-    ): Promise<OptionValue> {
+    ): OptionValue {
       const daysToExpiry = this.getDaysToExpiry(trade.expiry);
       const isExpired = daysToExpiry <= 0;
       
-      let currentPrice: number;
+      // 无论到期还是未到期，都从batchPrices中获取价格
+      const instrumentId = this.buildOptionInstrumentId(trade.type, trade.strike, trade.expiry);
+      const batchPrice = batchPrices[instrumentId];
       
-      if (isExpired) {
-        // 已到期：尝试获取真实执行价格，否则使用内在价值
-        const instrumentId = this.buildOptionInstrumentId(trade.type, trade.strike, trade.expiry);
-        const exercisePrice = await priceService.fetchOptionExercisePrice(instrumentId, this.preferredPlatform);
-        
-        if (exercisePrice !== null && exercisePrice > 0) {
-          currentPrice = exercisePrice; // OKX返回的执行价格已经是币本位
-        } else {
-          // 回退到内在价值计算
-          currentPrice = this.calculateIntrinsicValue(
-            trade.type,
-            trade.strike,
-            this.spotPrice
-          );
-        }
-        
-      } else {
-        // 未到期：从批量数据中获取价格
-        const instrumentId = this.buildOptionInstrumentId(trade.type, trade.strike, trade.expiry);
-        const batchPrice = batchPrices[instrumentId];
-        
-        if (batchPrice !== null && batchPrice > 0) {
-          currentPrice = batchPrice;
-        } else {
-          // 回退到内在价值
-          currentPrice = this.calculateIntrinsicValue(trade.type, trade.strike, this.spotPrice);
-        }
+      if (batchPrice === null || batchPrice === undefined) {
+        throw new Error(`Price not found for option ${instrumentId}`);
       }
+      
+      const currentPrice = batchPrice;
   
       // 计算方向系数：买入=+1，卖出=-1
       const directionMultiplier = trade.direction === 'buy' ? 1 : -1;
@@ -161,9 +134,8 @@ interface OptionTrade {
       
       // 损益（USDT，扣除手续费之前）
       const pnlUsdt = pnl * this.spotPrice;
-      
-      console.log(`currentPrice: ${currentPrice}, currentValue: ${currentValue}, costBasis: ${costBasis}, pnl: ${pnl}, pnlUsdt: ${pnlUsdt}`);
 
+      
       return {
         currentPrice,
         currentValue,
@@ -183,27 +155,15 @@ interface OptionTrade {
     async calculatePortfolioValue(trades: OptionTrade[]): Promise<PortfolioSummary> {
       const results: (OptionValue & { trade: OptionTrade })[] = [];
       
-      // 批量获取所有未到期期权的价格
-      const activeTrades = trades.filter(trade => this.getDaysToExpiry(trade.expiry) > 0);
-      const instrumentIds = activeTrades.map(trade => 
-        this.buildOptionInstrumentId(trade.type, trade.strike, trade.expiry)
-      );
-      
-      let pricesData: Record<string, number | null> = {};
-      
-      if (instrumentIds.length > 0) {
-        const multiPriceData = await priceService.fetchMultipleOptionsPrices(instrumentIds, this.preferredPlatform);
-        pricesData = multiPriceData.prices;
-       
-      }
+      // 获取所有期权的价格数据
+      const pricesData = await this.fetchOptionPrices(trades);
       
       // 计算所有期权价值
-      const calculations = trades.map(async (trade) => {
-        const value = await this.calculateOptionValueWithBatchPrices(trade, pricesData);
+      const calculatedResults = trades.map((trade) => {
+        const value = this.calculateOptionValueWithBatchPrices(trade, pricesData);
         return { ...value, trade };
       });
-      
-      const calculatedResults = await Promise.all(calculations);
+     
       results.push(...calculatedResults);
   
       // 分类汇总
@@ -265,6 +225,46 @@ interface OptionTrade {
      */
     updateCurrentDate(newDate: Date): void {
       this.currentDate = newDate;
+    }
+
+    /**
+     * 获取期权价格数据（包括已到期和未到期期权）
+     */
+    private async fetchOptionPrices(trades: OptionTrade[]): Promise<Record<string, number | null>> {
+      // 分类到期和未到期的期权
+      const expiredTrades = trades.filter(trade => this.getDaysToExpiry(trade.expiry) <= 0);
+      const activeTrades = trades.filter(trade => this.getDaysToExpiry(trade.expiry) > 0);
+      
+      // 为每个已到期的交易添加expiredInstrumentId字段
+      const expiredTradesWithInstrumentId = expiredTrades.map(trade => ({
+        ...trade,
+        expiredInstrumentId: this.buildOptionInstrumentId(trade.type, trade.strike, trade.expiry)
+      }));
+      
+      // 获取对应的instrumentIds
+      const activeInstrumentIds = activeTrades.map(trade => 
+        this.buildOptionInstrumentId(trade.type, trade.strike, trade.expiry)
+      );
+      const expiredInstrumentIds = expiredTradesWithInstrumentId.map(trade => trade.expiredInstrumentId);
+      
+      
+      let pricesData: Record<string, number | null> = {};
+      
+      // 获取未到期期权的实时价格
+      if (activeInstrumentIds.length > 0) {
+        const multiPriceData = await priceService.fetchMultipleOptionsPrices(activeInstrumentIds, this.preferredPlatform);
+        pricesData = { ...pricesData, ...multiPriceData.prices };
+      }
+      
+      // 获取已到期期权的交割价格（批量获取）
+      if (expiredInstrumentIds.length > 0) {
+          const expiredPrices = await priceService.fetchMultipleOptionExercisePrices(expiredTradesWithInstrumentId, expiredInstrumentIds, this.preferredPlatform);
+          pricesData = { ...pricesData, ...expiredPrices.prices };
+      }
+
+     
+      
+      return pricesData;
     }
 
     /**

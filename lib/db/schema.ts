@@ -148,6 +148,8 @@ export const trades = pgTable(
     feeInCurrency: numeric('feeCurrency', { precision: 20, scale: 8 }),
     feeInUSD: numeric('feeInUSD', { precision: 20, scale: 8 }),
     platform: varchar('platform', { length: 20 }).notNull(),
+    isExpired: boolean('isExpired'), // optional field for options
+    deliveryPriceInCurrency: numeric('deliveryPriceInCurrency', { precision: 20, scale: 8 }), // optional field for options
     executedAt: timestamp('executedAt').notNull(),
     createdAt: timestamp('createdAt').notNull(),
   }

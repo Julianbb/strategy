@@ -13,7 +13,7 @@ export const createTradeWithSession = ({ session, strategyChatId }: CreateTradeP
   tool({
     description: 'Create a new trade record with user session context',
     parameters: z.object({
-      product: z.string().describe('The trading product/symbol (e.g., BTC, ETH for spot. ETHUSDT for perpetual, ETHUSD-20250725-2100-P for options)'),
+      product: z.string().describe('The trading product/symbol (e.g., BTC, ETH for spot. ETHUSDT for perpetual, ETHUSD-20250725-2100-P for options, please remember options with prefix xxxUSD not USDT)'),
       productType: z.enum(['perpetual', 'option', 'spot']).describe('The type of product being traded'),
       side: z.enum(['buy', 'sell']).describe('Whether this is a buy or sell order'),
       optionType: z.enum(['call', 'put']).optional().describe('The option type (required only for option products)'),

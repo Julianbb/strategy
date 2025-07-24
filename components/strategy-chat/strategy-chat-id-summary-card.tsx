@@ -126,6 +126,15 @@ export function StrategyCard({ strategyChat, tradesInCurrentStrategy }: Strategy
                 <span className="text-sm font-normal text-muted-foreground">
                   ({calculatedMetrics.daysSinceStarted} {calculatedMetrics.daysSinceStarted === 1 ? 'day' : 'days'})
                 </span>
+                {(strategyChat.status === 'completed' || strategyChat.status === 'stopped') && (
+                  <span className={`text-sm font-medium px-2 py-1 rounded border capitalize ${
+                    strategyChat.status === 'completed' 
+                      ? 'text-blue-600 bg-blue-50 border-blue-200' 
+                      : 'text-red-600 bg-red-50 border-red-200'
+                  }`}>
+                    {strategyChat.status}
+                  </span>
+                )}
               </CardTitle>
             </CardHeader>
             <CardContent>

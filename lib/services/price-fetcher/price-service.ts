@@ -25,5 +25,3 @@ export interface IPriceService {
   setPrimaryPlatform?(platformType: PlatformType): Promise<void>;
 }
 
-// Re-export client service for browser environments
-export { priceServiceClient as priceService } from './price-service.client';

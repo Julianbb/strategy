@@ -1028,5 +1028,23 @@ export async function getActivePriceAlerts() {
   }
 }
 
+export async function getTradesByIds({ ids }: { ids: string[] }) {
+  try {
+    if (ids.length === 0) {
+      return [];
+    }
+    
+    return await db
+      .select()
+      .from(trades)
+      .where(inArray(trades.id, ids));
+  } catch (error) {
+    throw new ChatSDKError(
+      'bad_request:database',
+      'Failed to get trades by ids',
+    );
+  }
+}
+
 
 

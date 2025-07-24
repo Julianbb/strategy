@@ -1,6 +1,7 @@
 // 永续合约交易明细接口
 interface PerpetualTrade {
     id?: string;                    // 交易ID（可选）
+    baseCurrency?:string;
     direction: 'long' | 'short';   // 方向：做多/做空
     size: number;                  // 仓位大小（币本位数量，如ETH数量）
     entryPrice: number;            // 开仓价格（USDT）
