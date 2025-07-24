@@ -24,7 +24,6 @@ export interface MultipleOptionsPriceData {
 }
 
 export interface IPriceService {
-  getOptionInstrument(strategyChatId: string): Promise<string | null>;
   fetchSpotPrice(baseCurrency: string, quoteCurrency?: string): Promise<SinglePriceData>;
   fetchPriceData(baseCurrency: string, optionInstrument?: string | null, preferredPlatform?: PlatformType): Promise<PriceData>;
   fetchMultipleOptionsPrices(instrumentIds: string[], preferredPlatform?: PlatformType): Promise<MultipleOptionsPriceData>;

@@ -1,5 +1,5 @@
-import {convertInstrumentFlexible} from "@/lib/utils"
-import { getLatestOptionInstrument,getTradesByIds } from "@/lib/db/queries"
+
+import {getTradesByIds } from "@/lib/db/queries"
 import { platformManager, initializePlatforms, PlatformType } from "@/lib/3party"
 import { OKXDeliveryItem, OKXDeliveryDetail } from "@/lib/3party/adapter/okx-adapter"
 import {SinglePriceData, MultipleOptionsPriceData, PriceData} from "./price-service"
@@ -35,21 +35,6 @@ export class PriceServiceServer {
   constructor() {
     // Initialize platforms on service creation
     initializePlatforms();
-  }
-
-  async getOptionInstrument(strategyChatId: string): Promise<string | null> {
-    try {
-      const instrument = await getLatestOptionInstrument({ strategyChatId });
-      
-      if (instrument) {
-        return convertInstrumentFlexible(instrument);
-      }
-      
-      return null;
-    } catch (err) {
-      console.error('Error fetching option instrument:', err);
-      throw err;
-    }
   }
 
 

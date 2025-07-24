@@ -22,7 +22,6 @@ export class OptionPerpetualStrategyCalculator implements StrategyMetricsCalcula
       finalCurrencyPrice = strategyChat.lastBaseCurrencyPrice;
     }
     else{
-      // const optionInstrument = await priceService.getOptionInstrument(strategyChat.id);
       const priceData = await priceService.fetchPriceData(PlatformType.OKX, strategyChat.baseCurrency);
       finalCurrencyPrice = priceData.currencyPrice;
     }
@@ -163,7 +162,9 @@ export class OptionPerpetualStrategyCalculator implements StrategyMetricsCalcula
           expiry: expiryStr ? `${expiryStr.slice(0,4)}-${expiryStr.slice(4,6)}-${expiryStr.slice(6,8)}` : '2024-12-31',
           premium: trade.priceInCurrency ? Number(trade.priceInCurrency) : 0,
           tradeDate: trade.createdAt ? new Date(trade.createdAt).toISOString() : new Date().toISOString(),
-          fee: trade.feeInCurrency ? Number(trade.feeInCurrency) : 0
+          fee: trade.feeInCurrency ? Number(trade.feeInCurrency) : 0,
+          isExpiry:trade.isExpired,
+          deliveryPriceInCurrency:trade.deliveryPriceInCurrency ? Number(trade.deliveryPriceInCurrency) : undefined,
         } as OptionTrade);
       } else if (trade.productType === 'perpetual' || trade.productType === 'spot') {
         // 转换为永续合约交易格式

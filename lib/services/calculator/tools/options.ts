@@ -10,8 +10,10 @@ interface OptionTrade {
     strike: number;                // 执行价（USDT）
     expiry: string;                // 到期日 YYYY-MM-DD
     premium: number;               // 权利金（币本位，每份合约）
-    tradeDate?: string;            // 交易日期（可选）
     fee:number;                    // 期权交易的手续费（币本位）
+    tradeDate?: string;            // 交易日期（可选）
+    isExpiry?:boolean;              // 是否已过期（可选）
+    deliveryPriceInCurrency?:number; // 交割价格（可选,币本位）
   }
   
   // 期权价值计算结果
