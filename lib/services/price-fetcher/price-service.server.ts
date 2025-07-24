@@ -1,8 +1,8 @@
 import {convertInstrumentFlexible} from "@/lib/utils"
 import { getLatestOptionInstrument,getTradesByIds } from "@/lib/db/queries"
-import { platformManager, initializePlatforms, PlatformType } from "./platforms"
-import { OKXDeliveryItem, OKXDeliveryDetail } from "./platforms/okx-adapter"
-
+import { platformManager, initializePlatforms, PlatformType } from "@/lib/3party"
+import { OKXDeliveryItem, OKXDeliveryDetail } from "@/lib/3party/adapter/okx-adapter"
+import {SinglePriceData, MultipleOptionsPriceData, PriceData} from "./price-service"
 /**
  * 计算期权交割时的币本位价格
  * @param instrumentId 期权合约ID，如 "ETH-USD-250722-3600-P" 或 "ETH-USD-250722-2800-C"
@@ -30,21 +30,6 @@ function calculateCoinBasedDeliveryPrice(instrumentId: string, deliveryPrice: nu
   }
 }
 
-export interface PriceData {
-  currencyPrice: number | null;
-  optionsPrice: number | null;
-  optionInstrument: string | null;
-  error: string | null;
-  platform?: string;
-  timestamp?: number;
-}
-
-export interface MultipleOptionsPriceData {
-  prices: Record<string, number | null>; // instrumentId -> price
-  error: string | null;
-  platform?: string;
-  timestamp?: number;
-}
 
 export class PriceServiceServer {
   constructor() {
@@ -70,7 +55,37 @@ export class PriceServiceServer {
 
 
   
+  async fetchSpotPrice(baseCurrency: string, quoteCurrency: string = 'USDT'): Promise<SinglePriceData> {
+    try {
+      // Get platform with fallback mechanism
+      const platform = await platformManager.getPlatformWithFallback(PlatformType.OKX);
+      
+      if (!platform) {
+        return {
+          price: null,
+          error: 'No healthy platforms available',
+          timestamp: Date.now()
+        };
+      }
 
+      const price = await platform.fetchSpotPrice(baseCurrency, quoteCurrency);
+
+      return {
+        price,
+        error: price === null ? 'Failed to fetch spot price' : null,
+        platform: platform.name,
+        timestamp: Date.now()
+      };
+
+    } catch (err) {
+      console.error('Fetch spot price error:', err);
+      return {
+        price: null,
+        error: err instanceof Error ? err.message : 'Failed to fetch spot price',
+        timestamp: Date.now()
+      };
+    }
+  }
 
 
   async fetchPriceData(

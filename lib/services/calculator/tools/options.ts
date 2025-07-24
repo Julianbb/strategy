@@ -1,6 +1,6 @@
-import { priceService } from '@/lib/services/price-fetcher/index.server'
-import { PlatformType } from '@/lib/services/price-fetcher/platforms/types'
-import { platformManager } from '@/lib/services/price-fetcher/platforms/platform-manager'
+import { priceService } from '@/lib/services/price-fetcher'
+import { PlatformType } from '@/lib/3party/adapter/types'
+import { platformManager } from '@/lib/3party/platform-manager'
 interface OptionTrade {
     id?: string;                    // 交易ID（可选）
     baseCurrency?:string;

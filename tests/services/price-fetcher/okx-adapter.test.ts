@@ -1,4 +1,4 @@
-import { OKXAdapter } from '@/lib/services/price-fetcher/platforms/okx-adapter';
+import { OKXAdapter } from '@/lib/3party/adapter/okx-adapter';
 
 /**
  * OKX 适配器测试 - 测试 getDeliveryExerciseHistory 功能

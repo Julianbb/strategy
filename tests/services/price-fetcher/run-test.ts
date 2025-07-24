@@ -253,3 +253,30 @@
 
 // // 运行测试
 // main().catch(console.error);
+
+import { priceService } from '@/lib/services/price-fetcher';
+
+/**
+ * 简单测试现货价格获取
+ */
+async function testFetchSpotPrice() {
+  console.log('🚀 测试现货价格获取...\n');
+  
+  try {
+    // 测试 ETH/USDT
+    const ethResult = await priceService.fetchSpotPrice('ETH', 'USDT');
+    console.log('ETH/USDT:', ethResult.error ? `错误: ${ethResult.error}` : `$${ethResult.price}`);
+    
+    // 测试 BTC/USDT  
+    const btcResult = await priceService.fetchSpotPrice('BTC', 'USDT');
+    console.log('BTC/USDT:', btcResult.error ? `错误: ${btcResult.error}` : `$${btcResult.price}`);
+    
+    console.log('\n✅ 测试完成');
+    
+  } catch (error) {
+    console.error('❌ 测试失败:', error);
+  }
+}
+
+// 运行测试
+testFetchSpotPrice();

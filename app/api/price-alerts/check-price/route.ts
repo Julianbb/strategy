@@ -3,7 +3,7 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { priceAlerts } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
-import { fetchSpotPrice } from '@/lib/3party/okxapi';
+import { priceService } from '@/lib/services/price-fetcher';
 import { sendPriceAlertNotification } from '@/lib/push-service';
 
 const client = postgres(process.env.POSTGRES_URL!);
@@ -38,10 +38,12 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch current price
-    const currentPrice = await fetchSpotPrice(coin);
-    if (currentPrice === null) {
-      return NextResponse.json({ error: 'Failed to fetch current price' }, { status: 500 });
+    const priceResult = await priceService.fetchSpotPrice(coin);
+    if (priceResult.error || priceResult.price === null) {
+      return NextResponse.json({ error: priceResult.error || 'Failed to fetch current price' }, { status: 500 });
     }
+    
+    const currentPrice = priceResult.price;
 
     // Check if alert should be triggered
     const targetPrice = parseFloat(alertData.targetPrice);

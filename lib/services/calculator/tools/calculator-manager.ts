@@ -1,6 +1,6 @@
 import { OptionPortfolioCalculator, type OptionTrade, type PortfolioSummary } from './options';
 import { SimplePerpetualCalculator, type PerpetualTrade, type PerpetualPortfolioSummary } from './perpetual';
-import { PlatformType } from '../../price-fetcher/platforms/types';
+import { PlatformType } from '@/lib/3party/adapter/types';
 
 // 统一的计算器类型
 export type CalculatorType = 'options' | 'perpetual';

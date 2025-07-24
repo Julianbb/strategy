@@ -21,8 +21,7 @@
 ## 📁 架构概览
 
 ```
-lib/services/price-fetcher/
-├── platforms/
+lib/3party/
 │   ├── types.ts              # 平台接口定义
 │   ├── base-adapter.ts       # 基础适配器类
 │   ├── platform-manager.ts   # 平台管理器
@@ -65,7 +64,7 @@ console.log('期权价格:', priceData.optionsPrice);
 ### 指定平台
 
 ```typescript
-import { PlatformType } from './platforms';
+import { PlatformType } from '@/lib/3party/types';
 
 // 强制使用Binance平台
 const priceData = await priceServiceServer.fetchPriceData(

@@ -1,4 +1,4 @@
-import { IPlatformAdapter, PlatformType, PlatformConfig } from './types';
+import { IPlatformAdapter, PlatformType, PlatformConfig } from './adapter/types';
 
 export class PlatformManager {
   private platforms = new Map<PlatformType, IPlatformAdapter>();

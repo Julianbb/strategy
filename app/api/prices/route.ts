@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { priceService } from '@/lib/services/price-fetcher/index.server'
-import { PlatformType } from '@/lib/services/price-fetcher/platforms/types'
+import { priceService } from '@/lib/services/price-fetcher'
+import { PlatformType } from '@/lib/3party/adapter/types'
 
 export async function GET(request: NextRequest) {
   try {

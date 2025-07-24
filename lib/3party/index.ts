@@ -1,14 +1,14 @@
-export * from './types';
-export * from './base-adapter';
+export * from './adapter/types';
+export * from './adapter/base-adapter';
 export * from './platform-manager';
-export * from './okx-adapter';
-export * from './binance-adapter';
+export * from './adapter/okx-adapter';
+export * from './adapter/binance-adapter';
 
 // Convenience factory functions
-import { OKXAdapter } from './okx-adapter';
-import { BinanceAdapter } from './binance-adapter';
+import { OKXAdapter } from './adapter/okx-adapter';
+import { BinanceAdapter } from './adapter/binance-adapter';
 import { platformManager } from './platform-manager';
-import { PlatformType } from './types';
+import { PlatformType } from './adapter/types';
 
 export function createOKXAdapter(): OKXAdapter {
   return new OKXAdapter();

@@ -1,4 +1,4 @@
-import { PlatformType, PlatformConfig } from './platforms/types';
+import { PlatformType, PlatformConfig } from '@/lib/3party';
 
 export interface PriceServiceConfig {
   defaultPlatform: PlatformType;
