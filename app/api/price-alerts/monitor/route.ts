@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAllActivePriceAlerts, updatePriceAlert } from '@/lib/db/queries';
-import { fetchSpotPrice } from '@/lib/3party/okxapi';
+import { priceService } from '@/lib/services/price-fetcher';
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,11 +15,13 @@ export async function POST(request: NextRequest) {
         checkedAlerts++;
         
         // Get current price
-        const currentPrice = await fetchSpotPrice(alert.coin);
-        if (currentPrice === null) {
-          console.warn(`Failed to fetch price for ${alert.coin}`);
+        const priceResult = await priceService.fetchSpotPrice(alert.coin);
+        if (priceResult.error || priceResult.price === null) {
+          console.warn(`Failed to fetch price for ${alert.coin}: ${priceResult.error || 'No price data'}`);
           continue;
         }
+        
+        const currentPrice = priceResult.price;
 
         const targetPrice = parseFloat(alert.targetPrice);
         const shouldTrigger = 

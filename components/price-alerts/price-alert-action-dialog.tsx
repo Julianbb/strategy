@@ -12,7 +12,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { fetchSpotPrice } from '@/lib/3party/okxapi';
 import { usePriceAlerts } from './price-alerts-context';
 
 const SUPPORTED_COINS = ['BTC', 'ETH', 'BNB', 'XRP', 'ADA', 'DOT', 'LINK', 'LTC', 'BCH', 'XLM'];
@@ -73,11 +72,19 @@ export function PriceAlertActionDialog({ open, onOpenChange, currentRow }: Price
     setIsSubmitting(true);
 
     try {
-      const currentPrice = await fetchSpotPrice(formData.coin);
-      if (currentPrice === null) {
+      const priceResponse = await fetch(`/api/prices?baseCurrency=${formData.coin}`);
+      if (!priceResponse.ok) {
         toast.error('Failed to fetch current price. Please try again.');
         return;
       }
+      
+      const priceData = await priceResponse.json();
+      if (priceData.error || priceData.currencyPrice === null) {
+        toast.error('Failed to fetch current price. Please try again.');
+        return;
+      }
+      
+      const currentPrice = priceData.currencyPrice;
 
       const response = await fetch('/api/price-alerts', {
         method: isEditing ? 'PUT' : 'POST',
