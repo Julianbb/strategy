@@ -1,6 +1,5 @@
 import {convertInstrumentFlexible} from "@/lib/utils"
-import { getLatestOptionInstrument } from "@/lib/db/queries"
-import { getTradesByIds } from "@/lib/db/queries"
+import { getLatestOptionInstrument,getTradesByIds } from "@/lib/db/queries"
 import { platformManager, initializePlatforms, PlatformType } from "./platforms"
 import { OKXDeliveryItem, OKXDeliveryDetail } from "./platforms/okx-adapter"
 
