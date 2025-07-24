@@ -75,7 +75,7 @@ export default function SidebarNav({
                 buttonVariants({ variant: 'ghost' }),
                 pathname === item.href
                   ? 'bg-muted hover:bg-muted'
-                  : 'hover:bg-transparent hover:underline',
+                  : 'hover:bg-muted/50',
                 'justify-start lg:text-base'
               )}
             >

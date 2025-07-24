@@ -17,6 +17,8 @@ import { useAutoResume } from '@/hooks/use-auto-resume';
 import { ChatSDKError } from '@/lib/errors';
 import { useScrollToBottom } from '@/hooks/use-scroll-to-bottom';
 import { motion } from 'framer-motion';
+import { useModelSettings } from '@/hooks/use-model-settings';
+import { useStore } from '@/hooks/use-store';
 
 interface MobileChatProps {
   id: string;
@@ -142,6 +144,7 @@ export function MobileChat({
 }: MobileChatProps) {
   const { mutate } = useSWRConfig();
   const messagesRef = useRef<{ scrollToLastMessage: () => void }>(null);
+  const modelSettings = useStore(useModelSettings, (x) => x);
 
   const {
     messages,
@@ -166,7 +169,7 @@ export function MobileChat({
     experimental_prepareRequestBody: (body) => ({
       id,
       message: body.messages.at(-1),
-      selectedChatModel: initialChatModel,
+      conversationModel: modelSettings?.settings?.conversationModel,
     }),
     onFinish: () => {
      

@@ -9,6 +9,8 @@ import {
 } from 'ai';
 
 import { anthropic } from '@ai-sdk/anthropic';
+import { openai } from "@ai-sdk/openai";
+import { xai } from '@ai-sdk/xai';
 
 import { auth } from '@/app/(auth)/auth';
 
@@ -27,6 +29,7 @@ import { generateUUID, getTrailingMessageId } from '@/lib/utils';
 import { ChatSDKError } from '@/lib/errors';
 import {toolFactories} from "@/lib/ai/tools"
 import { isProductionEnvironment } from '@/lib/constants';
+import { getAllModels } from '@/lib/global_data/list_models_ai';
 
 
 
@@ -46,6 +49,40 @@ import { differenceInSeconds } from 'date-fns';
 
 
 export const maxDuration = 60;
+
+function getModelInstance(modelId: string) {
+  console.log('Getting model instance for:', modelId);
+  
+  try {
+    const allModels = getAllModels();
+    const model = allModels.find(m => m.id === modelId);
+    
+    if (!model) {
+      console.log('Model not found, using default haiku');
+      return anthropic('claude-3-haiku-20240307');
+    }
+    
+    console.log('Found model:', model);
+    
+    switch (model.company) {
+      case 'openai':
+        console.log('Using OpenAI model:', modelId);
+        return openai(modelId);
+      case 'anthropic':
+        console.log('Using Anthropic model:', modelId);
+        return anthropic(modelId);
+      case 'xai':
+        console.log('Using xAI model:', modelId);
+        return xai(modelId);
+      default:
+        console.log('Unknown company, using default haiku');
+        return anthropic('claude-3-haiku-20240307');
+    }
+  } catch (error) {
+    console.error('Error in getModelInstance:', error);
+    return anthropic('claude-3-haiku-20240307');
+  }
+}
 
 let globalStreamContext: ResumableStreamContext | null = null;
 
@@ -84,8 +121,10 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
+    console.log('Request body:', JSON.stringify(body, null, 2));
     validatedData = createStrategyChatSchema.parse(body);
-  } catch (_) {
+  } catch (error) {
+    console.error('Schema validation error:', error);
     return new ChatSDKError('bad_request:api').toResponse();
   }
 
@@ -146,8 +185,9 @@ export async function POST(request: NextRequest) {
           ])
         );
         
+        const selectedModel = validatedData.conversationModel || 'claude-3-haiku-20240307';
         const result = streamText({
-          model: anthropic('claude-3-haiku-20240307'),
+          model: getModelInstance(selectedModel),
           messages,
           maxSteps: 5,
           experimental_activeTools:toolsName,
@@ -202,7 +242,13 @@ export async function POST(request: NextRequest) {
           sendReasoning: true,
         });
       },
-      onError: (error) => {
+      onError: (error:any) => {
+        console.error('Stream error:', error);
+        console.error('Error details:', {
+          message: error.message,
+          stack: error.stack,
+          name: error.name
+        });
         return 'Oops, an error occurred!';
       },
     });
@@ -220,6 +266,7 @@ export async function POST(request: NextRequest) {
     if (error instanceof ChatSDKError) {
       return error.toResponse();
     }
+    return new ChatSDKError('bad_request:internal_server_error').toResponse();
   }
 }
 

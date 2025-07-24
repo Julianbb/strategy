@@ -13,6 +13,7 @@ export const createStrategyChatSchema = z.object({
     initialCapital_USD: z.number().min(0).optional(),
     initialCapital_Currency: z.number().min(0).optional(),
     strategyTypeId: z.string().uuid().optional(),
+    conversationModel: z.string().optional(),
     message: z.object({
       id: z.string().uuid(),
       createdAt: z.coerce.date(),

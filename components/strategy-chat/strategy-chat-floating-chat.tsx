@@ -13,6 +13,8 @@ import { PreviewMessage, ThinkingMessage } from '@/components/message';
 import { MultimodalInput } from '@/components/multimodal-input';
 import { fetcher, fetchWithErrorHandlers, generateUUID } from '@/lib/utils';
 import { unstable_serialize } from 'swr/infinite';
+import { useModelSettings } from '@/hooks/use-model-settings';
+import { useStore } from '@/hooks/use-store';
 
 import { toast } from '@/components/toast';
 import { useSearchParams } from 'next/navigation';
@@ -147,6 +149,7 @@ function FloatingChatContent({
 }: Omit<FloatingChatProps, 'session'> & { shouldScrollToLast?: boolean }) {
   const { mutate } = useSWRConfig();
   const messagesRef = useRef<{ scrollToLastMessage: () => void }>(null);
+  const modelSettings = useStore(useModelSettings, (x) => x);
 
 
   const {
@@ -172,6 +175,7 @@ function FloatingChatContent({
     experimental_prepareRequestBody: (body) => ({
       id,
       message: body.messages.at(-1),
+      conversationModel: modelSettings?.settings?.conversationModel,
     }),
     onFinish: () => {
       

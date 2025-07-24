@@ -6,6 +6,7 @@ export type ModelSettings = {
   sttModel: string;
   translationModel: string;
   conversationModel: string;
+  selectedCompanies: string[];
 };
 
 type ModelSettingsStore = {
@@ -23,6 +24,7 @@ export const useModelSettings = create(
         sttModel: 'whisper-1',
         translationModel: 'gpt-4o-mini',
         conversationModel: 'gpt-4o-mini',
+        selectedCompanies: ['openai'],
       },
       setSettings: (settings: Partial<ModelSettings>) => {
         set(
