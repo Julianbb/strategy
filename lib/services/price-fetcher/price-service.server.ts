@@ -1,5 +1,4 @@
 
-import {getTradesByIds } from "@/lib/db/queries"
 import { platformManager, initializePlatforms, PlatformType } from "@/lib/3party"
 import { OKXDeliveryItem, OKXDeliveryDetail } from "@/lib/3party/adapter/okx-adapter"
 import {SinglePriceData, MultipleOptionsPriceData, PriceData} from "./price-service"
@@ -136,7 +135,7 @@ export class PriceServiceServer {
 
 
 
-  async fetchMultipleOptionExercisePricesFromThirdPartyPlatform(
+  async fetchMultipleOptionExercisePrices(
     instrumentIds: string[],
     preferredPlatform: PlatformType = PlatformType.OKX
   ): Promise<MultipleOptionsPriceData> {
@@ -243,89 +242,6 @@ export class PriceServiceServer {
   }
 
 
-
-  async fetchMultipleOptionExercisePrices(
-    expiredTrades:any,
-    instrumentIds: string[],
-    preferredPlatform: PlatformType = PlatformType.OKX
-  ): Promise<MultipleOptionsPriceData> {
-    try {
-      const platform = await platformManager.getPlatformWithFallback(preferredPlatform);
-      
-      if (!platform) {
-        return {
-          prices: instrumentIds.reduce((acc, id) => ({ ...acc, [id]: null }), {}),
-          error: 'No healthy platforms available for exercise price fetch',
-          timestamp: Date.now()
-        };
-      }
-
-      // Check if platform supports the method (currently only OKX)
-      if (platform.name === 'OKX') {
-        const prices: Record<string, number | null> = {};
-        
-        // 第一步：先从数据库批量获取价格
-        const dbPrices: Record<string, number | null> = {};
-        
-        // 通过expiredTrades的id查询数据库中的交割价格
-        if (expiredTrades && expiredTrades.length > 0) {
-          const tradeIds = expiredTrades.map((trade: any) => trade.id);
-          const tradesFromDB = await getTradesByIds({ ids: tradeIds });
-          
-          // 将数据库中的交割价格映射到对应的合约ID
-          expiredTrades.forEach((expiredTrade: any) => {
-            const dbTrade = tradesFromDB.find(t => t.id === expiredTrade.id);
-            if (dbTrade && dbTrade.deliveryPriceInCurrency !== null) {
-              dbPrices[expiredTrade.expiredInstrumentId] = parseFloat(dbTrade.deliveryPriceInCurrency);
-            }
-          });
-        }
-        
-        // 初始化所有价格为数据库中的值
-        instrumentIds.forEach(id => {
-          prices[id] = dbPrices[id] || null;
-        });
-        
-        // 第二步：找出数据库中没有的合约ID
-        const missingInstrumentIds = instrumentIds.filter(id => prices[id] === null);
-        
-        // 第三步：如果有缺失的，批量从第三方平台获取
-        if (missingInstrumentIds.length > 0) {
-          const thirdPartyResult = await this.fetchMultipleOptionExercisePricesFromThirdPartyPlatform(
-            missingInstrumentIds, 
-            preferredPlatform
-          );
-          
-          // 合并第三方获取的价格
-          if (!thirdPartyResult.error) {
-            Object.assign(prices, thirdPartyResult.prices);
-          }
-        }
-        
-        return {
-          prices,
-          error: null,
-          platform: platform.name,
-          timestamp: Date.now()
-        };
-      }
-      
-      console.warn(`Platform ${platform.name} does not support exercise price history`);
-      return {
-        prices: instrumentIds.reduce((acc, id) => ({ ...acc, [id]: null }), {}),
-        error: `Platform ${platform.name} does not support exercise price history`,
-        platform: platform.name,
-        timestamp: Date.now()
-      };
-    } catch (err) {
-      console.error('Error fetching multiple option exercise prices:', err);
-      return {
-        prices: instrumentIds.reduce((acc, id) => ({ ...acc, [id]: null }), {}),
-        error: err instanceof Error ? err.message : 'Failed to fetch exercise prices',
-        timestamp: Date.now()
-      };
-    }
-  }
 
   async fetchMultipleOptionsPrices(
     instrumentIds: string[], 

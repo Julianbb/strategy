@@ -237,18 +237,10 @@ interface OptionTrade {
       const expiredTrades = trades.filter(trade => this.getDaysToExpiry(trade.expiry) <= 0);
       const activeTrades = trades.filter(trade => this.getDaysToExpiry(trade.expiry) > 0);
       
-      // 为每个已到期的交易添加expiredInstrumentId字段
-      const expiredTradesWithInstrumentId = expiredTrades.map(trade => ({
-        ...trade,
-        expiredInstrumentId: this.buildOptionInstrumentId(trade.type, trade.strike, trade.expiry)
-      }));
-      
       // 获取对应的instrumentIds
       const activeInstrumentIds = activeTrades.map(trade => 
         this.buildOptionInstrumentId(trade.type, trade.strike, trade.expiry)
       );
-      const expiredInstrumentIds = expiredTradesWithInstrumentId.map(trade => trade.expiredInstrumentId);
-      
       
       let pricesData: Record<string, number | null> = {};
       
@@ -258,9 +250,24 @@ interface OptionTrade {
         pricesData = { ...pricesData, ...multiPriceData.prices };
       }
       
-      // 获取已到期期权的交割价格（批量获取）
-      if (expiredInstrumentIds.length > 0) {
-          const expiredPrices = await priceService.fetchMultipleOptionExercisePrices(expiredTradesWithInstrumentId, expiredInstrumentIds, this.preferredPlatform);
+      // 处理已到期期权的价格
+      const expiredInstrumentIdsNeedingPrices = [];
+      
+      for (const trade of expiredTrades) {
+        const instrumentId = this.buildOptionInstrumentId(trade.type, trade.strike, trade.expiry);
+        
+        // 如果isExpiry为true且有deliveryPriceInCurrency值，直接使用
+        if (trade.isExpiry && trade.deliveryPriceInCurrency !== undefined && trade.deliveryPriceInCurrency !== null) {
+          pricesData[instrumentId] = trade.deliveryPriceInCurrency;
+        } else {
+          // 否则需要从第三方平台获取
+          expiredInstrumentIdsNeedingPrices.push(instrumentId);
+        }
+      }
+      
+      // 获取需要从第三方平台获取的已到期期权的交割价格（批量获取）
+      if (expiredInstrumentIdsNeedingPrices.length > 0) {
+          const expiredPrices = await priceService.fetchMultipleOptionExercisePrices(expiredInstrumentIdsNeedingPrices, this.preferredPlatform);
           pricesData = { ...pricesData, ...expiredPrices.prices };
       }
 
