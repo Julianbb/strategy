@@ -1,7 +1,5 @@
 import { NextRequest,after } from 'next/server';
 
-
-
 import {
   appendClientMessage,
   appendResponseMessages,
@@ -157,9 +155,7 @@ export async function POST(request: NextRequest) {
           experimental_generateMessageId: generateUUID,
           tools,
           onFinish: async ({ response }) => {
-            
             if (session.user?.id) {
-             
               try {
                 const assistantId = getTrailingMessageId({
                   messages: response.messages.filter(
@@ -207,7 +203,6 @@ export async function POST(request: NextRequest) {
         });
       },
       onError: (error) => {
-       
         return 'Oops, an error occurred!';
       },
     });

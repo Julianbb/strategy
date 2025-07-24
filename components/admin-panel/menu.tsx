@@ -5,7 +5,7 @@ import { Ellipsis, LogOut } from "lucide-react";
 import { usePathname,useRouter } from "next/navigation";
 
 import { cn } from "@/lib/utils";
-import { getMenuList } from "@/lib/menu-list";
+import { getMenuList } from "@/lib/global_data/list_pages";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { CollapseMenuButton } from "@/components/admin-panel/collapse-menu-button";
