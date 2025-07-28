@@ -51,19 +51,18 @@ import { differenceInSeconds } from 'date-fns';
 export const maxDuration = 60;
 
 function getModelInstance(modelId: string) {
-  console.log('Getting model instance for:', modelId);
-  
+  console.log(modelId)
   try {
     const allModels = getAllModels();
     const model = allModels.find(m => m.id === modelId);
+    console.log(model)
     
     if (!model) {
       console.log('Model not found, using default haiku');
       return anthropic('claude-3-haiku-20240307');
     }
     
-    console.log('Found model:', model);
-    
+
     switch (model.company) {
       case 'openai':
         console.log('Using OpenAI model:', modelId);
@@ -121,10 +120,8 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    console.log('Request body:', JSON.stringify(body, null, 2));
     validatedData = createStrategyChatSchema.parse(body);
   } catch (error) {
-    console.error('Schema validation error:', error);
     return new ChatSDKError('bad_request:api').toResponse();
   }
 
@@ -194,6 +191,54 @@ export async function POST(request: NextRequest) {
           experimental_transform: smoothStream({ chunking: 'word' }),
           experimental_generateMessageId: generateUUID,
           tools,
+          onStepFinish: async ({ toolCalls, toolResults }) => {
+            // 当有工具调用时，向流中发送工具调用信息
+            if (toolCalls && toolCalls.length > 0) {
+              for (let i = 0; i < toolCalls.length; i++) {
+                const toolCall = toolCalls[i];
+                const toolResult = toolResults[i];
+                
+                // 格式化工具调用的人性化描述
+                let toolDescription = '';
+                if (toolCall.toolName === 'createTradeWithSession') {
+                  const args = toolCall.args as any;
+                  toolDescription = `记录新交易: ${args.side || ''} ${args.productType || ''} ${args.product || ''} - 数量: ${args.amount || ''} - 价格: ${args.priceInCurrency || args.priceInUSD || ''}`;
+                } else if (toolCall.toolName === 'updateTradeWithSession') {
+                  const args = toolCall.args as any;
+                  toolDescription = `更新交易: ID ${args.id || ''}`;
+                } else if (toolCall.toolName === 'deleteTradeWithSession') {
+                  const args = toolCall.args as any;
+                  toolDescription = `删除交易: ID ${args.id || ''}`;
+                } else {
+                  toolDescription = `调用工具: ${toolCall.toolName}`;
+                }
+                
+                // 格式化工具调用信息
+                const toolCallInfo = {
+                  type: 'tool-call-info',
+                  toolName: toolCall.toolName,
+                  description: toolDescription,
+                  args: toolCall.args,
+                  result: toolResult?.result,
+                  timestamp: new Date().toLocaleString('zh-CN', { 
+                    timeZone: 'Asia/Shanghai',
+                    year: 'numeric',
+                    month: '2-digit', 
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                  })
+                };
+                
+                // 将格式化的工具调用信息发送到数据流，附加在AI响应后
+                dataStream.writeData({
+                  type: 'tool-call',
+                  content: `\n\n**工具调用详情:**\n- 操作: ${toolDescription}\n- 执行时间: ${toolCallInfo.timestamp}\n- 状态: ${toolResult?.result ? '成功' : '处理中'}`
+                });
+              }
+            }
+          },
           onFinish: async ({ response }) => {
             if (session.user?.id) {
               try {
