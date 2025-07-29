@@ -1,6 +1,7 @@
 import { priceService } from '@/lib/services/price-fetcher'
 import { PlatformType } from '@/lib/3party/adapter/types'
 import { platformManager } from '@/lib/3party/platform-manager'
+import { updateTradeExpiredStatus } from '@/lib/db/queries'
 interface OptionTrade {
     id?: string;                    // 交易ID（可选）
     baseCurrency?:string;
@@ -252,6 +253,7 @@ interface OptionTrade {
       
       // 处理已到期期权的价格
       const expiredInstrumentIdsNeedingPrices = [];
+      const expiredTradesNeedingUpdate = [];
       
       for (const trade of expiredTrades) {
         const instrumentId = this.buildOptionInstrumentId(trade.type, trade.strike, trade.expiry);
@@ -262,6 +264,7 @@ interface OptionTrade {
         } else {
           // 否则需要从第三方平台获取
           expiredInstrumentIdsNeedingPrices.push(instrumentId);
+          expiredTradesNeedingUpdate.push(trade);
         }
       }
       
@@ -269,7 +272,29 @@ interface OptionTrade {
       if (expiredInstrumentIdsNeedingPrices.length > 0) {
           const expiredPrices = await priceService.fetchMultipleOptionExercisePrices(expiredInstrumentIdsNeedingPrices, this.preferredPlatform);
           pricesData = { ...pricesData, ...expiredPrices.prices };
+          
+          // 更新数据库中的交易记录
+          for (const trade of expiredTradesNeedingUpdate) {
+            if (trade.id) {
+              const instrumentId = this.buildOptionInstrumentId(trade.type, trade.strike, trade.expiry);
+              const deliveryPrice = expiredPrices.prices[instrumentId];
+              
+              if (deliveryPrice !== null && deliveryPrice !== undefined) {
+                try {
+                  await updateTradeExpiredStatus({
+                    id: trade.id,
+                    deliveryPriceInCurrency: deliveryPrice.toString(),
+                  });
+                } catch (error) {
+                  // Silently handle error
+                  console.error(error)
+                }
+              }
+            }
+          }
       }
+
+      
 
      
       

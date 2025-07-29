@@ -115,7 +115,7 @@ export const strategyChat = pgTable(
     lastCapital_USD: numeric('lastCapital_USD', { precision: 20, scale: 8 }),
     lastCapital_Currency: numeric('lastCapital_Currency', { precision: 20, scale: 8 }),
     lastBaseCurrencyPrice: numeric('lastBaseCurrencyPrice', { precision: 20, scale: 8 }),
-    last_profit_loss: numeric('last_profit_loss', { precision: 20, scale: 8 }).notNull().default('0'),
+    last_profit_loss: numeric('last_profit_loss', { precision: 20, scale: 8 }),
     last_apr: numeric('last_apr', { precision: 10, scale: 4 }),
     status: varchar('status', { enum: ['active', 'paused', 'stopped', 'completed'] }).notNull().default('active'),
     totalTrades: numeric('totalTrades').notNull().default('0'),

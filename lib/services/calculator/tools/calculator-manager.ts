@@ -146,8 +146,8 @@ export class CalculatorManager implements ICalculatorManager {
   async calculateMixedPortfolio(trades: UnifiedTrade[]): Promise<{
     optionSummary?: PortfolioSummary;
     perpetualSummary?: PerpetualPortfolioSummary;
-    totalPnL: number;
-    totalFees: number;
+    totalPnLInUSD: number;
+    totalFeesInUSD: number;
   }> {
     const optionTrades = trades.filter(isOptionTrade);
     const perpetualTrades = trades.filter(isPerpetualTrade);
@@ -166,14 +166,15 @@ export class CalculatorManager implements ICalculatorManager {
     }
 
     // 合并总计
-    const totalPnL = (optionSummary?.totalPnlUsdt || 0) + (perpetualSummary?.totalUnrealizedPnl || 0);
-    const totalFees = (optionSummary?.totalFeesUsdt || 0) + (perpetualSummary?.totalFees || 0);
+    const totalPnLInUSD = (optionSummary?.totalPnlUsdt || 0) + (perpetualSummary?.totalUnrealizedPnl || 0);
+    const totalFeesInUSD = (optionSummary?.totalFeesUsdt || 0) + (perpetualSummary?.totalFees || 0);
+    
 
     return {
       optionSummary,
       perpetualSummary,
-      totalPnL,
-      totalFees
+      totalPnLInUSD,
+      totalFeesInUSD,
     };
   }
 }

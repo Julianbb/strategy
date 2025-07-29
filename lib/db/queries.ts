@@ -133,9 +133,19 @@ export async function saveStrategyChat({
 export async function updateStrategyChatStatus({
   id,
   status,
+  last_apr,
+  last_profit_loss,
+  lastBaseCurrencyPrice,
+  lastCapital_Currency,
+  lastCapital_USD,
 }: {
   id: string;
   status: 'active' | 'paused' | 'stopped' | 'completed';
+  last_apr?: string;
+  last_profit_loss?: string;
+  lastBaseCurrencyPrice?: string;
+  lastCapital_Currency?: string;
+  lastCapital_USD?: string;
 }) {
   try {
     const updateData: any = { status };
@@ -143,7 +153,22 @@ export async function updateStrategyChatStatus({
     // Set endedAt when status is 'stopped' or 'completed'
     if (status === 'stopped' || status === 'completed') {
       updateData.endedAt = new Date();
+      
+      // Update last metrics if provided, otherwise clear them
+      updateData.last_apr = last_apr !== undefined ? last_apr : null;
+      updateData.last_profit_loss = last_profit_loss !== undefined ? last_profit_loss : null;
+      updateData.lastBaseCurrencyPrice = lastBaseCurrencyPrice !== undefined ? lastBaseCurrencyPrice : null;
+      updateData.lastCapital_Currency = lastCapital_Currency !== undefined ? lastCapital_Currency : null;
+      updateData.lastCapital_USD = lastCapital_USD !== undefined ? lastCapital_USD : null;
+    } else {
+      // For other statuses, clear performance metrics
+      updateData.last_apr = null;
+      updateData.last_profit_loss = null;
+      updateData.lastBaseCurrencyPrice = null;
+      updateData.lastCapital_Currency = null;
+      updateData.lastCapital_USD = null;
     }
+   
     
     const [updatedChat] = await db
       .update(strategyChat)
@@ -644,7 +669,6 @@ export async function createTrade({
       })
       .returning();
   } catch (error) {
-    console.log(error)
     throw new ChatSDKError('bad_request:database', 'Failed to create trade');
   }
 }
@@ -1042,6 +1066,32 @@ export async function getTradesByIds({ ids }: { ids: string[] }) {
     throw new ChatSDKError(
       'bad_request:database',
       'Failed to get trades by ids',
+    );
+  }
+}
+
+export async function updateTradeExpiredStatus({
+  id,
+  deliveryPriceInCurrency,
+}: {
+  id: string;
+  deliveryPriceInCurrency: string;
+}) {
+  try {
+    const [updatedTrade] = await db
+      .update(trades)
+      .set({
+        isExpired: true,
+        deliveryPriceInCurrency,
+      })
+      .where(eq(trades.id, id))
+      .returning();
+    
+    return updatedTrade;
+  } catch (error) {
+    throw new ChatSDKError(
+      'bad_request:database',
+      'Failed to update trade expired status',
     );
   }
 }

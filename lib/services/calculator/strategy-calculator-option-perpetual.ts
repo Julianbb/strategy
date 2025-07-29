@@ -8,8 +8,10 @@ import {
   type PerpetualTrade 
 } from './tools'
 import { PlatformType } from '@/lib/3party/adapter/types'
+import { updateStrategyChatStatus } from '@/lib/db/queries'
 
 export class OptionPerpetualStrategyCalculator implements StrategyMetricsCalculator {
+  
   async calculate(
     strategyChat: any,
     tradesInCurrentStrategy?: Trades[]
@@ -18,34 +20,60 @@ export class OptionPerpetualStrategyCalculator implements StrategyMetricsCalcula
     // Fetch prices if not provided
     let finalCurrencyPrice = null;
     // If strategy is completed or stopped, use last known price from strategyChat
-    if (strategyChat.status === 'completed' || strategyChat.status === 'stopped') {
-      finalCurrencyPrice = strategyChat.lastBaseCurrencyPrice;
+    if ((strategyChat.status === 'completed' || strategyChat.status === 'stopped')&&(strategyChat.lastBaseCurrencyPrice>0)) {
+        finalCurrencyPrice = strategyChat.lastBaseCurrencyPrice;
+       
     }
     else{
       const priceData = await priceService.fetchPriceData(PlatformType.OKX, strategyChat.baseCurrency);
       finalCurrencyPrice = priceData.currencyPrice;
+     
     }
-
+ 
     const allocation = this.calculateAllocation(strategyChat, finalCurrencyPrice);
     const daysSinceStarted = this.calculateDaysSinceStarted(strategyChat);
 
+
+    // console.log("finalCurrencyPrice: "+finalCurrencyPrice)
+    // console.log(tradesInCurrentStrategy)
     // Use new calculation tools for P&L and fees
-    const { totalPL, totalFees } = await this.calculateValueWithTools(
+    const { totalPLInUSD, totalFeesInUSD, PnLInCurrency, FeesInCurrency, PnLInUSD, FeesInUSD } = await this.calculateValueWithTools(
       tradesInCurrentStrategy, 
       finalCurrencyPrice || 0,
       strategyChat
     );
 
-    
-    const profitLoss = totalPL - totalFees;
-    const apr = this.calculateAPR(strategyChat, allocation, profitLoss, finalCurrencyPrice || 0);
-      
 
+    
+    const profitLossInUSD = totalPLInUSD - totalFeesInUSD;
+    const apr = this.calculateAPR(strategyChat, allocation, profitLossInUSD, finalCurrencyPrice || 0);
+    
+    const lastCapital_USD = Number(strategyChat.initialCapital_USD || 0) + PnLInUSD - FeesInUSD 
+    const lastCapital_Currency = Number(strategyChat.initialCapital_Currency || 0) + PnLInCurrency - FeesInCurrency
+
+ 
+    if(strategyChat.status === 'completed' || strategyChat.status === 'stopped'){
+      // Update last metrics when strategy is completed or stopped
+      try {
+        await updateStrategyChatStatus({
+          id: strategyChat.id,
+          status: strategyChat.status,
+          last_profit_loss: profitLossInUSD.toString(),
+          last_apr: apr.toString(),
+          lastBaseCurrencyPrice: finalCurrencyPrice?.toString(),
+          lastCapital_USD: lastCapital_USD.toString(),
+          lastCapital_Currency: lastCapital_Currency.toString(),
+        });
+      } catch (error) {
+        console.error('Failed to update strategy chat metrics:', error);
+      }
+    }
+    
     return {
       allocationInUSD: allocation,
-      totalFeeInUSD: totalFees,
-      currentValueInUSD: profitLoss + allocation, // Add initial allocation
-      profitLossInUSD: profitLoss,
+      totalFeeInUSD: totalFeesInUSD,
+      currentValueInUSD: profitLossInUSD + allocation, // Add initial allocation
+      profitLossInUSD: profitLossInUSD,
       apr,
       daysSinceStarted,
     };
@@ -121,18 +149,25 @@ export class OptionPerpetualStrategyCalculator implements StrategyMetricsCalcula
     tradesInCurrentStrategy?: Trades[],
     currentPrice: number = 0,
     strategyChat?: any
-  ): Promise<{ totalPL: number; totalFees: number }> {
+  ): Promise<{ 
+    totalPLInUSD: number; 
+    totalFeesInUSD: number;
+    PnLInCurrency:number;
+    FeesInCurrency:number;
+    PnLInUSD:number;
+    FeesInUSD:number
+  }> {
 
 
     if (!tradesInCurrentStrategy || tradesInCurrentStrategy.length === 0 || currentPrice <= 0) {
-      return { totalPL: 0, totalFees: 0 };
+      return { totalPLInUSD: 0, totalFeesInUSD: 0, PnLInCurrency:0,FeesInCurrency:0, PnLInUSD:0,FeesInUSD:0};
     }
  
     // 从strategyChat或交易数据获取基础货币
     const baseCurrency = strategyChat?.baseCurrency || 
                         tradesInCurrentStrategy[0]?.product?.split('-')?.[0] || 
                         'ETH';
-
+    // console.log("baseCurrency: "+baseCurrency)
     // 创建计算器管理器
     const calculatorManager = createCalculatorManager({
       spotPrice: currentPrice,
@@ -182,12 +217,23 @@ export class OptionPerpetualStrategyCalculator implements StrategyMetricsCalcula
       }
     }
 
+    // console.log(unifiedTrades)
+
     // 使用计算器管理器批量计算
     const result = await calculatorManager.calculateMixedPortfolio(unifiedTrades);
+    
+    const PnLInCurrency = (result.optionSummary?.totalPnl || 0) 
+    const FeesInCurrency =(result.optionSummary?.totalFees || 0)
+    const PnLInUSD = (result.perpetualSummary?.totalUnrealizedPnl || 0);
+    const FeesInUSD = (result.perpetualSummary?.totalFees || 0);
 
     return {
-      totalPL: result.totalPnL,
-      totalFees: result.totalFees
+      totalPLInUSD: result.totalPnLInUSD,
+      totalFeesInUSD: result.totalFeesInUSD,
+      PnLInCurrency,
+      FeesInCurrency,
+      PnLInUSD,
+      FeesInUSD
     };
   }
 }

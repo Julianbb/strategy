@@ -16,7 +16,7 @@ export const createTradeWithSession = ({ session, strategyChatId }: CreateTradeP
       product: z.string().describe('The trading product/symbol (e.g., BTC, ETH for spot. ETHUSDT for perpetual, ETHUSD-20250725-2100-P for options, please remember options with prefix xxxUSD not USDT)'),
       productType: z.enum(['perpetual', 'option', 'spot']).describe('The type of product being traded'),
       side: z.enum(['buy', 'sell']).describe('Whether this is a buy or sell order'),
-      optionType: z.enum(['call', 'put']).optional().describe('The option type (required only for option products)'),
+      optionType: z.enum(['call', 'put']).optional().describe('The options type (required only for options products, remember it is a must parameter for options products)'),
       orderType: z.enum(['market', 'limit', 'stop_loss', 'take_profit']).describe('The type of order executed'),
       priceInCurrency: z.string().optional().describe('The price in the base currency'),
       priceInUSD: z.string().optional().describe('The price converted to USD'),
