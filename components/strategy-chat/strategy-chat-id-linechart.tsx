@@ -53,17 +53,35 @@ function downsampleByStep(data: ChartData[], step: number) {
 
 
 
+function getDefaultTimeRange(strategyChat?: StrategyChat): string {
+  if (!strategyChat?.startedAt) return "30d"
+  
+  const startDate = new Date(strategyChat.startedAt)
+  const endDate = strategyChat.endedAt ? new Date(strategyChat.endedAt) : new Date()
+  const durationInDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
+  
+  if (durationInDays < 7) {
+    return "7d"
+  } else if (durationInDays >= 7 && durationInDays <= 30) {
+    return "30d"
+  } else {
+    return "90d"
+  }
+}
+
 export function ChartAreaInteractive({ strategyChat }: { strategyChat?: StrategyChat }) {
   const isMobile = useIsMobile()
-  const [timeRange, setTimeRange] = React.useState("30d")
+  const [timeRange, setTimeRange] = React.useState(() => getDefaultTimeRange(strategyChat))
   const [chartData, setChartData] = React.useState<ChartData[]>([])
   const [loading, setLoading] = React.useState(true)
 
   React.useEffect(() => {
     if (isMobile) {
       setTimeRange("7d")
+    } else {
+      setTimeRange(getDefaultTimeRange(strategyChat))
     }
-  }, [isMobile])
+  }, [isMobile, strategyChat])
 
   React.useEffect(() => {
     const fetchData = async () => {

@@ -55,6 +55,10 @@ import {
               {
                 href: "/dashboard/tools/auto-order",
                 label: "Auto order"
+              },
+              {
+                href: "/dashboard/tools/price-compare",
+                label: "Price Compare"
               }
             ]
           },
