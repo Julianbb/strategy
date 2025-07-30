@@ -76,12 +76,8 @@ export function ChartAreaInteractive({ strategyChat }: { strategyChat?: Strategy
   const [loading, setLoading] = React.useState(true)
 
   React.useEffect(() => {
-    if (isMobile) {
-      setTimeRange("7d")
-    } else {
-      setTimeRange(getDefaultTimeRange(strategyChat))
-    }
-  }, [isMobile, strategyChat])
+    setTimeRange(getDefaultTimeRange(strategyChat))
+  }, [strategyChat])
 
   React.useEffect(() => {
     const fetchData = async () => {
