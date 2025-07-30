@@ -51,30 +51,30 @@ import { differenceInSeconds } from 'date-fns';
 export const maxDuration = 60;
 
 function getModelInstance(modelId: string) {
-  console.log(modelId)
+
   try {
     const allModels = getAllModels();
     const model = allModels.find(m => m.id === modelId);
-    console.log(model)
+
     
     if (!model) {
-      console.log('Model not found, using default haiku');
+    
       return anthropic('claude-3-haiku-20240307');
     }
     
 
     switch (model.company) {
       case 'openai':
-        console.log('Using OpenAI model:', modelId);
+        
         return openai(modelId);
       case 'anthropic':
-        console.log('Using Anthropic model:', modelId);
+      
         return anthropic(modelId);
       case 'xai':
-        console.log('Using xAI model:', modelId);
+      
         return xai(modelId);
       default:
-        console.log('Unknown company, using default haiku');
+        
         return anthropic('claude-3-haiku-20240307');
     }
   } catch (error) {
