@@ -49,7 +49,7 @@ export function PriceCompareSection() {
         <div className="space-y-1">
           <h1 className="text-xl md:text-2xl font-bold">Price Comparison</h1>
           <p className="text-sm md:text-base text-muted-foreground">
-            Compare different products' price movements over time
+            Compare different products&apos; price movements over time
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -121,7 +121,7 @@ export function PriceCompareSection() {
                   className="flex items-center gap-2 bg-muted rounded-md px-3 py-2"
                 >
                   <div
-                    className="w-3 h-3 rounded-full"
+                    className="size-3 rounded-full"
                     style={{ backgroundColor: product.color }}
                   />
                   <span className="text-sm font-medium">{product.name}</span>
