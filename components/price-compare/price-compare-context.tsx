@@ -33,7 +33,7 @@ interface PriceCompareContextType {
   currentProduct: Product | undefined;
   error: string | null;
   
-  addProduct: (product: Omit<Product, 'id' | 'color'>) => void;
+  addProduct: (product: Omit<Product, 'id' | 'color' | 'name'>) => void;
   removeProduct: (id: string) => void;
   setTimePeriod: (period: TimePeriod) => void;
   setOpen: (type: string | null) => void;
@@ -180,7 +180,7 @@ export function PriceCompareProvider({ children }: { children: React.ReactNode }
     refreshData();
   }, [refreshData]);
 
-  const addProduct = useCallback((productData: Omit<Product, 'id' | 'color'>) => {
+  const addProduct = useCallback((productData: Omit<Product, 'id' | 'color' | 'name'>) => {
     if (products.length >= 5) return;
     
     const id = Math.random().toString(36).substring(2, 11);
