@@ -26,6 +26,7 @@ export interface IPlatformAdapter {
   fetchOptionPrice?(instrumentId: string): Promise<number | null>;
   fetchMultipleOptionPrices?(instrumentIds: string[]): Promise<Record<string, number | null>>;
   fetchPrices(baseCurrency: string, optionInstrument?: string): Promise<PlatformPriceData>;
+  fetchHistoricalKlines?(symbol: string, interval: string, startTime: number, endTime: number): Promise<any>;
   
   // Additional platform-specific methods
   getInstrumentInfo?(instrumentId: string): Promise<any>;

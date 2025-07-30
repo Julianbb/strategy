@@ -1,7 +1,7 @@
 
 import { platformManager, initializePlatforms, PlatformType } from "@/lib/3party"
 import { OKXDeliveryItem, OKXDeliveryDetail } from "@/lib/3party/adapter/okx-adapter"
-import {SinglePriceData, MultipleOptionsPriceData, PriceData} from "./price-service"
+import {SinglePriceData, MultipleOptionsPriceData, PriceData, HistoricalPriceData, HistoricalPeriod, HistoricalInterval, HistoricalDataPoint} from "./price-service"
 /**
  * 计算期权交割时的币本位价格
  * @param instrumentId 期权合约ID，如 "ETH-USD-250722-3600-P" 或 "ETH-USD-250722-2800-C"
@@ -295,6 +295,258 @@ export class PriceServiceServer {
       };
     }
   }
+
+  /**
+   * 获取现货的历史K线数据
+   * @param baseCurrency 基础货币，如 "BTC", "ETH"
+   * @param quoteCurrency 计价货币，如 "USDT", "USD"
+   * @param period 时间周期：7d, 30d, 90d
+   * @param interval 时间间隔：10m, 30m, 1H, 2H, 6H, 1d
+   * @param preferredPlatform 优先平台
+   * @returns 历史价格数据
+   */
+  async fetchSpotHistoricalData(
+    baseCurrency: string,
+    quoteCurrency: string = 'USDT',
+    period: HistoricalPeriod,
+    interval: HistoricalInterval,
+    preferredPlatform: PlatformType = PlatformType.OKX
+  ): Promise<HistoricalPriceData> {
+    return this.fetchHistoricalData('spot', baseCurrency, quoteCurrency, period, interval, preferredPlatform);
+  }
+
+  /**
+   * 获取期权的历史K线数据
+   * @param instrumentId 期权合约ID，如 "ETH-USD-250801-3900-C"
+   * @param period 时间周期：7d, 30d, 90d
+   * @param interval 时间间隔：10m, 30m, 1H, 2H, 6H, 1d
+   * @param preferredPlatform 优先平台
+   * @returns 历史价格数据
+   */
+  async fetchOptionHistoricalData(
+    instrumentId: string,
+    period: HistoricalPeriod,
+    interval: HistoricalInterval,
+    preferredPlatform: PlatformType = PlatformType.OKX
+  ): Promise<HistoricalPriceData> {
+    return this.fetchHistoricalData('option', instrumentId, '', period, interval, preferredPlatform, instrumentId);
+  }
+
+  /**
+   * 通用的历史K线数据获取方法
+   * @param type 类型：spot 或 option
+   * @param baseCurrency 基础货币或期权合约ID
+   * @param quoteCurrency 计价货币（期权时为空）
+   * @param period 时间周期
+   * @param interval 时间间隔
+   * @param preferredPlatform 优先平台
+   * @param symbol 可选的自定义symbol
+   * @returns 历史价格数据
+   */
+  private async fetchHistoricalData(
+    type: 'spot' | 'option',
+    baseCurrency: string,
+    quoteCurrency: string,
+    period: HistoricalPeriod,
+    interval: HistoricalInterval,
+    preferredPlatform: PlatformType = PlatformType.OKX,
+    symbol?: string
+  ): Promise<HistoricalPriceData> {
+    try {
+      // Get platform with fallback mechanism
+      const platform = await platformManager.getPlatformWithFallback(preferredPlatform);
+      
+      // Construct symbol based on type
+      let displaySymbol: string;
+      let apiSymbol: string;
+      
+      if (symbol) {
+        // Use provided symbol directly
+        displaySymbol = symbol;
+        apiSymbol = symbol;
+      } else if (type === 'spot') {
+        // For spot: display as BTCUSDT, API as BTC-USDT
+        displaySymbol = `${baseCurrency}${quoteCurrency}`;
+        apiSymbol = `${baseCurrency}-${quoteCurrency}`;
+      } else {
+        // For option: baseCurrency is actually the full instrumentId
+        displaySymbol = baseCurrency;
+        apiSymbol = baseCurrency;
+      }
+      
+      if (!platform) {
+        return {
+          symbol: displaySymbol,
+          period,
+          interval,
+          data: [],
+          error: 'No healthy platforms available',
+          timestamp: Date.now()
+        };
+      }
+
+      // Calculate the time range based on period
+      const now = Date.now();
+      const periodInMs = this.getPeriodInMilliseconds(period);
+      const startTime = now - periodInMs;
+
+      // Check if platform supports historical data
+      if (!platform.features.supportsHistoricalData) {
+        return {
+          symbol: displaySymbol,
+          period,
+          interval,
+          data: [],
+          error: `Platform ${platform.name} does not support ${type} historical data`,
+          platform: platform.name,
+          timestamp: Date.now()
+        };
+      }
+
+      // Convert interval to platform-specific format
+      const platformInterval = this.convertIntervalToPlatformFormat(interval, platform.name);
+      
+      // Fetch historical data from platform
+      let historicalData: HistoricalDataPoint[] = [];
+      
+      if (platform.name === 'OKX' && 'fetchHistoricalKlines' in platform) {
+        const okxPlatform = platform as any;
+        
+        try {
+          let response;
+          if (type === 'spot') {
+            response = await okxPlatform.fetchSpotHistoricalKlines(apiSymbol, platformInterval, startTime, now);
+          } else {
+            response = await okxPlatform.fetchOptionHistoricalKlines(apiSymbol, platformInterval, startTime, now);
+          }
+          const rawData = this.formatOKXHistoricalData(response);
+          
+          // Filter data to only include points within our desired time range
+          historicalData = rawData.filter(point => 
+            point.timestamp >= startTime && point.timestamp <= now
+          );
+          
+        } catch (error) {
+          console.error(`Failed to fetch ${type} historical data from OKX:`, error);
+          return {
+            symbol: displaySymbol,
+            period,
+            interval,
+            data: [],
+            error: `Failed to fetch ${type} historical data: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            platform: platform.name,
+            timestamp: Date.now()
+          };
+        }
+      } else {
+        // For other platforms without specific implementation
+        return {
+          symbol: displaySymbol,
+          period,
+          interval,
+          data: [],
+          error: `${type} historical data not supported for platform ${platform.name}`,
+          platform: platform.name,
+          timestamp: Date.now()
+        };
+      }
+
+      const result = {
+        symbol: displaySymbol,
+        period,
+        interval,
+        data: historicalData,
+        error: null,
+        platform: platform.name,
+        timestamp: Date.now()
+      };
+      
+      
+      return result;
+
+    } catch (err) {
+      console.error(`Fetch ${type} historical data error:`, err);
+      
+      // Construct displaySymbol for error case
+      let displaySymbol: string;
+      if (symbol) {
+        displaySymbol = symbol;
+      } else if (type === 'spot') {
+        displaySymbol = `${baseCurrency}${quoteCurrency}`;
+      } else {
+        displaySymbol = baseCurrency; // For option, baseCurrency is the full instrumentId
+      }
+      
+      return {
+        symbol: displaySymbol,
+        period,
+        interval,
+        data: [],
+        error: err instanceof Error ? err.message : `Failed to fetch ${type} historical data`,
+        timestamp: Date.now()
+      };
+    }
+  }
+
+  /**
+   * 将时间周期转换为毫秒
+   */
+  private getPeriodInMilliseconds(period: HistoricalPeriod): number {
+    switch (period) {
+      case '7d': return 7 * 24 * 60 * 60 * 1000;
+      case '30d': return 30 * 24 * 60 * 60 * 1000;
+      case '90d': return 90 * 24 * 60 * 60 * 1000;
+      default: return 7 * 24 * 60 * 60 * 1000;
+    }
+  }
+
+  /**
+   * 将通用间隔格式转换为平台特定格式
+   */
+  private convertIntervalToPlatformFormat(interval: HistoricalInterval, platformName: string): string {
+    const intervalMap: Record<string, Record<HistoricalInterval, string>> = {
+      'OKX': {
+        '10m': '10m',
+        '30m': '30m',
+        '1H': '1H',
+        '2H': '2H',
+        '6H': '6H',
+        '1d': '1D'
+      },
+      'Binance': {
+        '10m': '10m',
+        '30m': '30m',
+        '1H': '1h',
+        '2H': '2h',
+        '6H': '6h',
+        '1d': '1d'
+      }
+    };
+
+    return intervalMap[platformName]?.[interval] || interval;
+  }
+
+  /**
+   * 格式化OKX返回的历史数据
+   */
+  private formatOKXHistoricalData(response: any): HistoricalDataPoint[] {
+    if (!response?.data || !Array.isArray(response.data)) {
+      return [];
+    }
+
+    const formatted = response.data.map((item: any[]) => ({
+      timestamp: parseInt(item[0]), // OKX returns timestamp as string
+      open: parseFloat(item[1]),
+      high: parseFloat(item[2]),
+      low: parseFloat(item[3]),
+      close: parseFloat(item[4]),
+      volume: parseFloat(item[5])
+    })).sort((a: HistoricalDataPoint, b: HistoricalDataPoint) => a.timestamp - b.timestamp); // Sort by timestamp ascending
+    
+    return formatted;
+  }
+
+
 }
 
 export const priceServiceServer = new PriceServiceServer();

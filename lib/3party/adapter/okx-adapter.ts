@@ -134,7 +134,6 @@ export class OKXAdapter extends BasePlatformAdapter {
         }
       };
     } catch (error) {
-      console.error('OKX fetchPrices error:', error);
       return {
         spotPrice: null,
         optionPrice: null,
@@ -221,6 +220,88 @@ export class OKXAdapter extends BasePlatformAdapter {
     const expiryFormatted = this.formatExpiryForOKX(expiry);
     const optionType = type === 'call' ? 'C' : 'P';
     return `${underlying}-${expiryFormatted}-${strike}-${optionType}`;
+  }
+
+  /**
+   * 获取现货历史K线数据
+   * @param symbol 交易对，如 "BTC-USDT"
+   * @param interval 时间间隔，如 "1H", "1D"
+   * @param startTime 开始时间戳（毫秒）
+   * @param endTime 结束时间戳（毫秒）
+   */
+  async fetchSpotHistoricalKlines(symbol: string, interval: string, startTime: number, endTime: number): Promise<any> {
+    try {
+      // OKX API documentation clarification:
+      // - before: returns records newer than the requested timestamp (more recent)
+      // - after: returns records older than the requested timestamp (less recent)
+      // 
+      // For historical data within a time range, we use 'after' to get data older than endTime
+      // and filter to ensure we get data within the startTime to endTime range
+      
+      let url = `${this.baseUrl}/market/history-candles?instId=${symbol}&bar=${interval}&limit=300`;
+      
+      // Add time parameters if provided
+      if (endTime) {
+        url += `&after=${endTime}`;
+      }
+      if (startTime) {
+        url += `&before=${startTime}`;
+      }
+      
+      const data = await this.makeRequest(url);
+      
+      return data;
+    } catch (error) {
+      return this.handleError(error, 'fetchSpotHistoricalKlines');
+    }
+  }
+
+  /**
+   * 获取期权历史标记价格K线数据
+   * @param instrumentId 期权合约ID，如 "ETH-USD-250801-3900-C"
+   * @param interval 时间间隔，如 "1H", "1D"
+   * @param startTime 开始时间戳（毫秒）
+   * @param endTime 结束时间戳（毫秒）
+   */
+  async fetchOptionHistoricalKlines(instrumentId: string, interval: string, startTime: number, endTime: number): Promise<any> {
+    try {
+      // For options, use the mark price candles API
+      let url = `${this.baseUrl}/market/history-mark-price-candles?instId=${instrumentId}&bar=${interval}&limit=300`;
+      
+      // Add time parameters if provided
+      if (endTime) {
+        url += `&after=${endTime}`;
+      }
+      if (startTime) {
+        url += `&before=${startTime}`;
+      }
+      
+      const data = await this.makeRequest(url);
+      
+      return data;
+    } catch (error) {
+      return this.handleError(error, 'fetchOptionHistoricalKlines');
+    }
+  }
+
+  /**
+   * 通用的历史K线数据获取方法（保持向后兼容）
+   * @param symbol 交易对或期权合约ID
+   * @param interval 时间间隔，如 "1H", "1D"
+   * @param startTime 开始时间戳（毫秒）
+   * @param endTime 结束时间戳（毫秒）
+   */
+  async fetchHistoricalKlines(symbol: string, interval: string, startTime: number, endTime: number): Promise<any> {
+    // Determine if this is an option contract based on symbol format
+    // Option format: ETH-USD-250801-3900-C (has 5 parts separated by -)
+    const symbolParts = symbol.split('-');
+    const isOption = symbolParts.length === 5;
+    
+    if (isOption) {
+      return this.fetchOptionHistoricalKlines(symbol, interval, startTime, endTime);
+    } else {
+      return this.fetchSpotHistoricalKlines(symbol, interval, startTime, endTime);
+    }
   }
 
   /**
