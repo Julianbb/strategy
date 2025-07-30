@@ -93,7 +93,7 @@ export function PriceCompareChart() {
     return (
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-12 px-4">
-          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+          <div className="size-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
           <h3 className="text-lg font-semibold mb-2 text-center">Loading price data...</h3>
           <p className="text-sm text-muted-foreground text-center">
             Fetching historical data from exchange APIs
