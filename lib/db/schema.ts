@@ -142,10 +142,10 @@ export const trades = pgTable(
     side: varchar('side', { enum: ['buy', 'sell'] }).notNull(),
     optionType: varchar('optionType', { enum: ['call', 'put'] }), // only if productType = 'option'
     orderType: varchar('orderType', { enum: ['market', 'limit', 'stop_loss', 'take_profit'] }).notNull().default('market'),
-    priceInCurrency: numeric('priceCurrency',  { precision: 20, scale: 8 }),
+    priceInCurrency: numeric('priceInCurrency',  { precision: 20, scale: 8 }),
     priceInUSD: numeric('priceInUSD', { precision: 20, scale: 8 }),
     amount: numeric('amount', { precision: 20, scale: 8 }).notNull(),
-    feeInCurrency: numeric('feeCurrency', { precision: 20, scale: 8 }),
+    feeInCurrency: numeric('feeInCurrency', { precision: 20, scale: 8 }),
     feeInUSD: numeric('feeInUSD', { precision: 20, scale: 8 }),
     platform: varchar('platform', { length: 20 }).notNull(),
     isExpired: boolean('isExpired'), // optional field for options

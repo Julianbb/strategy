@@ -3,9 +3,6 @@ import { CalculateStrategyMetricsType, StrategyMetricsCalculator } from './strat
 import { priceService } from '@/lib/services/price-fetcher'
 import { 
   createCalculatorManager, 
-  type UnifiedTrade, 
-  type OptionTrade, 
-  type PerpetualTrade 
 } from './tools'
 import { PlatformType } from '@/lib/3party/adapter/types'
 import { updateStrategyChatStatus } from '@/lib/db/queries'
@@ -37,7 +34,7 @@ export class OptionPerpetualStrategyCalculator implements StrategyMetricsCalcula
     // console.log("finalCurrencyPrice: "+finalCurrencyPrice)
     // console.log(tradesInCurrentStrategy)
     // Use new calculation tools for P&L and fees
-    const { totalPLInUSD, totalFeesInUSD, PnLInCurrency, FeesInCurrency, PnLInUSD, FeesInUSD } = await this.calculateValueWithTools(
+    const { totalPLInUSDT, totalFeesInUSDT, PnL_Currency, Fees_Currency, PnL_USDT, Fees_USDT } = await this.calculateValueWithTools(
       tradesInCurrentStrategy, 
       finalCurrencyPrice || 0,
       strategyChat
@@ -45,11 +42,11 @@ export class OptionPerpetualStrategyCalculator implements StrategyMetricsCalcula
 
 
     
-    const profitLossInUSD = totalPLInUSD - totalFeesInUSD;
+    const profitLossInUSD = totalPLInUSDT - totalFeesInUSDT;
     const apr = this.calculateAPR(strategyChat, allocation, profitLossInUSD, finalCurrencyPrice || 0);
     
-    const lastCapital_USD = Number(strategyChat.initialCapital_USD || 0) + PnLInUSD - FeesInUSD 
-    const lastCapital_Currency = Number(strategyChat.initialCapital_Currency || 0) + PnLInCurrency - FeesInCurrency
+    const lastCapital_USD = Number(strategyChat.initialCapital_USD || 0) + PnL_USDT - Fees_USDT 
+    const lastCapital_Currency = Number(strategyChat.initialCapital_Currency || 0) + PnL_Currency - Fees_Currency
 
  
     if(strategyChat.status === 'completed' || strategyChat.status === 'stopped'){
@@ -71,7 +68,7 @@ export class OptionPerpetualStrategyCalculator implements StrategyMetricsCalcula
     
     return {
       allocationInUSD: allocation,
-      totalFeeInUSD: totalFeesInUSD,
+      totalFeeInUSD: totalFeesInUSDT,
       currentValueInUSD: profitLossInUSD + allocation, // Add initial allocation
       profitLossInUSD: profitLossInUSD,
       apr,
@@ -150,17 +147,17 @@ export class OptionPerpetualStrategyCalculator implements StrategyMetricsCalcula
     currentPrice: number = 0,
     strategyChat?: any
   ): Promise<{ 
-    totalPLInUSD: number; 
-    totalFeesInUSD: number;
-    PnLInCurrency:number;
-    FeesInCurrency:number;
-    PnLInUSD:number;
-    FeesInUSD:number
+    totalPLInUSDT: number; 
+    totalFeesInUSDT: number;
+    PnL_Currency:number;
+    Fees_Currency:number;
+    PnL_USDT:number;
+    Fees_USDT:number
   }> {
 
 
     if (!tradesInCurrentStrategy || tradesInCurrentStrategy.length === 0 || currentPrice <= 0) {
-      return { totalPLInUSD: 0, totalFeesInUSD: 0, PnLInCurrency:0,FeesInCurrency:0, PnLInUSD:0,FeesInUSD:0};
+      return { totalPLInUSDT: 0, totalFeesInUSDT: 0, PnL_Currency:0,Fees_Currency:0, PnL_USDT:0,Fees_USDT:0};
     }
  
     // 从strategyChat或交易数据获取基础货币
@@ -177,63 +174,25 @@ export class OptionPerpetualStrategyCalculator implements StrategyMetricsCalcula
     });
 
     // 转换交易数据为统一格式
-    const unifiedTrades: UnifiedTrade[] = [];
-
-    for (const trade of tradesInCurrentStrategy) {
-      if (trade.productType === 'option' && trade.optionType) {
-        // 转换为期权交易格式
-        // Parse ETHUSD-20250722-3600-P format
-        const parts = trade.product.split('-');
-        const expiryStr = parts[1] || '20241231'; // YYYYMMDD format
-        const strikeStr = parts[2] || '3000';
-        
-        unifiedTrades.push({
-          id:trade.id,
-          baseCurrency:strategyChat.baseCurrency,
-          type: trade.optionType as 'call' | 'put',
-          direction: trade.side as 'buy' | 'sell',
-          quantity: Number(trade.amount),
-          strike: Number(strikeStr || 3000),
-          expiry: expiryStr ? `${expiryStr.slice(0,4)}-${expiryStr.slice(4,6)}-${expiryStr.slice(6,8)}` : '2024-12-31',
-          premium: trade.priceInCurrency ? Number(trade.priceInCurrency) : 0,
-          tradeDate: trade.createdAt ? new Date(trade.createdAt).toISOString() : new Date().toISOString(),
-          fee: trade.feeInCurrency ? Number(trade.feeInCurrency) : 0,
-          isExpiry:trade.isExpired,
-          deliveryPriceInCurrency:trade.deliveryPriceInCurrency ? Number(trade.deliveryPriceInCurrency) : undefined,
-        } as OptionTrade);
-      } else if (trade.productType === 'perpetual' || trade.productType === 'spot') {
-        // 转换为永续合约交易格式
-        unifiedTrades.push({
-          id:trade.id,
-          baseCurrency:strategyChat.baseCurrency,
-          direction: trade.side === 'buy' ? 'long' : 'short',
-          size: Number(trade.amount),
-          entryPrice: trade.priceInUSD ? Number(trade.priceInUSD) : 
-                     (trade.priceInCurrency ? Number(trade.priceInCurrency) * currentPrice : 0),
-          fee: trade.feeInUSD ? Number(trade.feeInUSD) : 
-               (trade.feeInCurrency ? Number(trade.feeInCurrency) * currentPrice : 0),
-          tradeDate: trade.createdAt ? new Date(trade.createdAt).toISOString() : new Date().toISOString()
-        } as PerpetualTrade);
-      }
-    }
-
-    // console.log(unifiedTrades)
+    const unifiedTrades = calculatorManager.convertTradesToUnifiedFormat(tradesInCurrentStrategy);
 
     // 使用计算器管理器批量计算
     const result = await calculatorManager.calculateMixedPortfolio(unifiedTrades);
     
-    const PnLInCurrency = (result.optionSummary?.totalPnl || 0) 
-    const FeesInCurrency =(result.optionSummary?.totalFees || 0)
-    const PnLInUSD = (result.perpetualSummary?.totalUnrealizedPnl || 0);
-    const FeesInUSD = (result.perpetualSummary?.totalFees || 0);
+    // 期权的损益和手续费（币本位）
+    const PnL_Currency = (result.optionSummary?.totalPnlInCurrency || 0) 
+    const Fees_Currency =(result.optionSummary?.totalFees_Currency || 0)
+    // 永续合约的损益和手续费（USDT本位）
+    const PnL_USDT = (result.perpetualSummary?.totalUnrealizedPnlInUSDT || 0);
+    const Fees_USDT = (result.perpetualSummary?.totalFees_USDT || 0);
 
     return {
-      totalPLInUSD: result.totalPnLInUSD,
-      totalFeesInUSD: result.totalFeesInUSD,
-      PnLInCurrency,
-      FeesInCurrency,
-      PnLInUSD,
-      FeesInUSD
+      totalPLInUSDT: result.totalPnLInUSDT,
+      totalFeesInUSDT: result.totalFeesInUSDT,
+      PnL_Currency,
+      Fees_Currency,
+      PnL_USDT,
+      Fees_USDT
     };
   }
 }

@@ -33,10 +33,11 @@ interface OptionTrade {
   interface PortfolioSummary {
     totalCurrentValue: number;     // 总当前价值（币本位）
     totalCostBasis: number;        // 总建仓成本（币本位）
-    totalFees: number;             // 总手续费（币本位）
-    totalFeesUsdt: number;         // 总手续费（USDT）
-    totalPnl: number;              // 总损益（币本位，扣除手续费之前）
-    totalPnlUsdt: number;          // 总损益（USDT，扣除手续费之前）
+    totalFees_Currency: number;      // 手续费（币本位）
+    totalFees_USDT: number;         // 手续费（USDT）
+    totalFeesInUSDT:number;          // 总手续费（USDT）
+    totalPnlInCurrency: number;      // 总损益（币本位，扣除手续费之前）
+    totalPnlInUSDT: number;        // 总损益（USDT，扣除手续费之前）
     spotPrice: number;             // 当前现货价格
     breakdown: {
       expired: OptionValue[];      // 已到期期权
@@ -176,18 +177,19 @@ interface OptionTrade {
       // 计算总计
       const totalCurrentValue = results.reduce((sum, r) => sum + r.currentValue, 0);
       const totalCostBasis = results.reduce((sum, r) => sum + r.costBasis, 0);
-      const totalFees = results.reduce((sum, r) => sum + r.fee, 0);
-      const totalFeesUsdt = totalFees * this.spotPrice;
-      const totalPnl = results.reduce((sum, r) => sum + r.pnl, 0);
-      const totalPnlUsdt = totalPnl * this.spotPrice;
+      const totalFees_Currency = results.reduce((sum, r) => sum + r.fee, 0);
+      const totalFeesInUSDT = totalFees_Currency * this.spotPrice;
+      const totalPnlInCurrency = results.reduce((sum, r) => sum + r.pnl, 0);
+      const totalPnlInUSDT = totalPnlInCurrency * this.spotPrice;
   
       return {
         totalCurrentValue,
         totalCostBasis,
-        totalFees,
-        totalFeesUsdt,
-        totalPnl,
-        totalPnlUsdt,
+        totalFees_Currency,
+        totalFees_USDT:0,
+        totalFeesInUSDT,
+        totalPnlInCurrency,
+        totalPnlInUSDT,
         spotPrice: this.spotPrice,
         breakdown: {
           expired: expired.map(r => ({

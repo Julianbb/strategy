@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sendPriceAlertNotification } from '@/lib/push-service';
+import { sendPriceAlertNotification } from '@/lib/services/push-notifications';
 import { auth } from '@/app/(auth)/auth';
 
 export async function POST(request: NextRequest) {

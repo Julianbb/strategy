@@ -245,6 +245,9 @@ dependencies:
   react-data-grid:
     specifier: 7.0.0-beta.47
     version: 7.0.0-beta.47(react-dom@19.0.0-rc-45804af1-20241021)(react@19.0.0-rc-45804af1-20241021)
+  react-day-picker:
+    specifier: ^9.8.1
+    version: 9.8.1(react@19.0.0-rc-45804af1-20241021)
   react-dom:
     specifier: 19.0.0-rc-45804af1-20241021
     version: 19.0.0-rc-45804af1-20241021(react@19.0.0-rc-45804af1-20241021)
@@ -1703,6 +1706,10 @@ packages:
       crelt: 1.0.6
       style-mod: 4.1.2
       w3c-keyname: 2.2.8
+    dev: false
+
+  /@date-fns/tz@1.2.0:
+    resolution: {integrity: sha512-LBrd7MiJZ9McsOgxqWX7AaxrDjcFVjWH/tIKJd7pnR7McaslGYOP1QmmiBXdJH/H/yLCT+rcQ7FaPBUxRGUtrg==}
     dev: false
 
   /@drizzle-team/brocli@0.10.2:
@@ -5808,6 +5815,10 @@ packages:
       es-errors: 1.3.0
       is-data-view: 1.0.2
 
+  /date-fns-jalali@4.1.0-0:
+    resolution: {integrity: sha512-hTIP/z+t+qKwBDcmmsnmjWTduxCg+5KfdqWQvb2X/8C9+knYY6epN/pfxdDuyVlSVeFz0sM5eEfwIUQ70U4ckg==}
+    dev: false
+
   /date-fns@4.1.0:
     resolution: {integrity: sha512-Ukq0owbQXxa/U3EGtsdVBkR1w7KOQ5gIBqdH2hkvknzZPYvBxb/aa6E8L7tmjFtkwZBu3UXBbjIgPo/Ez4xaNg==}
     dev: false
@@ -9222,6 +9233,18 @@ packages:
       clsx: 2.1.1
       react: 19.0.0-rc-45804af1-20241021
       react-dom: 19.0.0-rc-45804af1-20241021(react@19.0.0-rc-45804af1-20241021)
+    dev: false
+
+  /react-day-picker@9.8.1(react@19.0.0-rc-45804af1-20241021):
+    resolution: {integrity: sha512-kMcLrp3PfN/asVJayVv82IjF3iLOOxuH5TNFWezX6lS/T8iVRFPTETpHl3TUSTH99IDMZLubdNPJr++rQctkEw==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      react: '>=16.8.0'
+    dependencies:
+      '@date-fns/tz': 1.2.0
+      date-fns: 4.1.0
+      date-fns-jalali: 4.1.0-0
+      react: 19.0.0-rc-45804af1-20241021
     dev: false
 
   /react-dom@19.0.0-rc-45804af1-20241021(react@19.0.0-rc-45804af1-20241021):

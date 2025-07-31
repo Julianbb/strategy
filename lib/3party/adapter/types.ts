@@ -40,7 +40,8 @@ export enum PlatformType {
   OKX = 'okx',
   BINANCE = 'binance',
   DERIBIT = 'deribit',
-  BYBIT = 'bybit'
+  BYBIT = 'bybit',
+  HYPERLIQUID = 'hyperliquid'
 }
 
 export interface PlatformConfig {

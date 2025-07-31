@@ -4,7 +4,7 @@ import postgres from 'postgres';
 import { priceAlerts } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { priceService } from '@/lib/services/price-fetcher';
-import { sendPriceAlertNotification } from '@/lib/push-service';
+import { sendPriceAlertNotification } from '@/lib/services/push-notifications';
 
 const client = postgres(process.env.POSTGRES_URL!);
 const db = drizzle(client);

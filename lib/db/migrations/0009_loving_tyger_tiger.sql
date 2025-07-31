@@ -1,0 +1,1 @@
+ALTER TABLE "Trades" RENAME COLUMN "priceCurrency" TO "priceInCurrency";

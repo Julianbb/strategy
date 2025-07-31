@@ -22,8 +22,9 @@ interface PerpetualTrade {
   
   // 永续合约组合汇总
   interface PerpetualPortfolioSummary {
-    totalUnrealizedPnl: number;    // 总未实现盈亏（USDT，扣除手续费之前）
-    totalFees: number;             // 总手续费（USDT）
+    totalUnrealizedPnlInUSDT: number;    // 总未实现盈亏（USDT，扣除手续费之前）
+    totalFees_USDT: number;             // 总手续费（USDT）
+    totalFeesInUSDT: number;            // 总手续费（USDT换算）
     totalExposure: number;         // 总敞口（币本位，如ETH）
     netExposure: number;           // 净敞口（币本位，正数=净做多，负数=净做空）
     averagePriceOfPosition: number; // 净仓位的平均持仓成本（USDT）
@@ -75,8 +76,8 @@ interface PerpetualTrade {
     calculatePortfolioValue(trades: PerpetualTrade[]): PerpetualPortfolioSummary {
       const positions = trades.map(trade => this.calculatePerpetualValue(trade));
       
-      const totalUnrealizedPnl = positions.reduce((sum, p) => sum + p.unrealizedPnl, 0);
-      const totalFees = positions.reduce((sum, p) => sum + p.fee, 0);
+      const totalUnrealizedPnlInUSDT = positions.reduce((sum, p) => sum + p.unrealizedPnl, 0);
+      const totalFees_USDT = positions.reduce((sum, p) => sum + p.fee, 0);
       
       // 计算敞口（币本位）
       let totalExposure = 0;  // 总敞口
@@ -117,8 +118,9 @@ interface PerpetualTrade {
       }
   
       return {
-        totalUnrealizedPnl,
-        totalFees,
+        totalUnrealizedPnlInUSDT,
+        totalFees_USDT,
+        totalFeesInUSDT: totalFees_USDT,
         totalExposure,
         netExposure,
         averagePriceOfPosition,

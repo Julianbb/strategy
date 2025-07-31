@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { Bell, Plus, X, TrendingUp, TrendingDown, Edit } from 'lucide-react';
-import { subscribeToPushNotifications, requestNotificationPermission } from '@/lib/push-notifications';
+import { subscribeToPushNotifications, requestNotificationPermission } from '@/lib/services/push-notifications';
 import { usePriceAlerts } from './price-alerts-context';
 
 export function PriceAlertsSection() {

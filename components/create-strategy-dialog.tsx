@@ -89,14 +89,17 @@ export function CreateStrategyDialog({
       Initial Capital (Currency): ${formData.initialCapital_Currency}
       ${strategyType.description ? `Strategy Type Context: ${strategyType.description}` : ''}
       you don't need to do anything right now. but I will have a conversation with you, please use tool to help me interact with every single trade happened within this strategy,
-      Please follow these rules:
-      1. Each trade involves only one product.
-      2. Each trade uses only one pricing currency—either crypto or USD. No conversion is needed.
+      Please follow these rules strictly:
+      1. Each trade involves only one product, You need to determine the product type based on my description, using ETH as an example:  
+        * If I say I bought ETH, it refers to spot trading, with the product name formatted as ETH;  
+        * If I say I went long/short on ETH, it refers to futures contracts, with the product name formatted as ETHUSDT;  
+        * If my description involves expiration date, strike price, etc., it refers to options, with the product name formatted as ETHUSD-20250725-2100-P.
+      2. Each trade uses only one pricing currency—either crypto or USD. No conversion is needed. But remember, the handling fee and price are independent; the price can be denominated in USDT, while the handling fee can be crypto-based.
         * If priced in USD, leave the crypto fields empty.
         * If priced in crypto, leave the USD fields empty.
         * For example, if I say the price is 0.2 ETH, it's crypto-based: set priceInCurrency = 0.2, ignore priceInUSD.
           If I say the price is 2300 USD, it's USD-based: set priceInUSD = 2300, ignore priceInCurrency.
-        * Same logic applies to costInCurrency/costInUSD, and feeInCurrency/feeInUSD.
+        * Same logic applies to costInCurrency/costInUSD, and feeInCurrency/feeInUSD.  
       3. If there are any required parameters I forgot to give you, ask me again.
       `;
 

@@ -31,7 +31,9 @@ export default function TradeItems({ trade, baseCurrency }: { trade: TradesType,
     const currencyType = trade.productType === 'option' ? 'currency' : 'usd'
     const currency = trade.productType === 'option' ? baseCurrency : undefined
     const price = trade.productType === 'option' ? trade.priceInCurrency : trade.priceInUSD
-    const fee = trade.productType === 'option' ? trade.feeInCurrency : trade.feeInUSD
+    const fee = trade.feeInUSD || trade.feeInCurrency
+    const feeCurrencyType = trade.feeInUSD ? 'usd' : 'currency'
+    const feeCurrency = trade.feeInUSD ? undefined : baseCurrency
   
     return (
       <div className="px-4 py-3 text-sm">
@@ -58,7 +60,7 @@ export default function TradeItems({ trade, baseCurrency }: { trade: TradesType,
   
         {/* 第三排：Fee + Time */}
         <div className="flex justify-between font-mono text-xs text-muted-foreground mt-3"> {/* 👈 正常间隔 */}
-          <div>Fee: {formatCurrency(fee, currencyType, currency)}</div>
+          <div>Fee: {formatCurrency(fee, feeCurrencyType, feeCurrency)}</div>
           <div>{formatDateTime(trade.executedAt)}</div>
         </div>
       </div>

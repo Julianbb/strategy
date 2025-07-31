@@ -83,10 +83,10 @@ const createTradeColumns = (baseCurrency: string): ColumnDef<TradesType>[] => [
     accessorKey: "fee",
     header: () => <div className="text-right">Fee</div>,
     cell: ({ row }) => {
-      const { productType, feeInCurrency, feeInUSD } = row.original
-      const fee = productType === 'option' ? feeInCurrency : feeInUSD
-      const currencyType = productType === 'option' ? 'currency' : 'usd'
-      const currency = productType === 'option' ? baseCurrency : undefined
+      const { feeInCurrency, feeInUSD } = row.original
+      const fee = feeInUSD || feeInCurrency
+      const currencyType = feeInUSD ? 'usd' : 'currency'
+      const currency = feeInUSD ? undefined : baseCurrency
       return <div className="text-right font-mono">{formatCurrency(fee, currencyType, currency)}</div>
     },
   },
