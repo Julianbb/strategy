@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const coin = searchParams.get('coin');
-    const alertId = searchParams.get('alertId');
+    const alertId = searchParams.get('alertId'); 
 
     if (!coin || !alertId) {
       return NextResponse.json({ error: 'Missing coin or alertId' }, { status: 400 });
