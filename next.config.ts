@@ -24,4 +24,17 @@ module.exports = withPWA({
       }
     ],
   },
+  webpack: (config: any, { isServer }: { isServer: boolean }) => {
+    if (!isServer) {
+      // Exclude server-only modules from client bundle
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+        crypto: false,
+      };
+    }
+    return config;
+  },
 });

@@ -1,2 +1,2 @@
 export * from './push-notifications';
-export * from './push-service';
+// Note: push-service is server-only and should not be imported in client components

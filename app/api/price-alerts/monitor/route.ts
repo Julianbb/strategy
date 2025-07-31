@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
 
           // Send push notification directly using the push service
           try {
-            const { sendPriceAlertNotification } = await import('@/lib/services/push-notifications');
+            const { sendPriceAlertNotification } = await import('@/lib/services/push-notifications/index.server');
             const notificationSent = await sendPriceAlertNotification(
               alert.userId,
               alert.coin,
