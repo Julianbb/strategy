@@ -20,14 +20,27 @@ export type {
   PerpetualPortfolioSummary
 } from './perpetual';
 
+// 现货计算器
+export {
+  SimpleSpotCalculator
+} from './spot';
+
+export type {
+  SpotTrade,
+  SpotValue,
+  SpotPortfolioSummary
+} from './spot';
+
 // 计算器管理器
 export {
   CalculatorManager,
   createCalculatorManager,
   isOptionTrade,
   isPerpetualTrade,
-  isPortfolioSummary,
-  isPerpetualPortfolioSummary
+  isSpotTrade,
+  isOptionsPortfolioSummary,
+  isPerpetualPortfolioSummary,
+  isSpotPortfolioSummary
 } from './calculator-manager';
 
 export type {
