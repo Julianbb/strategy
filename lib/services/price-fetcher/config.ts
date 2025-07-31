@@ -32,6 +32,11 @@ export const defaultConfig: PriceServiceConfig = {
       timeout: 5000,
       retries: 3,
     },
+    [PlatformType.HYPERLIQUID]: {
+      type: PlatformType.HYPERLIQUID,
+      timeout: 5000,
+      retries: 3,
+    },
   },
 };
 
