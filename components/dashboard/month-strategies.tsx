@@ -4,12 +4,47 @@ import { StrategyChat } from '@/lib/db/schema'
 import { calculateDaysSinceStarted } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
 
-interface MonthStrategiesProps {
-  strategies: StrategyChat[]
+interface StrategyWithSnapshot extends StrategyChat {
+  latestProfitLoss?: number;
 }
 
-export function MonthStrategies({ strategies }: MonthStrategiesProps) {
+interface StrategyMonthlyPnLData {
+  strategyChatId: string;
+  year: string;
+  monthlyProfitLoss: number[] | null;
+}
+
+interface MonthStrategiesProps {
+  strategies: StrategyChat[];
+  nonCompletedStrategies?: StrategyChat[];
+  completedStrategies?: StrategyChat[];
+  strategiesWithSnapshots?: StrategyMonthlyPnLData[];
+}
+
+export function MonthStrategies({ strategies, nonCompletedStrategies, completedStrategies, strategiesWithSnapshots }: MonthStrategiesProps) {
   const router = useRouter();
+  
+  // Calculate profit/loss for each strategy based on strategiesWithSnapshots
+  const calculatePnLForStrategies = (strategiesArray: StrategyChat[]) => {
+    return strategiesArray.map(strategy => {
+      const monthlyData = strategiesWithSnapshots?.find(s => s.strategyChatId === strategy.id);
+      let latestProfitLoss = null;
+      
+      if (monthlyData && monthlyData.monthlyProfitLoss && Array.isArray(monthlyData.monthlyProfitLoss)) {
+        latestProfitLoss = monthlyData.monthlyProfitLoss.reduce((sum, monthPnL) => {
+          return sum + (monthPnL || 0);
+        }, 0);
+      }
+      
+      return {
+        ...strategy,
+        latestProfitLoss
+      };
+    });
+  };
+  
+  const nonCompletedWithPnL = calculatePnLForStrategies(nonCompletedStrategies || []);
+  const completedWithPnL = calculatePnLForStrategies(completedStrategies || []);
 
   const handleStrategyClick = (strategyId: string) => {
     router.push(`/dashboard/strategy-chat/${strategyId}`);
@@ -60,30 +95,44 @@ export function MonthStrategies({ strategies }: MonthStrategiesProps) {
     }
   }
 
+  const renderStrategy = (strategy: StrategyChat & { latestProfitLoss?: number | null }) => {
+    const duration = calculateDaysSinceStarted(strategy);
+    const profitLoss = strategy.latestProfitLoss !== undefined 
+      ? strategy.latestProfitLoss 
+      : (strategy.last_profit_loss ? Number(strategy.last_profit_loss) : null);
+    
+    return (
+      <div 
+        key={strategy.id} 
+        className='flex items-center gap-2 md:gap-4 cursor-pointer hover:bg-muted/50 p-2 md:p-3 rounded-md transition-colors'
+        onClick={() => handleStrategyClick(strategy.id)}
+      >
+        {getStatusIcon(strategy.status)}
+        <div className='flex-1 min-w-0'>
+          <p className='text-xs md:text-sm font-medium truncate'>{strategy.strategyName}</p>
+          <p className='text-muted-foreground text-xs'>
+            {duration}d
+          </p>
+        </div>
+        <div className='font-medium text-xs md:text-sm text-right shrink-0'>
+          {profitLoss !== null ? `$${profitLoss.toLocaleString()}` : 'N/A'}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className='space-y-3 md:space-y-4 max-h-60 md:max-h-80 overflow-y-auto pr-1 md:pr-2'>
-      {strategies.map((strategy) => {
-        const duration = calculateDaysSinceStarted(strategy)
-        
-        return (
-          <div 
-            key={strategy.id} 
-            className='flex items-center gap-2 md:gap-4 cursor-pointer hover:bg-muted/50 p-2 md:p-3 rounded-md transition-colors'
-            onClick={() => handleStrategyClick(strategy.id)}
-          >
-            {getStatusIcon(strategy.status)}
-            <div className='flex-1 min-w-0'>
-              <p className='text-xs md:text-sm font-medium truncate'>{strategy.strategyName}</p>
-              <p className='text-muted-foreground text-xs'>
-                {duration}d
-              </p>
-            </div>
-            <div className='font-medium text-xs md:text-sm text-right shrink-0'>
-              {strategy.last_profit_loss ? `$${Number(strategy.last_profit_loss).toLocaleString()}` : 'N/A'}
-            </div>
-          </div>
-        )
-      })}
+      {/* Non-completed strategies */}
+      {nonCompletedWithPnL.map(renderStrategy)}
+      
+      {/* Divider between non-completed and completed strategies */}
+      {nonCompletedWithPnL.length > 0 && completedWithPnL.length > 0 && (
+        <div className="border-t border-gray-300 my-3"></div>
+      )}
+      
+      {/* Completed strategies */}
+      {completedWithPnL.map(renderStrategy)}
     </div>
   )
 }

@@ -11,27 +11,47 @@ import { OverviewTab } from '@/components/dashboard/overview-tab'
 import { PortfolioTab } from '@/components/dashboard/portfolio-tab'
 
 
+interface StrategyWithMonthlyPnL {
+  id: string;
+  strategyChatId: string;
+  year: string;
+  monthlyProfitLoss: number[] | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export default function DashboardPage() {
   const sidebar = useStore(useSidebar, (x) => x);
   const [strategies, setStrategies] = useState<StrategyChat[]>([]);
+  const [strategiesWithMonthlyPnL, setStrategiesWithMonthlyPnL] = useState<StrategyWithMonthlyPnL[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchStrategies = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch('/api/strategy-chat/list');
-        if (response.ok) {
-          const data = await response.json();
-          setStrategies(data);
+        // Fetch basic strategies
+        const strategiesResponse = await fetch('/api/strategy-chat/list');
+        if (strategiesResponse.ok) {
+          const strategiesData = await strategiesResponse.json();
+          setStrategies(strategiesData);
+        }
+
+        // Fetch strategies with monthly P&L
+        const monthlyPnLResponse = await fetch('/api/monthly-pnl');
+        if (monthlyPnLResponse.ok) {
+          const monthlyPnLData = await monthlyPnLResponse.json();
+         
+          setStrategiesWithMonthlyPnL(monthlyPnLData);
+       
         }
       } catch (error) {
-        console.error('Error fetching strategies:', error);
+        console.error('Error fetching data:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchStrategies();
+    fetchData();
   }, []);
 
   if (!sidebar) return null;
@@ -59,7 +79,7 @@ export default function DashboardPage() {
             </TabsList>
           </div>
           <TabsContent value='overview' className='space-y-4'>
-            <OverviewTab strategies={strategies} />
+            <OverviewTab strategies={strategies} strategiesWithSnapshots={strategiesWithMonthlyPnL} />
           </TabsContent>
           <TabsContent value='portfolio' className='space-y-4'>
             <PortfolioTab />

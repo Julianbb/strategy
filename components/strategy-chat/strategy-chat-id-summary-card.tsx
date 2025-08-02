@@ -65,6 +65,7 @@ export function StrategyCard({ strategyChat, tradesInCurrentStrategy }: Strategy
       })
 
       if (response.ok) {
+        
         toast.success('Strategy status updated successfully')
         
         // If status changed to stopped or completed, recalculate metrics

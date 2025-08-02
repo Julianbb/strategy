@@ -7,7 +7,18 @@ import {
 } from '@/components/ui/card'
 import { Overview } from '@/components/dashboard/overview'
 
-const constructChartData = (strategies: StrategyChat[]) => {
+interface StrategyMonthlyPnLData {
+  id: string;
+  strategyChatId: string;
+  year: string;
+  monthlyProfitLoss: number[] | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+
+const constructChartData = (strategies: StrategyMonthlyPnLData[]) => {
+ 
   const months = [
     'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
     'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
@@ -16,16 +27,19 @@ const constructChartData = (strategies: StrategyChat[]) => {
   const monthlyData = months.map(month => ({ name: month, total: 0, fill: '#22c55e' }));
   
   strategies.forEach(strategy => {
-    const createdMonth = new Date(strategy.startedAt).getMonth();
-    const profitAndLoss = strategy.last_profit_loss ? Number(strategy.last_profit_loss) : 0;
-    monthlyData[createdMonth].total += profitAndLoss;
+    if (strategy.monthlyProfitLoss && Array.isArray(strategy.monthlyProfitLoss)) {
+      for (let monthIndex = 0; monthIndex < 12; monthIndex++) {
+        const monthPnL = strategy.monthlyProfitLoss[monthIndex] || 0;
+        monthlyData[monthIndex].total += monthPnL;
+      }
+    }
   });
   
   // Set colors based on total value
   monthlyData.forEach(month => {
     month.fill = month.total >= 0 ? '#22c55e' : '#ef4444'; // green for positive, red for negative
   });
-  
+ 
   return monthlyData;
 };
 import { MonthStrategies } from '@/components/dashboard/month-strategies'
@@ -34,28 +48,56 @@ import { StrategyChat } from '@/lib/db/schema'
 import { useState } from 'react'
 
 interface OverviewTabProps {
-  strategies: StrategyChat[]
+  strategies: StrategyChat[];
+  strategiesWithSnapshots?: StrategyMonthlyPnLData[];
 }
 
-export function OverviewTab({ strategies = [] }: OverviewTabProps) {
+export function OverviewTab({ strategies = [], strategiesWithSnapshots = [] }: OverviewTabProps) {
   const currentMonth = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][new Date().getMonth()];
   const [selectedMonth, setSelectedMonth] = useState<string>(currentMonth);
-  const chartData = constructChartData(strategies);
+  const chartData = constructChartData(strategiesWithSnapshots);
   
   const getStrategiesForMonth = (monthName: string) => {
     const monthIndex = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].indexOf(monthName);
-    return strategies.filter(strategy => {
+    
+    const nonCompletedStrategies = strategies.filter(strategy => {
       const createdMonth = new Date(strategy.startedAt).getMonth();
-      return createdMonth === monthIndex;
+      const currentMonth = new Date().getMonth();
+      
+      // Show non-completed strategies that started before or during the selected month
+      // and are still active (started <= selected month <= current month)
+      const startedBeforeOrInMonth = createdMonth <= monthIndex;
+      const isInActiveRange = monthIndex <= currentMonth;
+      
+      return startedBeforeOrInMonth && isInActiveRange && strategy.status !== 'completed';
     });
+    
+    const completedStrategies = strategies.filter(strategy => {
+      const createdMonth = new Date(strategy.startedAt).getMonth();
+      const startedInMonth = createdMonth === monthIndex;
+      
+      // Show strategies that started in this month and are completed
+      return startedInMonth && strategy.status === 'completed';
+    });
+    
+    return { nonCompletedStrategies, completedStrategies };
   };
   
-  const displayedStrategies = getStrategiesForMonth(selectedMonth);
+  const { nonCompletedStrategies, completedStrategies } = getStrategiesForMonth(selectedMonth);
+  const displayedStrategies = [...nonCompletedStrategies, ...completedStrategies];
   
-  // Calculate total P&L from all strategies
+  // Calculate total P&L from all strategies using strategiesWithSnapshots data
   const totalProfitLoss = strategies.reduce((sum, strategy) => {
-    const profitLoss = strategy.last_profit_loss ? Number(strategy.last_profit_loss) : 0;
-    return sum + profitLoss;
+    const strategyWithSnapshot = strategiesWithSnapshots.find(s => s.strategyChatId === strategy.id);
+    
+    if (strategyWithSnapshot && strategyWithSnapshot.monthlyProfitLoss && Array.isArray(strategyWithSnapshot.monthlyProfitLoss)) {
+      const totalMonthlyPnL = strategyWithSnapshot.monthlyProfitLoss.reduce((monthSum, monthPnL) => {
+        return monthSum + (monthPnL || 0);
+      }, 0);
+      return sum + totalMonthlyPnL;
+    }
+    
+    return sum;
   }, 0);
   
   // Calculate active strategies count
@@ -89,7 +131,7 @@ export function OverviewTab({ strategies = [] }: OverviewTabProps) {
         
          <DashboardCard
           title="P&L"
-          value={`${totalProfitLoss >= 0 ? '+' : ''}$${totalProfitLoss.toLocaleString()}`}
+          value={`${totalProfitLoss >= 0 ? '+' : ''}$${Math.round(totalProfitLoss).toLocaleString()}`}
           description="profit and loss of total strategies"
           icon={
             <svg
@@ -173,7 +215,12 @@ export function OverviewTab({ strategies = [] }: OverviewTabProps) {
           </CardHeader>
           <CardContent>
             {displayedStrategies.length > 0 ? (
-              <MonthStrategies strategies={displayedStrategies} />
+              <MonthStrategies 
+                strategies={displayedStrategies}
+                nonCompletedStrategies={nonCompletedStrategies}
+                completedStrategies={completedStrategies}
+                strategiesWithSnapshots={strategiesWithSnapshots}
+              />
             ) : (
               <div className="flex items-center justify-center py-8 text-muted-foreground">
                 <p>No strategies found for this month</p>

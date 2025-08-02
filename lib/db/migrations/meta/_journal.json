@@ -71,6 +71,20 @@
       "when": 1753950378925,
       "tag": "0009_loving_tyger_tiger",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1754027437372,
+      "tag": "0010_cultured_rogue",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1754119939546,
+      "tag": "0011_clever_vivisector",
+      "breakpoints": true
     }
   ]
 }

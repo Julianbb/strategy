@@ -1070,6 +1070,89 @@ export async function getTradesByIds({ ids }: { ids: string[] }) {
   }
 }
 
+export async function getLatestStrategySnapshot({
+  strategyChatId,
+}: {
+  strategyChatId: string;
+}) {
+  try {
+    const [latestSnapshot] = await db
+      .select()
+      .from(strategySnapshot)
+      .where(eq(strategySnapshot.strategyChatId, strategyChatId))
+      .orderBy(desc(strategySnapshot.timestamp))
+      .limit(1);
+    
+    return latestSnapshot;
+  } catch (error) {
+    throw new ChatSDKError(
+      'bad_request:database',
+      'Failed to get latest strategy snapshot',
+    );
+  }
+}
+
+export async function getMonthlyProfitLoss({
+  strategyChatId,
+  year,
+  month,
+}: {
+  strategyChatId: string;
+  year: number;
+  month: number;
+}) {
+  try {
+    // Get start and end of the month
+    const startOfMonth = new Date(year, month, 1);
+    const endOfMonth = new Date(year, month + 1, 0, 23, 59, 59, 999);
+    
+    // Get last snapshot of current month
+    const [currentMonthLastSnapshot] = await db
+      .select()
+      .from(strategySnapshot)
+      .where(
+        and(
+          eq(strategySnapshot.strategyChatId, strategyChatId),
+          gte(strategySnapshot.timestamp, startOfMonth),
+          lt(strategySnapshot.timestamp, endOfMonth)
+        )
+      )
+      .orderBy(desc(strategySnapshot.timestamp))
+      .limit(1);
+    
+    if (!currentMonthLastSnapshot) {
+      return 0;
+    }
+    
+    // Get last snapshot of previous month
+    const startOfPrevMonth = new Date(year, month - 1, 1);
+    const endOfPrevMonth = new Date(year, month, 0, 23, 59, 59, 999);
+    
+    const [prevMonthLastSnapshot] = await db
+      .select()
+      .from(strategySnapshot)
+      .where(
+        and(
+          eq(strategySnapshot.strategyChatId, strategyChatId),
+          gte(strategySnapshot.timestamp, startOfPrevMonth),
+          lt(strategySnapshot.timestamp, endOfPrevMonth)
+        )
+      )
+      .orderBy(desc(strategySnapshot.timestamp))
+      .limit(1);
+    
+    const currentPnL = Number(currentMonthLastSnapshot.profitLossInUSD || '0');
+    const prevPnL = prevMonthLastSnapshot ? Number(prevMonthLastSnapshot.profitLossInUSD || '0') : 0;
+    
+    return currentPnL - prevPnL;
+  } catch (error) {
+    throw new ChatSDKError(
+      'bad_request:database',
+      'Failed to get monthly profit loss',
+    );
+  }
+}
+
 export async function updateTradeExpiredStatus({
   id,
   deliveryPriceInCurrency,

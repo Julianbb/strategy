@@ -1,0 +1,1 @@
+ALTER TABLE "Strategy_Snapshot" ADD COLUMN "profitLossInUSD" numeric(20, 8);

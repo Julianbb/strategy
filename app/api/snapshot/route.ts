@@ -79,6 +79,7 @@ export async function POST() {
           strategyChatId: strategy.id,
           timestamp: new Date(),
           currentValueInUSD: metrics.currentValueInUSD.toString(),
+          profitLossInUSD: metrics.profitLossInUSD.toString(),
         });
 
         results.push({

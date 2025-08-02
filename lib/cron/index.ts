@@ -3,6 +3,7 @@ import { cronManager } from './cron-manager';
 // Import all job modules
 const snapshotScheduler = require('./snapshot-scheduler');
 const priceAlertMonitor = require('./price-alert-monitor');
+const pnlCalculator = require('./PnL-Calculator');
 
 interface StartOptions {
   testMode?: boolean;
@@ -23,6 +24,11 @@ function startAllJobs(options: StartOptions = {}) {
   // Start price alert monitor
   if (!jobs || jobs.includes('price-alerts')) {
     priceAlertMonitor.startPriceAlertMonitor(testMode);
+  }
+  
+  // Start monthly PnL calculator
+  if (!jobs || jobs.includes('monthly-pnl')) {
+    pnlCalculator.startMonthlyPnLCalculator();
   }
   
   // Display job status
@@ -66,6 +72,7 @@ Options:
 Jobs (optional, runs all if not specified):
   snapshot        Strategy snapshot scheduler
   price-alerts    Price alert monitor
+  monthly-pnl     Monthly P&L calculator
 
 Examples:
   node lib/cron/index.js                    # Start all jobs in production mode

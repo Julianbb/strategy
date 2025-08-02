@@ -6,7 +6,7 @@ import { guestRegex, isDevelopmentEnvironment } from './lib/constants';
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (pathname.startsWith('/api/snapshot')||pathname.startsWith('/api/auth')||pathname.startsWith('/api/price-alerts/monitor')) {
+  if (pathname.startsWith('/api/snapshot')||pathname.startsWith('/api/auth')||pathname.startsWith('/api/price-alerts/monitor')||pathname.startsWith('/api/monthly-pnl')) {
     return NextResponse.next();
   }
 

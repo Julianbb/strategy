@@ -446,6 +446,29 @@ export async function PATCH(request: NextRequest) {
       id: validatedData.id,
       status: validatedData.status,
     });
+    
+    // 如果状态更新为完成，触发月度PnL计算
+    if (validatedData.status === 'completed') {
+      try {
+        // 异步调用月度PnL计算API
+        const baseUrl = process.env.NODE_ENV === 'production' 
+          ? process.env.NEXTAUTH_URL 
+          : 'http://localhost:3000';
+        
+        fetch(`${baseUrl}/api/monthly-pnl`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }).catch(error => {
+          console.error('Failed to trigger monthly PnL calculation:', error);
+        });
+        
+        console.log(`[${new Date().toISOString()}] Triggered monthly PnL calculation for completed strategy chat: ${validatedData.id}`);
+      } catch (error) {
+        console.error('Error triggering monthly PnL calculation:', error);
+      }
+    }
 
     return Response.json(updatedChat, { status: 200 });
   } catch (error) {

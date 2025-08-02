@@ -163,6 +163,7 @@ export const strategySnapshot = pgTable('Strategy_Snapshot', {
   strategyChatId: uuid('strategyChatId').references(() => strategyChat.id).notNull(),
   timestamp: timestamp('timestamp').notNull(),
   currentValueInUSD: numeric('currentValue', { precision: 20, scale: 8 }).notNull(),
+  profitLossInUSD: numeric('profitLossInUSD', { precision: 20, scale: 8 }),
 });
 
 export type StrategySnapshot = InferSelectModel<typeof strategySnapshot>;
@@ -196,3 +197,14 @@ export const pushSubscriptions = pgTable('Push_Subscriptions', {
 });
 
 export type PushSubscription = InferSelectModel<typeof pushSubscriptions>;
+
+export const strategyMonthlyPnL = pgTable('Strategy_Monthly_PnL', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  strategyChatId: uuid('strategyChatId').references(() => strategyChat.id).notNull(),
+  year: numeric('year', { precision: 4, scale: 0 }).notNull(),
+  monthlyProfitLoss: json('monthlyProfitLoss').notNull(), // Array of 12 numbers [Jan, Feb, ..., Dec]
+  createdAt: timestamp('createdAt').notNull(),
+  updatedAt: timestamp('updatedAt').notNull(),
+});
+
+export type StrategyMonthlyPnL = InferSelectModel<typeof strategyMonthlyPnL>;
