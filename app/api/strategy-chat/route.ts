@@ -463,8 +463,6 @@ export async function PATCH(request: NextRequest) {
         }).catch(error => {
           console.error('Failed to trigger monthly PnL calculation:', error);
         });
-        
-        console.log(`[${new Date().toISOString()}] Triggered monthly PnL calculation for completed strategy chat: ${validatedData.id}`);
       } catch (error) {
         console.error('Error triggering monthly PnL calculation:', error);
       }

@@ -32,7 +32,7 @@ export function Overview({ data, onBarClick }: OverviewProps) {
           tickFormatter={(value) => `$${value}`}
         />
         <Tooltip
-          formatter={(value) => [`$${value}`, 'Total']}
+          formatter={(value) => [`$${Number(value).toFixed(2).replace(/\.?0+$/, '')}`, 'Total']}
           labelFormatter={(label) => `Month: ${label}`}
           contentStyle={{
             backgroundColor: 'hsl(var(--card))',

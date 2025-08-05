@@ -29,7 +29,7 @@ import {
   trades,
   type Trades,
   strategySnapshot,
-  type StrategySnapshot,
+  strategyMonthlyPnL,
   priceAlerts,
   type PriceAlert,
 } from './schema';
@@ -226,6 +226,7 @@ export async function deleteStrategyChatById({ id }: { id: string }) {
     await db.delete(stream).where(eq(stream.chatId, id));
     await db.delete(trades).where(eq(trades.strategyChatId, id));
     await db.delete(strategySnapshot).where(eq(strategySnapshot.strategyChatId, id));
+    await db.delete(strategyMonthlyPnL).where(eq(strategyMonthlyPnL.strategyChatId,id));
 
     const [chatsDeleted] = await db
       .delete(strategyChat)

@@ -210,7 +210,7 @@ export function OverviewTab({ strategies = [], strategiesWithSnapshots = [] }: O
           <CardHeader>
             <CardTitle>Strategies</CardTitle>
             <CardDescription>
-              {`You excuted ${displayedStrategies.length} strategies in ${selectedMonth}`}
+              {`You have ${displayedStrategies.length} strategies in ${selectedMonth}`}
             </CardDescription>
           </CardHeader>
           <CardContent>
